@@ -1,0 +1,60 @@
+name: Build and test
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  core:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - name: Install FFmpeg (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ffmpeg
+      - name: Install FFmpeg (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Install FFmpeg (Windows)
+        if: runner.os == 'Windows'
+        run: choco install ffmpeg --no-progress -y
+      - run: npm run check
+      - name: Desktop integration (macOS)
+        if: runner.os == 'macOS'
+        run: npm run check:desktop
+      - name: Upload desktop evidence
+        if: runner.os == 'macOS' && always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: desktop-evidence
+          path: |
+            docs/screenshots/
+            .test-output/*-electron/evidence.json
+  package:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: node node_modules/electron/install.js
+      - run: npm run licenses
+      - run: npm run dist:mac:installer
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ReaCut-macOS
+          path: |
+            release/ReaCut*.dmg
+            release/ReaCut*mac.zip

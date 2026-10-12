@@ -1,0 +1,2 @@
+https://static.crates.io/crates/napi-build/napi-build-2.4.1.crate
+https://raw.githubusercontent.com/napi-rs/napi-rs/956e4525fea6a676ea3680b711382f167b899af9/LICENSE

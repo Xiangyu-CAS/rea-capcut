@@ -1,0 +1,2 @@
+https://static.crates.io/crates/base64-simd/base64-simd-0.8.0.crate
+https://raw.githubusercontent.com/Nugine/simd/d74c030d9dc4f3cae02146d1f497ff62726ef09a/LICENSE

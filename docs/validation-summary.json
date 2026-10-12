@@ -1,0 +1,263 @@
+{
+  "recordedAt": "2026-10-12T21:41:16.552409+00:00",
+  "platform": "macOS arm64",
+  "unitAndIntegrationTests": {
+    "filesPassed": 9,
+    "testsPassed": 104,
+    "source": "npm test terminal result 2026-10-13 05:28:34 Asia/Shanghai"
+  },
+  "desktop": {
+    "app-electron": {
+      "passedAt": "2026-10-12T21:38:18.084Z",
+      "checks": [
+        "bundled Noto Sans SC browser/native availability",
+        "native import+metadata+actual red/blue thumbnail pixels",
+        "actual canvas red-video decode",
+        "play/pause progresses time",
+        "timeline split source range",
+        "undo",
+        "native clip clipboard accelerators",
+        "audio property selection",
+        "text edit persistence",
+        "inspector color+speed+keyframe",
+        "SRT import",
+        "project reopen+media hydration",
+        "project dimensions",
+        "UI local export+ffprobe"
+      ],
+      "errors": [],
+      "mediaFailures": [],
+      "fonts": {
+        "browserFaces": 1,
+        "browserLoaded": true,
+        "browserCheck": true,
+        "nativeIncludesNoto": true
+      },
+      "duration": "5.000000",
+      "initialGeometry": {
+        "width": 1470,
+        "documentWidth": 1470,
+        "scrollLeft": 0,
+        "inspector": {
+          "left": 1162,
+          "right": 1462,
+          "width": 300
+        },
+        "exportButton": {
+          "left": 1376,
+          "right": 1454,
+          "width": 78
+        }
+      },
+      "finalGeometry": {
+        "width": 1470,
+        "documentWidth": 1470,
+        "scrollLeft": 0,
+        "inspector": {
+          "left": 1162,
+          "right": 1462,
+          "width": 300
+        },
+        "exportButton": {
+          "left": 1376,
+          "right": 1454,
+          "width": 78
+        }
+      }
+    },
+    "visual-ui-electron": {
+      "passedAt": "2026-10-12T21:38:21.868Z",
+      "checks": [
+        "bundled Noto Sans SC browser/native availability",
+        "optional controls disabled by default",
+        "crop percent persistence+preview red pixel+export red pixel",
+        "crop reset removes effect",
+        "ellipse mask+invert persistence+preview transparency+export transparency",
+        "mask clear removes effect",
+        "chroma enable persistence+green removal+red preservation in preview and export",
+        "locked feature controls disabled",
+        "chroma clear restores background"
+      ],
+      "errors": [],
+      "fonts": {
+        "browserFaces": 1,
+        "browserLoaded": true,
+        "browserCheck": true,
+        "nativeIncludesNoto": true
+      },
+      "initialGeometry": {
+        "width": 1470,
+        "documentWidth": 1470,
+        "scrollLeft": 0,
+        "inspector": {
+          "left": 1162,
+          "right": 1462,
+          "width": 300
+        },
+        "exportButton": {
+          "left": 1376,
+          "right": 1454,
+          "width": 78
+        }
+      },
+      "finalGeometry": {
+        "width": 1470,
+        "documentWidth": 1470,
+        "scrollLeft": 0,
+        "inspector": {
+          "left": 1162,
+          "right": 1462,
+          "width": 300
+        },
+        "exportButton": {
+          "left": 1376,
+          "right": 1454,
+          "width": 78
+        }
+      }
+    },
+    "storage-electron": {
+      "passedAt": "2026-10-12T21:35:43.591Z",
+      "checks": [
+        "save snapshot keeps later edits dirty",
+        "native close Cancel preserves window",
+        "save latest snapshot",
+        "autosave recovery after relaunch",
+        "missing source detection",
+        "relink preserves simultaneous edits",
+        "project switch during save does not attach stale path"
+      ],
+      "errors": []
+    },
+    "player-electron": {
+      "passedAt": "2026-10-12T21:34:49.525Z",
+      "checks": [
+        "real decoded preview",
+        "live pointer drag before commit",
+        "keyframed path moves together",
+        "drag produces one undo step",
+        "project end keeps final frame visible"
+      ],
+      "errors": []
+    },
+    "audio-electron": {
+      "passedAt": "2026-10-12T21:32:39.644Z",
+      "checks": [
+        "MKV local preview",
+        "UI separates into 2 assets / 2 clips",
+        "original muted / independent audio audible",
+        "actual GainNode waveform before move",
+        "missing original + derived refs after source move",
+        "relink from derived audio to shared video source",
+        "group preserves IDs/names/kinds/proxies",
+        "actual GainNode waveform after relink",
+        "UI export has nonduplicated audio"
+      ],
+      "errors": []
+    },
+    "track-electron": {
+      "passedAt": "2026-10-12T21:38:25.124Z",
+      "checks": [
+        "frozen cross-track drag geometry",
+        "App rename callback persists project name",
+        "App track up/down order",
+        "locked track and locked neighbor reject modifications",
+        "nonempty track delete confirms and blocks edit shortcuts",
+        "track+clips deletion preserves assets",
+        "single undo restores deleted track+clips",
+        "sticky playhead handle after vertical scroll"
+      ],
+      "errors": [],
+      "initialGeometry": {
+        "width": 1470,
+        "documentWidth": 1470,
+        "scrollLeft": 0,
+        "inspector": {
+          "left": 1162,
+          "right": 1462,
+          "width": 300
+        },
+        "exportButton": {
+          "left": 1376,
+          "right": 1454,
+          "width": 78
+        }
+      },
+      "finalGeometry": {
+        "width": 1470,
+        "documentWidth": 1470,
+        "scrollLeft": 0,
+        "inspector": {
+          "left": 1162,
+          "right": 1462,
+          "width": 300
+        },
+        "exportButton": {
+          "left": 1376,
+          "right": 1454,
+          "width": 78
+        }
+      }
+    },
+    "package-electron": {
+      "passedAt": "2026-10-12T21:39:11.294Z",
+      "checks": [
+        "packaged .app launched outside repository cwd",
+        "native canvas and bundled font",
+        "isolated sandbox bridge",
+        "startup .reacut argument",
+        "real landscape preview and thumbnails",
+        "UI export with Chinese titles and mixed audio"
+      ],
+      "errors": [],
+      "fonts": {
+        "browserFaces": 1,
+        "browserLoaded": true,
+        "nativeIncludesNoto": true,
+        "bundledBytes": 17772300
+      },
+      "width": 1280,
+      "height": 720,
+      "duration": "9.000000"
+    },
+    "transition-electron": {
+      "passedAt": "2026-10-12T21:41:47.795Z",
+      "checks": [
+        "UI applies same-track dissolve",
+        "old outgoing video envelope cleared, incoming window retained",
+        "audio windows reset to complementary fades",
+        "next clip overlaps by .5s",
+        "midpoint preview has complementary .5/.5 brightness",
+        "actual UI export pixels match preview",
+        "actual output audio crossfade is audible without duplication"
+      ],
+      "errors": [],
+      "previewPixel": [127, 0, 128, 255],
+      "exportPixel": [127, 0, 127, 255],
+      "audioRms": 0.0635446763765497
+    }
+  },
+  "package": {
+    "checkedAt": "2026-10-12T21:38:27.133Z",
+    "notices": [
+      "/LICENSE",
+      "/THIRD_PARTY_NOTICES.md",
+      "/licenses/manifest.json",
+      "/licenses/SHA256SUMS",
+      "/licenses/electron-44.7.0/LICENSES.chromium.html",
+      "/dist/fonts/OFL.txt"
+    ],
+    "privateArtifacts": [],
+    "entries": 4023,
+    "appArchiveSHA256": "6081e40acda576b6172a9ca36ea8f62c24ac00035985c51234c4c26faa80094b",
+    "dmgInstalledArchiveMatches": true
+  },
+  "limitations": [
+    "Windows/Linux runtime not verified",
+    "GitHub CI configured but not run",
+    "Local ad-hoc signature; no Developer ID or notarization",
+    "SaaS and API AI unimplemented",
+    "Current Jianying 11 opaque draft unsupported",
+    "Not complete commercial feature parity"
+  ]
+}

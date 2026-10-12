@@ -1,0 +1,1729 @@
+{
+  "formatVersion": 1,
+  "scope": "Installed runtime npm packages, Electron distribution notices, installed native canvas SBOM components and bundled unmodified Noto Sans SC. Build tooling is not bundled. SBOM may include build-only native crates.",
+  "entries": [
+    {
+      "directory": "react-19.3.0",
+      "name": "react",
+      "version": "19.3.0",
+      "license": "MIT",
+      "source": "installed npm package react@19.3.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "react-dom-19.3.0",
+      "name": "react-dom",
+      "version": "19.3.0",
+      "license": "MIT",
+      "source": "installed npm package react-dom@19.3.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "scheduler-0.28.0",
+      "name": "scheduler",
+      "version": "0.28.0",
+      "license": "MIT",
+      "source": "installed npm package scheduler@0.28.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "zustand-5.0.15",
+      "name": "zustand",
+      "version": "5.0.15",
+      "license": "MIT",
+      "source": "installed npm package zustand@5.0.15",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "lucide-react-0.468.0",
+      "name": "lucide-react",
+      "version": "0.468.0",
+      "license": "ISC",
+      "source": "installed npm package lucide-react@0.468.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "_napi-rs_canvas-1.0.11",
+      "name": "@napi-rs/canvas",
+      "version": "1.0.11",
+      "license": "MIT",
+      "source": "installed npm package @napi-rs/canvas@1.0.11",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "electron-44.7.0",
+      "name": "electron",
+      "version": "44.7.0",
+      "license": "MIT",
+      "source": "installed npm package electron@44.7.0",
+      "files": [
+        "LICENSE",
+        "LICENSES.chromium.html"
+      ]
+    },
+    {
+      "directory": "_types_react-19.3.0",
+      "name": "@types/react",
+      "version": "19.3.0",
+      "license": "MIT",
+      "source": "installed npm package @types/react@19.3.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "csstype-3.2.3",
+      "name": "csstype",
+      "version": "3.2.3",
+      "license": "MIT",
+      "source": "installed npm package csstype@3.2.3",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "_napi-rs_canvas-darwin-arm64-1.0.11",
+      "name": "@napi-rs/canvas-darwin-arm64",
+      "version": "1.0.11",
+      "license": "MIT",
+      "source": "installed npm package @napi-rs/canvas-darwin-arm64@1.0.11",
+      "files": [
+        "sbom.cdx.json"
+      ]
+    },
+    {
+      "directory": "native/aho-corasick_1.1.4",
+      "name": "aho-corasick",
+      "version": "1.1.4",
+      "license": [
+        {
+          "expression": "Unlicense OR MIT"
+        }
+      ],
+      "source": "pkg:cargo/aho-corasick@1.1.4",
+      "files": [
+        "COPYING",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/anyhow_1.0.104",
+      "name": "anyhow",
+      "version": "1.0.104",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/anyhow@1.0.104",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/base64-simd_0.8.0",
+      "name": "base64-simd",
+      "version": "0.8.0",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "https://static.crates.io/crates/base64-simd/base64-simd-0.8.0.crate\nhttps://raw.githubusercontent.com/Nugine/simd/d74c030d9dc4f3cae02146d1f497ff62726ef09a/LICENSE\n",
+      "files": [
+        "LICENSE",
+        "SOURCE_URLS.txt"
+      ]
+    },
+    {
+      "directory": "native/bitflags_2.13.1",
+      "name": "bitflags",
+      "version": "2.13.1",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/bitflags@2.13.1",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/bumpalo_3.20.3",
+      "name": "bumpalo",
+      "version": "3.20.3",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/bumpalo@3.20.3",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/bytemuck_1.25.2",
+      "name": "bytemuck",
+      "version": "1.25.2",
+      "license": [
+        {
+          "expression": "Zlib OR Apache-2.0 OR MIT"
+        }
+      ],
+      "source": "pkg:cargo/bytemuck@1.25.2",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT",
+        "LICENSE-ZLIB"
+      ]
+    },
+    {
+      "directory": "_napi-rs_canvas-1.0.11",
+      "name": "native-canvas",
+      "version": "1.0.11",
+      "license": "MIT",
+      "source": "@napi-rs/canvas-darwin-arm64 SBOM project component; use parent @napi-rs/canvas LICENSE",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/cc_1.4.0",
+      "name": "cc",
+      "version": "1.4.0",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/cc@1.4.0",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/cfb_0.14.0",
+      "name": "cfb",
+      "version": "0.14.0",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "pkg:cargo/cfb@0.14.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/cfg-if_1.0.4",
+      "name": "cfg-if",
+      "version": "1.0.4",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/cfg-if@1.0.4",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/cmake_0.1.58",
+      "name": "cmake",
+      "version": "0.1.58",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/cmake@0.1.58",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/color_quant_1.1.0",
+      "name": "color_quant",
+      "version": "1.1.0",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "pkg:cargo/color_quant@1.1.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/convert_case_0.11.0",
+      "name": "convert_case",
+      "version": "0.11.0",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "pkg:cargo/convert_case@0.11.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/cssparser_0.38.0",
+      "name": "cssparser",
+      "version": "0.38.0",
+      "license": [
+        {
+          "expression": "MPL-2.0"
+        }
+      ],
+      "source": "pkg:cargo/cssparser@0.38.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/cssparser-color_0.6.0",
+      "name": "cssparser-color",
+      "version": "0.6.0",
+      "license": [
+        {
+          "expression": "MPL-2.0"
+        }
+      ],
+      "source": "pkg:cargo/cssparser-color@0.6.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/cssparser-macros_0.7.0",
+      "name": "cssparser-macros",
+      "version": "0.7.0",
+      "license": [
+        {
+          "expression": "MPL-2.0"
+        }
+      ],
+      "source": "pkg:cargo/cssparser-macros@0.7.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/ctor_1.0.11",
+      "name": "ctor",
+      "version": "1.0.11",
+      "license": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "source": "pkg:cargo/ctor@1.0.11",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/dtoa_1.0.11",
+      "name": "dtoa",
+      "version": "1.0.11",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/dtoa@1.0.11",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/dtoa-short_0.3.5",
+      "name": "dtoa-short",
+      "version": "0.3.5",
+      "license": [
+        {
+          "expression": "MPL-2.0"
+        }
+      ],
+      "source": "pkg:cargo/dtoa-short@0.3.5",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/fastrand_2.5.0",
+      "name": "fastrand",
+      "version": "2.5.0",
+      "license": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "source": "pkg:cargo/fastrand@2.5.0",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/find-msvc-tools_0.1.9",
+      "name": "find-msvc-tools",
+      "version": "0.1.9",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/find-msvc-tools@0.1.9",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/fnv_1.0.7",
+      "name": "fnv",
+      "version": "1.0.7",
+      "license": [
+        {
+          "expression": "Apache-2.0 / MIT"
+        }
+      ],
+      "source": "pkg:cargo/fnv@1.0.7",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/futures_0.3.33",
+      "name": "futures",
+      "version": "0.3.33",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/futures@0.3.33",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/futures-channel_0.3.33",
+      "name": "futures-channel",
+      "version": "0.3.33",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/futures-channel@0.3.33",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/futures-core_0.3.33",
+      "name": "futures-core",
+      "version": "0.3.33",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/futures-core@0.3.33",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/futures-executor_0.3.33",
+      "name": "futures-executor",
+      "version": "0.3.33",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/futures-executor@0.3.33",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/futures-io_0.3.33",
+      "name": "futures-io",
+      "version": "0.3.33",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/futures-io@0.3.33",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/futures-macro_0.3.33",
+      "name": "futures-macro",
+      "version": "0.3.33",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/futures-macro@0.3.33",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/futures-sink_0.3.33",
+      "name": "futures-sink",
+      "version": "0.3.33",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/futures-sink@0.3.33",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/futures-task_0.3.33",
+      "name": "futures-task",
+      "version": "0.3.33",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/futures-task@0.3.33",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/futures-util_0.3.33",
+      "name": "futures-util",
+      "version": "0.3.33",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/futures-util@0.3.33",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/gif_0.14.2",
+      "name": "gif",
+      "version": "0.14.2",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/gif@0.14.2",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/hermit-abi_0.5.2",
+      "name": "hermit-abi",
+      "version": "0.5.2",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/hermit-abi@0.5.2",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/imagesize_0.15.0",
+      "name": "imagesize",
+      "version": "0.15.0",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "pkg:cargo/imagesize@0.15.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/infer_0.22.0",
+      "name": "infer",
+      "version": "0.22.0",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "pkg:cargo/infer@0.22.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/itoa_1.0.18",
+      "name": "itoa",
+      "version": "1.0.18",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/itoa@1.0.18",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/js-sys_0.3.103",
+      "name": "js-sys",
+      "version": "0.3.103",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/js-sys@0.3.103",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/libaom-sys_0.17.2_libaom.3.11.0",
+      "name": "libaom-sys",
+      "version": "0.17.2+libaom.3.11.0",
+      "license": [
+        {
+          "expression": "BSD-2-Clause"
+        }
+      ],
+      "source": "pkg:cargo/libaom-sys@0.17.2+libaom.3.11.0",
+      "files": [
+        "vendor_AUTHORS",
+        "vendor_LICENSE",
+        "vendor_third_party_SVT-AV1_LICENSE.md",
+        "vendor_third_party_fastfeat_LICENSE",
+        "vendor_third_party_libwebm_AUTHORS.TXT",
+        "vendor_third_party_libwebm_LICENSE.TXT",
+        "vendor_third_party_libyuv_LICENSE",
+        "vendor_third_party_vector_LICENSE",
+        "vendor_third_party_x86inc_LICENSE"
+      ]
+    },
+    {
+      "directory": "native/libavif_0.14.0",
+      "name": "libavif",
+      "version": "0.14.0",
+      "license": [
+        {
+          "expression": "BSD-2-Clause"
+        }
+      ],
+      "source": "pkg:cargo/libavif@0.14.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/libavif-sys_0.17.0_libavif.1.0.4",
+      "name": "libavif-sys",
+      "version": "0.17.0+libavif.1.0.4",
+      "license": [
+        {
+          "expression": "BSD-2-Clause"
+        }
+      ],
+      "source": "pkg:cargo/libavif-sys@0.17.0+libavif.1.0.4",
+      "files": [
+        "libavif_LICENSE"
+      ]
+    },
+    {
+      "directory": "native/libc_0.2.189",
+      "name": "libc",
+      "version": "0.2.189",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/libc@0.2.189",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/libloading_0.9.0",
+      "name": "libloading",
+      "version": "0.9.0",
+      "license": [
+        {
+          "expression": "ISC"
+        }
+      ],
+      "source": "pkg:cargo/libloading@0.9.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/libmimalloc-sys2_0.1.60",
+      "name": "libmimalloc-sys2",
+      "version": "0.1.60",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "pkg:cargo/libmimalloc-sys2@0.1.60",
+      "files": [
+        "LICENSE.txt",
+        "c_src_mimalloc3_LICENSE",
+        "c_src_mimalloc_LICENSE"
+      ]
+    },
+    {
+      "directory": "native/memchr_2.8.3",
+      "name": "memchr",
+      "version": "2.8.3",
+      "license": [
+        {
+          "expression": "Unlicense OR MIT"
+        }
+      ],
+      "source": "pkg:cargo/memchr@2.8.3",
+      "files": [
+        "COPYING",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/mimalloc-safe_0.1.64",
+      "name": "mimalloc-safe",
+      "version": "0.1.64",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "pkg:cargo/mimalloc-safe@0.1.64",
+      "files": [
+        "LICENSE.txt"
+      ]
+    },
+    {
+      "directory": "native/napi_3.12.1",
+      "name": "napi",
+      "version": "3.12.1",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "https://static.crates.io/crates/napi/napi-3.12.1.crate\nhttps://raw.githubusercontent.com/napi-rs/napi-rs/956e4525fea6a676ea3680b711382f167b899af9/LICENSE\n",
+      "files": [
+        "LICENSE",
+        "SOURCE_URLS.txt"
+      ]
+    },
+    {
+      "directory": "native/napi-build_2.4.1",
+      "name": "napi-build",
+      "version": "2.4.1",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "https://static.crates.io/crates/napi-build/napi-build-2.4.1.crate\nhttps://raw.githubusercontent.com/napi-rs/napi-rs/956e4525fea6a676ea3680b711382f167b899af9/LICENSE\n",
+      "files": [
+        "LICENSE",
+        "SOURCE_URLS.txt"
+      ]
+    },
+    {
+      "directory": "native/napi-derive_3.6.3",
+      "name": "napi-derive",
+      "version": "3.6.3",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "https://static.crates.io/crates/napi-derive/napi-derive-3.6.3.crate\nhttps://raw.githubusercontent.com/napi-rs/napi-rs/956e4525fea6a676ea3680b711382f167b899af9/LICENSE\n",
+      "files": [
+        "LICENSE",
+        "SOURCE_URLS.txt"
+      ]
+    },
+    {
+      "directory": "native/napi-derive-backend_6.1.2",
+      "name": "napi-derive-backend",
+      "version": "6.1.2",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "https://static.crates.io/crates/napi-derive-backend/napi-derive-backend-6.1.2.crate\nhttps://raw.githubusercontent.com/napi-rs/napi-rs/956e4525fea6a676ea3680b711382f167b899af9/LICENSE\n",
+      "files": [
+        "LICENSE",
+        "SOURCE_URLS.txt"
+      ]
+    },
+    {
+      "directory": "native/napi-sys_3.3.0",
+      "name": "napi-sys",
+      "version": "3.3.0",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "https://static.crates.io/crates/napi-sys/napi-sys-3.3.0.crate\nhttps://raw.githubusercontent.com/napi-rs/napi-rs/679eb79f5cf3c7c6b2850f4ab46092126f23dc5c/LICENSE\n",
+      "files": [
+        "LICENSE",
+        "SOURCE_URLS.txt"
+      ]
+    },
+    {
+      "directory": "native/nohash-hasher_0.2.0",
+      "name": "nohash-hasher",
+      "version": "0.2.0",
+      "license": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "source": "pkg:cargo/nohash-hasher@0.2.0",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/nom_8.0.0",
+      "name": "nom",
+      "version": "8.0.0",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "pkg:cargo/nom@8.0.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/num_cpus_1.17.0",
+      "name": "num_cpus",
+      "version": "1.17.0",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/num_cpus@1.17.0",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/once_cell_1.21.4",
+      "name": "once_cell",
+      "version": "1.21.4",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/once_cell@1.21.4",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/outref_0.5.2",
+      "name": "outref",
+      "version": "0.5.2",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "pkg:cargo/outref@0.5.2",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/phf_0.14.0",
+      "name": "phf",
+      "version": "0.14.0",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "pkg:cargo/phf@0.14.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/phf_generator_0.14.0",
+      "name": "phf_generator",
+      "version": "0.14.0",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "pkg:cargo/phf_generator@0.14.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/phf_macros_0.14.0",
+      "name": "phf_macros",
+      "version": "0.14.0",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "pkg:cargo/phf_macros@0.14.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/phf_shared_0.14.0",
+      "name": "phf_shared",
+      "version": "0.14.0",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "pkg:cargo/phf_shared@0.14.0",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/pin-project-lite_0.2.17",
+      "name": "pin-project-lite",
+      "version": "0.2.17",
+      "license": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "source": "pkg:cargo/pin-project-lite@0.2.17",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/proc-macro2_1.0.107",
+      "name": "proc-macro2",
+      "version": "1.0.107",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/proc-macro2@1.0.107",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/quote_1.0.47",
+      "name": "quote",
+      "version": "1.0.47",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/quote@1.0.47",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/regex_1.13.1",
+      "name": "regex",
+      "version": "1.13.1",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/regex@1.13.1",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/regex-automata_0.4.16",
+      "name": "regex-automata",
+      "version": "0.4.16",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/regex-automata@0.4.16",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/regex-syntax_0.8.11",
+      "name": "regex-syntax",
+      "version": "0.8.11",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/regex-syntax@0.8.11",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT",
+        "src_unicode_tables_LICENSE-UNICODE"
+      ]
+    },
+    {
+      "directory": "native/rgb_0.8.53",
+      "name": "rgb",
+      "version": "0.8.53",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "pkg:cargo/rgb@0.8.53",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/rustc-hash_2.1.3",
+      "name": "rustc-hash",
+      "version": "2.1.3",
+      "license": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "source": "pkg:cargo/rustc-hash@2.1.3",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/rustversion_1.0.23",
+      "name": "rustversion",
+      "version": "1.0.23",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/rustversion@1.0.23",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/serde_1.0.229",
+      "name": "serde",
+      "version": "1.0.229",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/serde@1.0.229",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/serde_core_1.0.229",
+      "name": "serde_core",
+      "version": "1.0.229",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/serde_core@1.0.229",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/serde_derive_1.0.229",
+      "name": "serde_derive",
+      "version": "1.0.229",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/serde_derive@1.0.229",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/serde_json_1.0.151",
+      "name": "serde_json",
+      "version": "1.0.151",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/serde_json@1.0.151",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/shlex_2.0.1",
+      "name": "shlex",
+      "version": "2.0.1",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/shlex@2.0.1",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/siphasher_1.0.3",
+      "name": "siphasher",
+      "version": "1.0.3",
+      "license": [
+        {
+          "expression": "MIT/Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/siphasher@1.0.3",
+      "files": [
+        "COPYING"
+      ]
+    },
+    {
+      "directory": "native/slab_0.4.12",
+      "name": "slab",
+      "version": "0.4.12",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "pkg:cargo/slab@0.4.12",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/smallvec_1.15.2",
+      "name": "smallvec",
+      "version": "1.15.2",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/smallvec@1.15.2",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/syn_2.0.119",
+      "name": "syn",
+      "version": "2.0.119",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/syn@2.0.119",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/syn_3.0.3",
+      "name": "syn",
+      "version": "3.0.3",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/syn@3.0.3",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/thiserror_2.0.19",
+      "name": "thiserror",
+      "version": "2.0.19",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/thiserror@2.0.19",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/thiserror-impl_2.0.19",
+      "name": "thiserror-impl",
+      "version": "2.0.19",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/thiserror-impl@2.0.19",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/tokio_1.53.1",
+      "name": "tokio",
+      "version": "1.53.1",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "pkg:cargo/tokio@1.53.1",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/tokio-stream_0.1.19",
+      "name": "tokio-stream",
+      "version": "0.1.19",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "pkg:cargo/tokio-stream@0.1.19",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "native/unicode-ident_1.0.24",
+      "name": "unicode-ident",
+      "version": "1.0.24",
+      "license": [
+        {
+          "expression": "(MIT OR Apache-2.0) AND Unicode-3.0"
+        }
+      ],
+      "source": "pkg:cargo/unicode-ident@1.0.24",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT",
+        "LICENSE-UNICODE"
+      ]
+    },
+    {
+      "directory": "native/unicode-segmentation_1.13.3",
+      "name": "unicode-segmentation",
+      "version": "1.13.3",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/unicode-segmentation@1.13.3",
+      "files": [
+        "COPYRIGHT",
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/uuid_1.24.0",
+      "name": "uuid",
+      "version": "1.24.0",
+      "license": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "source": "pkg:cargo/uuid@1.24.0",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/vsimd_0.8.0",
+      "name": "vsimd",
+      "version": "0.8.0",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "https://static.crates.io/crates/vsimd/vsimd-0.8.0.crate\nhttps://raw.githubusercontent.com/Nugine/simd/d74c030d9dc4f3cae02146d1f497ff62726ef09a/LICENSE\n",
+      "files": [
+        "LICENSE",
+        "SOURCE_URLS.txt"
+      ]
+    },
+    {
+      "directory": "native/wasm-bindgen_0.2.126",
+      "name": "wasm-bindgen",
+      "version": "0.2.126",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/wasm-bindgen@0.2.126",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/wasm-bindgen-macro_0.2.126",
+      "name": "wasm-bindgen-macro",
+      "version": "0.2.126",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/wasm-bindgen-macro@0.2.126",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/wasm-bindgen-macro-support_0.2.126",
+      "name": "wasm-bindgen-macro-support",
+      "version": "0.2.126",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/wasm-bindgen-macro-support@0.2.126",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/wasm-bindgen-shared_0.2.126",
+      "name": "wasm-bindgen-shared",
+      "version": "0.2.126",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/wasm-bindgen-shared@0.2.126",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/web-time_1.1.0",
+      "name": "web-time",
+      "version": "1.1.0",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/web-time@1.1.0",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/weezl_0.1.12",
+      "name": "weezl",
+      "version": "0.1.12",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/weezl@0.1.12",
+      "files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/windows-link_0.2.1",
+      "name": "windows-link",
+      "version": "0.2.1",
+      "license": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "source": "pkg:cargo/windows-link@0.2.1",
+      "files": [
+        "license-apache-2.0",
+        "license-mit"
+      ]
+    },
+    {
+      "directory": "native/zmij_1.0.23",
+      "name": "zmij",
+      "version": "1.0.23",
+      "license": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "source": "pkg:cargo/zmij@1.0.23",
+      "files": [
+        "LICENSE-MIT"
+      ]
+    },
+    {
+      "directory": "native/expat_6154446fccefbf3ca644894f598969113b0c7bcd",
+      "name": "expat",
+      "version": "6154446fccefbf3ca644894f598969113b0c7bcd",
+      "license": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "source": "https://chromium.googlesource.com/external/github.com/libexpat/libexpat.git/+/6154446fccefbf3ca644894f598969113b0c7bcd/COPYING?format=TEXT\nhttps://chromium.googlesource.com/external/github.com/libexpat/libexpat.git/+/6154446fccefbf3ca644894f598969113b0c7bcd/expat/COPYING?format=TEXT\n",
+      "files": [
+        "COPYING",
+        "SOURCE_URLS.txt",
+        "expat_COPYING"
+      ]
+    },
+    {
+      "directory": "native/freetype_264b5fbf5b912b39f98d038bf75d39be0a73f21b",
+      "name": "freetype",
+      "version": "264b5fbf5b912b39f98d038bf75d39be0a73f21b",
+      "license": [
+        {
+          "license": {
+            "id": "FTL"
+          }
+        }
+      ],
+      "source": "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git/+/264b5fbf5b912b39f98d038bf75d39be0a73f21b/docs/FTL.TXT?format=TEXT\nhttps://chromium.googlesource.com/chromium/src/third_party/freetype2.git/+/264b5fbf5b912b39f98d038bf75d39be0a73f21b/LICENSE.TXT?format=TEXT\n",
+      "files": [
+        "LICENSE.TXT",
+        "SOURCE_URLS.txt",
+        "docs_FTL.TXT"
+      ]
+    },
+    {
+      "directory": "native/brotli_6d03dfbedda1615c4cba1211f8d81735575209c8",
+      "name": "brotli",
+      "version": "6d03dfbedda1615c4cba1211f8d81735575209c8",
+      "license": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "source": "https://skia.googlesource.com/external/github.com/google/brotli.git/+/6d03dfbedda1615c4cba1211f8d81735575209c8/LICENSE?format=TEXT\n",
+      "files": [
+        "LICENSE",
+        "SOURCE_URLS.txt"
+      ]
+    },
+    {
+      "directory": "native/harfbuzz_9cb1fee51069b206effb4736e443b038d230789d",
+      "name": "harfbuzz",
+      "version": "9cb1fee51069b206effb4736e443b038d230789d",
+      "license": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "source": "https://chromium.googlesource.com/external/github.com/harfbuzz/harfbuzz.git/+/9cb1fee51069b206effb4736e443b038d230789d/COPYING?format=TEXT\n",
+      "files": [
+        "COPYING",
+        "SOURCE_URLS.txt"
+      ]
+    },
+    {
+      "directory": "native/icu_d578f2e8b7bd5938e21cfb6bf15c079e0aa5b738",
+      "name": "icu",
+      "version": "d578f2e8b7bd5938e21cfb6bf15c079e0aa5b738",
+      "license": [
+        {
+          "license": {
+            "id": "ICU"
+          }
+        }
+      ],
+      "source": "https://chromium.googlesource.com/chromium/deps/icu.git/+/d578f2e8b7bd5938e21cfb6bf15c079e0aa5b738/LICENSE?format=TEXT\n",
+      "files": [
+        "LICENSE",
+        "SOURCE_URLS.txt"
+      ]
+    },
+    {
+      "directory": "native/libjxl_332feb17d17311c748445f7ee75c4fb55cc38530",
+      "name": "libjxl",
+      "version": "332feb17d17311c748445f7ee75c4fb55cc38530",
+      "license": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "source": "https://chromium.googlesource.com/external/gitlab.com/wg1/jpeg-xl.git/+/332feb17d17311c748445f7ee75c4fb55cc38530/LICENSE?format=TEXT\nhttps://chromium.googlesource.com/external/gitlab.com/wg1/jpeg-xl.git/+/332feb17d17311c748445f7ee75c4fb55cc38530/PATENTS?format=TEXT\n",
+      "files": [
+        "LICENSE",
+        "PATENTS",
+        "SOURCE_URLS.txt"
+      ]
+    },
+    {
+      "directory": "native/highway_457c891775a7397bdb0376bb1031e6e027af1c48",
+      "name": "highway",
+      "version": "457c891775a7397bdb0376bb1031e6e027af1c48",
+      "license": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "source": "https://chromium.googlesource.com/external/github.com/google/highway.git/+/457c891775a7397bdb0376bb1031e6e027af1c48/LICENSE?format=TEXT\nhttps://chromium.googlesource.com/external/github.com/google/highway.git/+/457c891775a7397bdb0376bb1031e6e027af1c48/LICENSE-BSD3?format=TEXT\n",
+      "files": [
+        "LICENSE",
+        "LICENSE-BSD3",
+        "SOURCE_URLS.txt"
+      ]
+    },
+    {
+      "directory": "native/libjpeg-turbo_e14cbfaa85529d47f9f55b0f104a579c1061f9ad",
+      "name": "libjpeg-turbo",
+      "version": "e14cbfaa85529d47f9f55b0f104a579c1061f9ad",
+      "license": [
+        {
+          "expression": "BSD-3-Clause AND IJG AND Zlib"
+        }
+      ],
+      "source": "https://chromium.googlesource.com/chromium/deps/libjpeg_turbo.git/+/e14cbfaa85529d47f9f55b0f104a579c1061f9ad/LICENSE.md?format=TEXT\nhttps://chromium.googlesource.com/chromium/deps/libjpeg_turbo.git/+/e14cbfaa85529d47f9f55b0f104a579c1061f9ad/README.ijg?format=TEXT\n",
+      "files": [
+        "LICENSE.md",
+        "README.ijg",
+        "SOURCE_URLS.txt"
+      ]
+    },
+    {
+      "directory": "native/libpng_d5515b5b8be3901aac04e5bd8bd5c89f287bcd33",
+      "name": "libpng",
+      "version": "d5515b5b8be3901aac04e5bd8bd5c89f287bcd33",
+      "license": [
+        {
+          "license": {
+            "id": "libpng-2.0"
+          }
+        }
+      ],
+      "source": "https://skia.googlesource.com/third_party/libpng.git/+/d5515b5b8be3901aac04e5bd8bd5c89f287bcd33/LICENSE?format=TEXT\n",
+      "files": [
+        "LICENSE",
+        "SOURCE_URLS.txt"
+      ]
+    },
+    {
+      "directory": "native/libwebp_845d5476a866141ba35ac133f856fa62f0b7445f",
+      "name": "libwebp",
+      "version": "845d5476a866141ba35ac133f856fa62f0b7445f",
+      "license": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "source": "https://chromium.googlesource.com/webm/libwebp.git/+/845d5476a866141ba35ac133f856fa62f0b7445f/COPYING?format=TEXT\nhttps://chromium.googlesource.com/webm/libwebp.git/+/845d5476a866141ba35ac133f856fa62f0b7445f/PATENTS?format=TEXT\n",
+      "files": [
+        "COPYING",
+        "PATENTS",
+        "SOURCE_URLS.txt"
+      ]
+    },
+    {
+      "directory": "native/wuffs_e3f919ccfe3ef542cfc983a82146070258fb57f8",
+      "name": "wuffs",
+      "version": "e3f919ccfe3ef542cfc983a82146070258fb57f8",
+      "license": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "source": "https://skia.googlesource.com/external/github.com/google/wuffs-mirror-release-c.git/+/e3f919ccfe3ef542cfc983a82146070258fb57f8/LICENSE?format=TEXT\n",
+      "files": [
+        "LICENSE",
+        "SOURCE_URLS.txt"
+      ]
+    },
+    {
+      "directory": "native/zlib_646b7f569718921d7d4b5b8e22572ff6c76f2596",
+      "name": "zlib",
+      "version": "646b7f569718921d7d4b5b8e22572ff6c76f2596",
+      "license": [
+        {
+          "license": {
+            "id": "Zlib"
+          }
+        }
+      ],
+      "source": "https://chromium.googlesource.com/chromium/src/third_party/zlib/+/646b7f569718921d7d4b5b8e22572ff6c76f2596/LICENSE?format=TEXT\n",
+      "files": [
+        "LICENSE",
+        "SOURCE_URLS.txt"
+      ]
+    },
+    {
+      "directory": "native/skia-95ee33d7ec7791ab9c071675710a14fe6408ae4f",
+      "name": "skia",
+      "version": "95ee33d7ec7791ab9c071675710a14fe6408ae4f",
+      "license": "BSD-3-Clause",
+      "source": "https://github.com/google/skia/tree/95ee33d7ec7791ab9c071675710a14fe6408ae4f",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "fonts/NotoSansSC",
+      "name": "Noto Sans SC",
+      "version": "fb0637bafbcd804fe32152370a1225990745b4bc",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/blob/main/ofl/notosanssc/NotoSansSC[wght].ttf\nhttps://github.com/google/fonts/blob/main/ofl/notosanssc/OFL.txt",
+      "files": [
+        "OFL.txt",
+        "PROVENANCE.json"
+      ]
+    }
+  ],
+  "issues": []
+}

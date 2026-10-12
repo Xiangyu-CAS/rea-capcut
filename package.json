@@ -1,0 +1,114 @@
+{
+  "name": "reacut",
+  "version": "0.1.0",
+  "private": true,
+  "description": "An open source offline desktop video editor informed by REA research",
+  "type": "module",
+  "main": "dist-electron/main.cjs",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dist": "npm run build && electron-builder",
+    "dist:mac": "npm run build && electron-builder --mac --dir",
+    "preview": "vite preview",
+    "fixtures": "tsx scripts/generate-fixtures.ts",
+    "start": "electron .",
+    "test:desktop": "npm run build && tsx tests/app-electron.ts",
+    "test:timeline": "tsx tests/timeline-browser.ts",
+    "icons": "tsx scripts/generate-icon.ts",
+    "demo": "tsx scripts/generate-demo.ts",
+    "licenses": "tsx scripts/licenses.ts",
+    "check": "npm run typecheck && npm test && npm run build",
+    "test:visual": "npm run build && tsx tests/visual-ui-electron.ts",
+    "test:storage": "npm run build && tsx tests/storage-electron.ts",
+    "test:player": "npm run build && tsx tests/player-electron.ts",
+    "dist:mac:installer": "npm run build && electron-builder --mac dmg zip",
+    "test:tracks": "npm run build && tsx tests/track-electron.ts",
+    "test:audio": "npm run build && tsx tests/audio-electron.ts",
+    "test:package": "tsx tests/package-electron.ts",
+    "check:desktop": "npm run build && tsx tests/app-electron.ts && tsx tests/visual-ui-electron.ts && tsx tests/storage-electron.ts && tsx tests/player-electron.ts && tsx tests/audio-electron.ts && tsx tests/track-electron.ts && tsx tests/transition-electron.ts",
+    "test:transition": "npm run build && tsx tests/transition-electron.ts"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.11",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.51.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0",
+    "vite-plugin-electron": "^0.29.0",
+    "vitest": "^5.0.4"
+  },
+  "build": {
+    "appId": "org.reacut.editor",
+    "productName": "ReaCut",
+    "files": [
+      "dist/**",
+      "dist-electron/**",
+      "package.json",
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.md",
+      "licenses/**"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "mac": {
+      "category": "public.app-category.video",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "build/icon.icns",
+      "identity": "-"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "build/icon.png"
+    },
+    "asarUnpack": [
+      "node_modules/@napi-rs/**",
+      "dist/fonts/**"
+    ],
+    "fileAssociations": [
+      {
+        "ext": "reacut",
+        "name": "ReaCut Project",
+        "role": "Editor"
+      }
+    ]
+  },
+  "engines": {
+    "node": "^24.11.0 || >=26.0.0"
+  },
+  "author": "ReaCut contributors",
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "esbuild@0.25.12": true,
+    "electron-winstaller@5.4.0": true,
+    "fsevents": false
+  }
+}

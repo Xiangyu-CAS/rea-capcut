@@ -1,0 +1,2 @@
+https://static.crates.io/crates/napi-sys/napi-sys-3.3.0.crate
+https://raw.githubusercontent.com/napi-rs/napi-rs/679eb79f5cf3c7c6b2850f4ab46092126f23dc5c/LICENSE

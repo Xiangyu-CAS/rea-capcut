@@ -1,0 +1,16 @@
+node_modules/
+dist/
+dist-electron/
+release/
+.research/
+.test-output/
+.test-media/
+coverage/
+test-results/
+playwright-report/
+*.log
+.DS_Store
+.env
+.demo/
+fixtures/
+build/icon.iconset/
