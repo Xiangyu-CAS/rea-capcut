@@ -1,6 +1,6 @@
 {
   "name": "reacut",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "description": "An open source offline desktop video editor informed by REA research",
   "type": "module",
@@ -8,7 +8,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && node scripts/build-plugin-ui.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -40,7 +40,10 @@
     "test:source": "npm run build && tsx tests/source-preview-electron.ts",
     "test:source:browser": "tsx tests/source-preview-browser.ts",
     "test:assets": "npm run build && tsx tests/assistant-assets-electron.ts",
-    "test:workspace": "npm run build && tsx tests/workspace-electron.ts"
+    "test:creative": "npm run build && tsx tests/creative-library-electron.ts",
+    "test:workspace": "npm run build && tsx tests/workspace-electron.ts",
+    "plugin:pack": "node scripts/package-plugin.mjs",
+    "test:plugin": "tsx tests/plugin-electron.ts"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.11",
@@ -50,6 +53,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@modelcontextprotocol/ext-apps": "^1.7.5",
     "@playwright/test": "^1.51.0",
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
@@ -57,6 +61,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "electron": "^44.7.0",
     "electron-builder": "^26.15.3",
+    "esbuild": "^0.25.12",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
     "vite": "^6.1.0",

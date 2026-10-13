@@ -3,6 +3,46 @@
   "scope": "Installed runtime npm packages, Electron distribution notices, installed native canvas SBOM components and bundled unmodified Noto Sans SC. Build tooling is not bundled. SBOM may include build-only native crates.",
   "entries": [
     {
+      "directory": "_modelcontextprotocol_ext-apps-1.7.5",
+      "name": "@modelcontextprotocol/ext-apps",
+      "version": "1.7.5",
+      "license": "MIT",
+      "source": "installed npm package @modelcontextprotocol/ext-apps@1.7.5",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "_modelcontextprotocol_sdk-1.32.1",
+      "name": "@modelcontextprotocol/sdk",
+      "version": "1.32.1",
+      "license": "MIT",
+      "source": "installed npm package @modelcontextprotocol/sdk@1.32.1",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "zod-4.6.7",
+      "name": "zod",
+      "version": "4.6.7",
+      "license": "MIT",
+      "source": "installed npm package zod@4.6.7",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
+      "directory": "zod-to-json-schema-3.25.2",
+      "name": "zod-to-json-schema",
+      "version": "3.25.2",
+      "license": "ISC",
+      "source": "installed npm package zod-to-json-schema@3.25.2",
+      "files": [
+        "LICENSE"
+      ]
+    },
+    {
       "directory": "react-19.3.0",
       "name": "react",
       "version": "19.3.0",

@@ -112,7 +112,7 @@ try {
     .locator(`[data-clip-id="${front.id}"]`)
     .click({ position: { x: 25, y: 25 } });
   await page.getByRole("button", { name: "转场", exact: true }).click();
-  await page.locator(".transition-card").filter({ hasText: "叠化" }).click();
+  await page.getByRole("button", {name:"应用叠化转场",exact:true}).click();
   await expect(
     page.getByText("已添加 0.50 秒叠化（后片段提前重叠）", { exact: true }),
   ).toBeVisible();
@@ -150,7 +150,7 @@ try {
   await expect(page.locator(".timecode strong")).toHaveText("00:00:00:18");
   const pixel = () =>
     page.evaluate(() => {
-      const canvas = document.querySelector("canvas")!;
+      const canvas = document.querySelector<HTMLCanvasElement>(".player-panel canvas")!;
       return Array.from(
         canvas
           .getContext("2d")!

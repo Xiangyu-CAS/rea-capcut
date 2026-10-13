@@ -58,7 +58,7 @@ try {
   await page.locator(".tl-clip").click();
   const pixel = () =>
     page.evaluate(() => {
-      const c = document.querySelector("canvas")!;
+      const c = document.querySelector<HTMLCanvasElement>(".player-panel canvas")!;
       return [
         ...c.getContext("2d")!.getImageData(2, Math.floor(c.height / 2), 1, 1)
           .data,
@@ -73,7 +73,7 @@ try {
       { timeout: 15000 },
     )
     .toBe(true);
-  const box = (await page.locator("canvas").boundingBox())!;
+  const box = (await page.locator(".player-panel canvas").boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
   await page.mouse.move(box.x + box.width / 2 + 50, box.y + box.height / 2, {
@@ -114,7 +114,7 @@ try {
   await expect(page.locator(".timecode strong")).toHaveText("00:00:03:00");
   const center = () =>
     page.evaluate(() => {
-      const c = document.querySelector("canvas")!;
+      const c = document.querySelector<HTMLCanvasElement>(".player-panel canvas")!;
       return [
         ...c
           .getContext("2d")!

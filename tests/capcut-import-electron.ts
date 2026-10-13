@@ -195,7 +195,7 @@ try {
   await expect(page.locator(".project-title input")).toHaveValue("有素材的当前时间线");
   await expect(page.locator(".media-item")).toHaveCount(1);
   await expect.poll(() => page!.evaluate(() => {
-    const canvas = document.querySelector("canvas")!;
+    const canvas = document.querySelector<HTMLCanvasElement>(".player-panel canvas")!;
     const pixel = canvas.getContext("2d")!.getImageData(
       Math.floor(canvas.width / 2), Math.floor(canvas.height / 2), 1, 1,
     ).data;

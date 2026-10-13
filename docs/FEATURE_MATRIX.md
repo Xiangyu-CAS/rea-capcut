@@ -24,7 +24,8 @@
 | 画面 / 音频淡入淡出 | supported | split/trim 包络保留、变速、负偏移窗口及像素/RMS 导出测试 |
 | 亮度、对比度、饱和度、色温 | supported | 共享 RGB 数学模型、真实 FFmpeg 像素与 alpha 测试；非专业颜色管理 |
 | 模糊、本地调色预设 | limited | 实际参数映射；显示尺寸与模糊内核可使预览和输出略异 |
-| 简单叠化 | limited | 相邻片段重叠与后片段淡入；实际桌面中点预览/导出 RGB 与音频 RMS 验证。没有独立转场对象或模板库 |
+| 本地转场库 | supported | 8 款：叠化、经过背景、四向滑入、缩放与旋转交接；按帧限制时长、锁轨/间隙/后续重叠保护；实际导出像素验证，无独立转场轨 |
+| 文字与动态效果模板 | supported | 16 款可编辑文字、8 款关键帧动效，加原有 8 款调色；动态预览、分类/搜索、一次撤销；覆盖对应关键帧属性 |
 | source-space 画面裁切 | supported | 源空间归一化裁剪、严格边界；真实桌面 UI 保存/重置及导出红色像素验证 |
 | RGB 色度抠像 | supported | 自主 RGB 距离/过渡参数；桌面预览和实际导出删除绿色背景、保留红色前景；非人物 AI 抠像 |
 | 矩形 / 椭圆蒙版 | supported | 共享源空间蒙版、羽化、反转及 alpha 数学测试；桌面椭圆/反选预览与实际导出验证 |
@@ -44,8 +45,9 @@
 | 浏览器完整视频编辑器 | limited | 预览与基础交互；缺少桌面文件操作及本地导出桥接 |
 | 账号、云项目、SaaS | unused | 没有服务端与云同步 |
 | 直接 API AI、语音识别、自动字幕、人物抠像 | unused | 未实现 |
+| Codex 插件 | limited | 本地 stdio MCP、fullscreen App 画面桥接、鼠标/键盘操作和版本校验编辑；协议、真实编辑器交互及导出已验，Codex 宿主打开留待用户重连后验收；见 CODEX_PLUGIN.md |
 | CLI 剪辑助手 | limited | Codex / Claude Code，项目对话、取消、受限编辑建议与一次撤销；真实 Codex 合成问答通过，Claude 本机需重新登录；见 ASSISTANT.md |
-| 原创离线素材 | supported | 34 款原创 PNG / WAV，SVG 源与 MIT 许可；分类、搜索、试听、添加 |
+| 原创离线素材 | supported | 64 款原创 PNG / WAV，SVG 源与 MIT 许可；分类、搜索、试听、添加 |
 | HDR、专业颜色管理、曲线变速、倒放 | unused | 本期无完整实现 |
 | 商业素材、贴纸、付费模板、专业转场库 | unused | 不复制或分发剪映资源 |
 | macOS .app / DMG / ZIP 打包 | supported | 最终镜像/ZIP/ad-hoc 签名校验、DMG复制app与原包ASAR一致、独立cwd字体/预览/九秒真实混音导出通过 |

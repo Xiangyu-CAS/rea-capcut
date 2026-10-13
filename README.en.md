@@ -19,7 +19,7 @@ ReaCut brings media management, multitrack editing, subtitles and video export i
 
 The project uses [REA](https://github.com/morluto/rea) to study Jianying's interface behavior and local project formats, then independently implements an editor with Electron, React, TypeScript and FFmpeg. REA supports development research; REA, Ghidra and Jianying are not runtime dependencies.
 
-> **Status: v0.4.0, early development.** macOS Apple Silicon is verified. Windows / Linux build configurations are available but await testing on those platforms. No GitHub Release has been published yet; use the source and packaging instructions below.
+> **Status: v0.5.0, early development.** macOS Apple Silicon is verified. Windows / Linux build configurations are available but await testing on those platforms. No GitHub Release has been published yet; use the source and packaging instructions below.
 
 ## Features
 
@@ -31,12 +31,29 @@ The project uses [REA](https://github.com/morluto/rea) to study Jianying's inter
 | **Text and subtitles** | Import SRT / basic WebVTT, edit individual cues, batch-replace text, shift timing, copy styles and export SRT. |
 | **Local projects** | Save `.reacut` projects, recover edits, relink media and collect project media into a portable folder. |
 | **Video export** | Render the full timeline, a selection or a custom range to MP4 / MOV with H.264 and AAC. |
-| **Offline assets** | Use 34 original stickers, backgrounds, title plates and synthesized sounds, plus the bundled Noto Sans SC font. |
+| **Text & effect libraries** | 16 editable text templates, 16 color / motion presets, and 8 transitions with animated previews and one-step undo. |
+| **Offline assets** | Use 64 original stickers, backgrounds, title plates and synthesized sounds, plus the bundled Noto Sans SC font. |
 | **Optional editing assistant** | Connect an installed, authenticated Codex CLI / Claude Code; review edit proposals before applying them and undo in one step. |
 
 See the [feature matrix](docs/FEATURE_MATRIX.md) for detailed support and limitations.
 
 ## Getting started
+
+### Option 1: standalone DMG
+
+Open the ReaCut DMG, drag the app into Applications, and launch it. macOS packages include FFmpeg and FFprobe. GitHub Releases are not published yet; use a locally built DMG or build one below.
+
+### Option 2: inside the Codex side panel
+
+Install **ReaCut 0.5.0+**, Codex desktop, its `codex` CLI, and Python 3. From this repository or the extracted plugin ZIP:
+
+```sh
+sh scripts/install-plugin.sh
+```
+
+Reconnect or open a new Codex chat and ask: **“Open ReaCut in the side panel.”** Use the full editor directly with the mouse and keyboard, or ask Codex to make reversible timeline edits. If the app is elsewhere, pass `--app /absolute/path/ReaCut.app`.
+
+The plugin runs the local editor in a separate session. Its interactive stream is about 6 fps; file selection uses native dialogs, and audio plays locally. Codex receives requested project summaries, text, and explicit screenshots. See the [plugin guide](docs/CODEX_PLUGIN.md) for setup, data boundaries, and limitations.
 
 ### Run from source
 

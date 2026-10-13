@@ -545,8 +545,14 @@ export async function createExportArguments(
           ? rx
           : Math.min(options.width / width, options.height / height);
         const scale = keyframeExpression(clip, "scale", clip.transform.scale);
+        const animatedScale = clip.keyframes.some((key) => key.property === "scale");
+        // Keep dynamic scaling on a conversion path, including frames whose size
+        // equals the input. FFmpeg 9 can fail when switching to its no-op path.
+        // Planar/packed RGB conversion preserves colors and alpha.
+        if (animatedScale) filters.push("format=gbrap");
         filters.push(
           `scale=w='max(2,trunc(${number(width * contain)}*(${scale})/2)*2)':h='max(2,trunc(${number(height * contain)}*(${scale})/2)*2)':eval=frame`,
+          ...(animatedScale ? ["format=rgba"] : []),
           "setsar=1",
         );
         if (a.blur > 0)

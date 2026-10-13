@@ -1,5 +1,52 @@
 # 本机验证记录
 
+## macOS 插件 Dock 修复（2026-10-13）
+
+后台插件改用 accessory 激活策略；显示桌面窗口时切回 regular，关闭窗口后隐藏 Dock 图标并保留编辑器。`tests/plugin-dock-electron.ts` 在隔离目录内验证上述三种状态及连续 20 次画面刷新均不显示窗口或 Dock 图标；类型检查与生产构建通过。修复应用位于 `release/plugin-dock-fix/mac-arm64/ReaCut.app`，打包后的插件协议、素材导入、编辑、撤销重做、截图及断连保存回归通过，严格签名检查通过。本机插件配置已指向修复应用。后续确认旧连接仍在使用原应用，核对空项目无未保存修改后正常退出；需重连插件加载修复应用，尚未取得修复版在 Codex 宿主内的最终确认。下文此前生成的 DMG 不含这次修复。
+
+## v0.5.0 Codex 插件（2026-10-13）
+
+新增 portable / Codex 兼容插件包、本地 stdio MCP 服务，以及 fullscreen MCP App 画面与输入桥接。插件在本机 Codex 中注册安装成功；后续通过插件工具打开侧栏，用户确认看到编辑器，并报告旧进程的 Dock 干扰问题。侧栏打开已获用户确认，完整宿主剪辑流程及 Dock 修复后的宿主表现仍待验收。以下是本地协议、真实编辑器与标准 MCP Apps 验证宿主的结果，不将它们等同于完整 Codex 宿主验收。
+
+- 类型检查与生产构建通过。现有 24 个测试文件 **293 项通过、1 项缺少 libx265 跳过**。
+- 实际 v0.5.0 macOS arm64 安装包在空 `PATH`、隔离用户目录下通过插件协议测试：initialize、9 个工具、fullscreen resource、app-only 帧权限、项目读取、原创素材导入、时间线插入、版本冲突、非法操作整批回滚、撤销/重做、无效路径和输入拒绝、真实画面与导出窗口。
+- 断开 stdio 后核对最新项目已写入 autosave.reacut，编辑器正常退出。实际安装缓存中的 Python 启动器通过 MCP 通信；同时启动两个连接，恢复目录不同；EOF 与 SIGTERM 均刷新恢复数据并退出。
+- 用 MCP Apps SDK 的独立本地验证宿主，通过 Computer Use 操作真实插件 UI，验证中文输入、全选替换、缩放坐标、片段拖动、快捷键撤销、系统保存对话框和真实导出。输出 H.264、640×360、5 秒 MP4，FFprobe 核对通过。发现并修复隐藏窗口的全选行为、CSS 缩放后的输入坐标以及离屏窗口无法切回桌面的问题。
+- 改用可显示的隐藏窗口后，再次核对 MCP 截图与原生桌面界面；原有 renderer 隔离、CSP 和媒体授权保持启用。关闭插件的桌面窗口会收回到后台，不销毁侧栏编辑会话。
+- Skill 校验、Python / shell 语法检查和 Git diff 空白检查通过。新增 MCP Apps SDK 及其实际打包依赖的原始许可声明；许可收集 122 条、无未解决项。
+- 最终应用 `codesign --verify --deep --strict` 通过，DMG 的 `hdiutil verify` 为 VALID。仍为本地 ad-hoc 签名，未 Apple 公证。Windows / Linux 未实机验收。
+
+安装包：`release/codex-plugin-final/ReaCut-0.5.0-arm64.dmg`，SHA-256：`d54b16d6c6eb6221a133d3af8d3106156fd61b966bf9250c821e57d1605fde0f`。插件包：`release/ReaCut-plugin-0.5.0.zip`。
+
+本机证据：`.test-output/plugin-electron/evidence.json`、`.test-output/plugin-launcher.json`、`.test-output/plugin-harness/plugin-ui-export.mp4`、`.test-output/plugin-regression.log`。界面截图见 [插件说明](CODEX_PLUGIN.md#本地交互验收截图)。
+
+## v0.4.2 文字 / 特效 / 转场库（2026-10-13）
+
+提供 16 款可编辑文字模板、8 款关键帧动效和 8 款转场，保留并改善原有 8 款调色预设的缩略图。所有配方为自主代码，预览图来自内置原创素材；详情见 [CREATIVE_LIBRARY.md](CREATIVE_LIBRARY.md)。
+
+- 最终类型检查与生产构建通过；使用内置 FFmpeg / FFprobe 执行全部单元与集成测试，24 个文件 **293 项通过、1 项因缺少 libx265 编码器跳过**。
+- 配方专项 23 项通过：响应式可编辑文字、锁轨新建文字轨、原子撤销、关键帧保留、转场时长对齐及短片段/间隙/后续冲突保护。平滑曲线在转场边界后的数值与原始曲线一致。
+- 实际执行全部 8 款转场和 8 款动效的 FFmpeg 导出图，检查转场前后和中间像素、滑入方向、叠化亮度、经过背景、缩放区域及动效帧变化。发现并修复动态缩放回到输入尺寸时 FFmpeg 9 的过滤错误，通过显式 planar / packed RGB 转换保持颜色与 alpha。
+- 现有桌面叠化回归通过：中点预览 RGB `[127,0,128]`，导出 `[127,0,127]`，混音 RMS 约 0.06354；保留已有淡化包络的验证。
+- 最终 macOS arm64 打包应用在空 `PATH`、隔离用户目录下运行 `tests/creative-library-electron.ts`，5 组完整流程检查通过。覆盖卡片数量、动态预览、文字分类/搜索、添加/撤销、调色/动效应用、转场时长/撤销和真实视频导出。输出 640×360、5 秒 MP4，包含中文动态文字、背景、呼吸缩放和缩放转场；白色文字像素 1,472，renderer errors 为空。
+- 卡片布局随素材面板宽度自动调整列数。实际界面截图在本节所链接的素材文档中，均使用本项目生成的背景，没有用户视频。
+- `codesign --verify --deep --strict` 通过，`hdiutil verify` 结果 VALID。仍为本地 ad-hoc 签名，未公证；Windows / Linux 未实机验收。
+
+安装包：`release/creative-library/ReaCut-0.4.2-arm64.dmg`；SHA-256：`6e8861664176d5838f077cb9e453449bea90c10784248184b51ec6d3eea005e8`。
+
+原始本机证据：`.test-output/creative-final-tests.log`、`.test-output/creative-library-electron/evidence.json`、`.test-output/transition-electron/evidence.json`。安装包验证不代表全部第三方媒体组合均已覆盖。
+
+## v0.4.1 离线素材扩充（2026-10-13）
+
+素材从 34 款扩至 64 款：28 个贴纸、14 张背景、12 个标题底板、10 个合成音效。原有 34 个媒体文件的 SHA-256 与扩充前一致。生成代码、SVG 源、音频合成公式、许可与文件清单一同保留；新增素材预览见 [素材说明](ORIGINAL_ASSETS.md)。
+
+- `npm run assets` 生成 64 款素材及两张预览表；`vitest run tests/builtinAssets.test.ts` 的 4 项测试通过，覆盖全部素材的尺寸、透明度、文件指纹、SVG 外部引用约束，以及 WAV 格式、时长、RMS、峰值与首尾淡化。
+- `tsx tests/builtin-assets-browser.ts` 的 7 项检查通过：64 张素材卡、图片加载、添加回调、分类、旅行关键词匹配定位与新相机、星点音效试听及分类切换；renderer errors 为空。
+- `npm run build` 含 TypeScript 检查与生产构建通过。macOS arm64 新打包应用在空 `PATH`、隔离用户目录下运行 `tests/assistant-assets-electron.ts`，13 项检查通过。验证新相机 / 姓名牌的本机导入与撤销，极光背景 / 星点音效保存，透明图层预览，以及内置 FFmpeg 实际导出 640×360、5 秒有声视频。首秒音频 RMS 约 0.08951，首帧背景、贴纸与文字像素检查通过；renderer errors、failedMedia 均为空。助手环节使用合成 CLI，不调用真实账号。
+- 包内 64 个媒体文件全部匹配 manifest 指纹。`codesign --verify --deep --strict` 通过，DMG 经 `hdiutil verify` 为 VALID；签名仍为本地 ad-hoc，未公证。Windows / Linux 未新增实机验证。
+
+安装包：`release/assets-expanded/ReaCut-0.4.1-arm64.dmg`。SHA-256：`8a4dfd26a1ebbb159d3d9d1e4612f430a85ef9527420963841a063df02a12434`。原始本机记录位于被忽略的 `.test-output/builtin-assets/`、`.test-output/assistant-assets-electron/`、`.test-output/assets-expansion/`。
+
 ## 提交准备复核（2026-10-13）
 
 使用内置 FFmpeg / FFprobe 重新运行 `npm run check`：类型检查、生产构建通过，22 个测试文件中 270 项通过、1 项 x265 造样测试跳过。桌面基础工作流重新通过，覆盖导入、播放、剪辑、撤销、文字/字幕、保存重开和实际视频导出，renderer errors 与媒体失败列表均为空。

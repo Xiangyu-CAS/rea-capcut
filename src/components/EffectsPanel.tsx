@@ -8,12 +8,16 @@ import {
   Sparkles,
   Waves,
 } from "lucide-react";
-import type { Adjustments, Clip, TrackKind } from "../core/types";
+import type { Adjustments, Clip, TrackKind, Project } from "../core/types";
 import { DEFAULT_ADJUSTMENTS } from "../core/defaults";
 import "./EffectsPanel.css";
+import { MotionLibrary } from "./CreativeLibrary";
+import { motionPatch } from "../core/creativePresets";
+import PresetPreview from "./PresetPreview";
 
 export interface EffectsPanelProps {
   clip?: Clip;
+  project?: Pick<Project, "width" | "height">;
   kind?: TrackKind;
   locked?: boolean;
   onApply: (patch: Partial<Clip>) => void;
@@ -152,12 +156,14 @@ export function fadePatch(
 }
 export default function EffectsPanel({
   clip,
+  project = { width: 1920, height: 1080 },
   kind,
   locked = false,
   onApply,
 }: EffectsPanelProps) {
-  const [tab, setTab] = useState<"color" | "fade">("color");
+  const [tab, setTab] = useState<"color" | "fade" | "motion">("color");
   const [seconds, setSeconds] = useState(0.5);
+  const [query, setQuery] = useState("");
   const active = COLOR_PRESETS.find((p) =>
     Object.entries(p.adjustments).every(
       ([key, value]) =>
@@ -171,7 +177,7 @@ export default function EffectsPanel({
     <section className="effects-panel" aria-label="本地效果库">
       <div className="effects-title">
         <Sparkles size={15} />
-        <strong>效果</strong>
+        <strong>效果预设 · 16</strong>
         <span>本地处理</span>
       </div>
       <div className="effects-tabs" role="tablist" aria-label="效果类型">
@@ -182,6 +188,14 @@ export default function EffectsPanel({
           onClick={() => setTab("color")}
         >
           <SlidersHorizontal size={13} /> 调色预设
+        </button>
+        <button
+          role="tab"
+          aria-selected={tab === "motion"}
+          className={tab === "motion" ? "is-active" : ""}
+          onClick={() => setTab("motion")}
+        >
+          <Sparkles size={13} /> 动态特效
         </button>
         <button
           role="tab"
@@ -202,7 +216,14 @@ export default function EffectsPanel({
           </span>
           {clip && <ChevronRight size={12} />}
         </div>
-        {tab === "color" ? (
+        {tab === "motion" ? (
+          <MotionLibrary
+            disabled={disabled || kind === "audio"}
+            onApply={(motion) => {
+              if (clip) onApply(motionPatch(clip, motion, project));
+            }}
+          />
+        ) : tab === "color" ? (
           <>
             <p className="effects-help">
               {kind === "audio"
@@ -211,32 +232,42 @@ export default function EffectsPanel({
                   ? "文字样式在右侧属性中编辑；「淡入淡出」可设置文字的显示变化。"
                   : "选择预设即应用到片段。可在右侧属性中继续微调。"}
             </p>
+            <label className="creative-search">
+              <input
+                aria-label="搜索调色预设"
+                placeholder="搜索调色预设"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </label>
             <div className="effects-grid">
-              {COLOR_PRESETS.map((preset) => (
-                <button
+              {COLOR_PRESETS.filter((p) =>
+                (p.name + p.description).includes(query.trim()),
+              ).map((preset) => (
+                <article
+                  className="creative-card"
                   key={preset.id}
-                  disabled={colorDisabled}
-                  className={`effects-preset ${clip && active?.id === preset.id ? "is-active" : ""}`}
-                  onClick={() => onApply(presetPatch(preset, clip))}
-                  title={preset.description}
-                  aria-label={`应用${preset.name}调色`}
-                  aria-pressed={!!clip && active?.id === preset.id}
+                  data-preset-id={preset.id}
                 >
-                  <span
-                    className="effects-swatch"
-                    style={{
-                      background: `linear-gradient(145deg, ${preset.colors})`,
-                    }}
-                  >
-                    <span className="effects-landscape" />
-                    {clip && active?.id === preset.id && (
-                      <i>
-                        <Check size={12} />
-                      </i>
-                    )}
-                  </span>
-                  <span className="effects-preset-name">{preset.name}</span>
-                </button>
+                  <PresetPreview
+                    adjustments={preset.adjustments}
+                    label={preset.name}
+                  />
+                  <div>
+                    <span>
+                      {preset.name}
+                      <small>{preset.description}</small>
+                    </span>
+                    <button
+                      disabled={colorDisabled}
+                      onClick={() => onApply(presetPatch(preset, clip))}
+                      aria-label={`应用${preset.name}调色`}
+                      aria-pressed={!!clip && active?.id === preset.id}
+                    >
+                      <Check size={12} />
+                    </button>
+                  </div>
+                </article>
               ))}
             </div>
             <button

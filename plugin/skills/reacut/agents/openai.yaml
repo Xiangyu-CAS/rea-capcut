@@ -1,0 +1,6 @@
+interface:
+  display_name: "ReaCut 视频编辑器"
+  short_description: "在 Codex 侧栏打开本地编辑器，操作时间线、文字、效果与视频导出"
+  default_prompt: "用 $reacut 在右侧打开编辑器，剪辑我选定的视频。"
+policy:
+  allow_implicit_invocation: true

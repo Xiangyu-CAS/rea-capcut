@@ -109,7 +109,7 @@ try {
   await page.mouse.click(ruler.x + 90, ruler.y + 15);
   const colorful = () =>
     page.evaluate(() => {
-      const c = document.querySelector("canvas")!,
+      const c = document.querySelector<HTMLCanvasElement>(".player-panel canvas")!,
         ctx = c.getContext("2d")!;
       const a = ctx.getImageData(
           Math.floor(c.width * 0.25),

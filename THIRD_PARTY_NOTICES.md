@@ -4,6 +4,8 @@ ReaCut's original source code is licensed under MIT, in `LICENSE`. Dependencies 
 
 | Component | Installed version | Attribution |
 | --- | --- | --- |
+| MCP Apps SDK / MCP TypeScript SDK | 1.7.5 / 1.32.1 | MIT; original notices retained under licenses/ |
+| Zod / zod-to-json-schema | Installed versions in licenses/manifest.json | MIT; bundled into the MCP App UI |
 | React / React DOM | 19.3.0 | MIT; Meta Platforms, Inc. and affiliates |
 | Scheduler | 0.28.0 | MIT; Meta Platforms, Inc. and affiliates |
 | Zustand | 5.0.15 | MIT; see the original package LICENSE |

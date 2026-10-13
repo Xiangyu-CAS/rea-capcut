@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "reacut": {
+      "type": "stdio",
+      "command": "python3",
+      "args": [
+        "${PLUGIN_ROOT}/scripts/launch.py"
+      ],
+      "cwd": "${PLUGIN_ROOT}"
+    }
+  }
+}

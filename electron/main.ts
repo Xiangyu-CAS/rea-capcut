@@ -7,6 +7,7 @@ import {
   protocol,
   shell,
 } from "electron";
+import { startPluginHost } from "./pluginHost";
 import { createReadStream } from "node:fs";
 import {
   access,
@@ -50,6 +51,11 @@ import type {
   ExportOptions,
 } from "../src/core/types";
 
+const pluginMode = process.argv.includes("--reacut-plugin");
+// A connected MCP server is a background app until its desktop window is shown.
+if (pluginMode && process.platform === "darwin") app.setActivationPolicy("accessory");
+if (pluginMode && !process.env.REACUT_USER_DATA)
+  app.setPath("userData", path.join(app.getPath("appData"), "ReaCut-Plugin", "sessions", randomUUID()));
 if (app.isPackaged && process.platform === "darwin")
   setBundledMediaToolsDirectory(path.join(process.resourcesPath, "media-tools"));
 if (process.env.REACUT_USER_DATA)
@@ -686,8 +692,9 @@ async function serveMedia(request: Request): Promise<Response> {
 function createWindow() {
   const directory = __dirname;
   window = new BrowserWindow({
-    width: 1500,
-    height: 950,
+    width: pluginMode ? 1440 : 1500,
+    height: pluginMode ? 900 : 950,
+    show: !pluginMode,
     minWidth: 1060,
     minHeight: 680,
     title: "ReaCut · 映刻",
@@ -699,13 +706,23 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      backgroundThrottling: !pluginMode,
+      additionalArguments: pluginMode ? ["--reacut-plugin"] : [],
     },
   });
+  if (pluginMode) {
+    if (process.platform === "darwin") {
+      window.on("show", () => app.setActivationPolicy("regular"));
+      window.on("hide", () => app.setActivationPolicy("accessory"));
+    }
+    startPluginHost(window, () => { closeAllowed = true; app.quit(); });
+  }
   window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   window.webContents.on("will-navigate", (event, url) => {
     if (url !== window?.webContents.getURL()) event.preventDefault();
   });
   window.on("close", (event) => {
+    if (pluginMode && !closeAllowed && !quitRequested) { event.preventDefault(); window?.hide(); return; }
     if (!dirty || closeAllowed) return;
     event.preventDefault();
     if (askingClose) return;

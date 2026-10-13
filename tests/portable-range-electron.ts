@@ -45,7 +45,7 @@ try {
  await page.getByRole('button',{name:'文件菜单'}).click();await page.getByRole('button',{name:/^打开项目/}).click();
  await expect.poll(()=>page.evaluate(async()=>{const p=await window.editorAPI!.getRecentProjects();return p[0]?.path;}),{timeout:20000}).toBe(path.join(moved,'项目.reacut'));
  await expect(page.locator('.tl-clip')).toHaveCount(1);
- await expect.poll(()=>page.evaluate(()=>{const c=document.querySelector('canvas')!;return c.getContext('2d')!.getImageData(c.width/2,c.height/2,1,1).data[0];}),{timeout:15000}).toBeGreaterThan(180);
+ await expect.poll(()=>page.evaluate(()=>{const c=document.querySelector<HTMLCanvasElement>('.player-panel canvas')!;return c.getContext('2d')!.getImageData(c.width/2,c.height/2,1,1).data[0];}),{timeout:15000}).toBeGreaterThan(180);
  checks.push('after moving entire folder and making original sources unavailable, UI opens and decodes collected video');
  await page.locator('.project-title input').fill('搬移后继续编辑');await page.locator('.project-title input').blur();
  await page.getByRole('button',{name:'保存项目',exact:true}).click();

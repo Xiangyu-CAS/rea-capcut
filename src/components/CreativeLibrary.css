@@ -1,0 +1,232 @@
+.creative-library {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: #202020;
+  color: #ddd;
+  font-size: 12px;
+}
+.creative-library header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 14px 12px;
+  gap: 8px;
+}
+.creative-library header strong {
+  font-size: 14px;
+}
+.creative-library header small {
+  font-size: 10px;
+  color: #8acdbc;
+  margin-left: 5px;
+}
+.creative-library header > span {
+  font-size: 10px;
+  color: #999;
+}
+.creative-library button {
+  font: inherit;
+  cursor: pointer;
+}
+.creative-library header button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #303b38;
+  color: #a5e3d3;
+  border: 0;
+  border-radius: 4px;
+  padding: 6px;
+  font-size: 10px;
+}
+.creative-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 14px 10px;
+  padding: 7px;
+  background: #292929;
+  border: 1px solid #414141;
+  border-radius: 5px;
+  color: #aaa;
+}
+.creative-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: #ddd;
+  font-size: 11px;
+  outline: none;
+}
+.creative-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 12px 10px;
+  border-bottom: 1px solid #353535;
+  flex-wrap: wrap;
+}
+.creative-tabs button {
+  border: 0;
+  background: transparent;
+  color: #aaa;
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+.creative-tabs button[aria-selected="true"] {
+  color: #8be0cb;
+  background: #284039;
+}
+.creative-scroll {
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+  padding: 12px;
+}
+.creative-help {
+  font-size: 10px;
+  line-height: 1.7;
+  color: #aaa;
+  margin: 0 0 12px;
+}
+.creative-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
+  gap: 10px;
+}
+.creative-card {
+  border: 1px solid #3c3c3c;
+  background: #292929;
+  border-radius: 6px;
+  overflow: hidden;
+  min-width: 0;
+}
+.creative-card:hover {
+  border-color: #71817c;
+}
+.preset-preview {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16/9;
+  border: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+  background: #18212b !important;
+  border-radius: 0 !important;
+  cursor: pointer;
+}
+.preset-preview canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.preset-preview small {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: #101820ad;
+  color: #d3ddd8;
+  padding: 2px 3px;
+  border-radius: 3px;
+  font-size: 8px;
+}
+.creative-card > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  align-items: center;
+  padding: 8px;
+}
+.creative-card > div > span {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+.creative-card small {
+  display: block;
+  color: #959e9c;
+  font-size: 9px;
+  margin-top: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.creative-card > div > button {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 4px;
+  background: #31453e;
+  color: #8edbc7;
+  padding: 0;
+}
+.creative-card > div > button:hover:not(:disabled) {
+  background: #386556;
+}
+.creative-card > div > button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.creative-duration {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px 0;
+  color: #aaa;
+  font-size: 11px;
+}
+.creative-duration input {
+  width: 64px;
+  color: #ddd;
+  border: 1px solid #444;
+  background: #292929;
+  border-radius: 4px;
+  padding: 5px;
+}
+.creative-footer {
+  border-top: 1px solid #383838;
+  padding: 10px 14px;
+  color: #959e9c;
+  font-size: 10px;
+}
+.creative-empty {
+  padding: 25px 0;
+  color: #aaa;
+  text-align: center;
+}
+.creative-library button:focus-visible,
+.preset-preview:focus-visible,
+.creative-card button:focus-visible {
+  outline: 2px solid #83dfc5;
+  outline-offset: -2px;
+}
+.effects-content > .creative-search {
+  margin-left: 0;
+  margin-right: 0;
+}
+.effects-panel .creative-card > div > button {
+  background: #31453e;
+  color: #8edbc7;
+}
+.effects-panel .creative-card > div > button:disabled {
+  opacity: 0.3;
+}
+
+.effects-tabs {
+  flex-wrap: wrap;
+}
+.effects-tabs button {
+  white-space: nowrap;
+}
+
+.effects-grid { grid-template-columns: repeat(auto-fill, minmax(116px, 1fr)); }

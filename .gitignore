@@ -16,3 +16,6 @@ fixtures/
 build/icon.iconset/
 .media-build/
 media-tools/
+
+__pycache__/
+*.pyc

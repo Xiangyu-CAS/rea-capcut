@@ -58,6 +58,8 @@ import SourcePreview from "./components/SourcePreview";
 import EditorWorkspace from "./components/EditorWorkspace";
 import Timeline from "./components/Timeline";
 import EffectsPanel from "./components/EffectsPanel";
+import { TextLibrary, TransitionLibrary } from "./components/CreativeLibrary";
+import { addTextPreset, applyTransition, type TextPreset, type TransitionId } from "./core/creativePresets";
 import Player from "./components/Player";
 import Inspector from "./components/Inspector";
 import "./styles.css";
@@ -872,52 +874,10 @@ export default function App() {
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
   }, [modal, recover, safe]);
-  const addStyledText = (preset: number) => {
-    s.addText();
-    const state = useEditorStore.getState(),
-      c = state.project.clips.find((c) => c.id === state.selectedIds[0])!;
-    const styles = [
-      {
-        text: "让灵感，成为画面",
-        fontSize: 80,
-        bold: true,
-        color: "#ffffff",
-        background: "transparent",
-        stroke: "#000000",
-        strokeWidth: 2,
-      },
-      {
-        text: "每一帧，都值得记录",
-        fontSize: 52,
-        bold: false,
-        color: "#ffffff",
-        background: "#11151c",
-        stroke: "#000000",
-        strokeWidth: 0,
-      },
-      {
-        text: "REACUT",
-        fontSize: 104,
-        bold: true,
-        color: "#47e6d5",
-        background: "transparent",
-        stroke: "#ffffff",
-        strokeWidth: 0,
-      },
-      {
-        text: "CHAPTER 01\n我的故事",
-        fontSize: 66,
-        bold: true,
-        color: "#ffd69a",
-        background: "transparent",
-        stroke: "#17191f",
-        strokeWidth: 1,
-      },
-    ];
-    s.updateClip(c.id, {
-      text: { ...c.text!, ...styles[preset] },
-      name: styles[preset].text,
-    });
+  const addStyledText = (preset: TextPreset) => {
+    const result = addTextPreset(s.project, preset, s.playhead);
+    s.commit(result.project);
+    s.select([result.clip.id]);
     setTab("文本");
   };
   const readSubtitles = async () => {
@@ -1097,46 +1057,13 @@ export default function App() {
     s.select([clip.id]);
     notify("音频已分离到独立轨道");
   };
-  const crossfade = () => {
-    if (!active || active.text || activeTrack?.kind === "audio")
-      throw new Error("请选择一个画面片段");
-    if (activeTrack?.locked) throw new Error("请先解锁轨道");
-    const next = s.project.clips
-      .filter(
-        (c) =>
-          c.trackId === active.trackId &&
-          c.start >= active.start + active.duration - 0.01,
-      )
-      .sort((a, b) => a.start - b.start)[0];
-    if (!next) throw new Error("该片段后没有相邻画面片段");
-    const overlap = Math.min(0.5, active.duration / 2, next.duration / 2);
-    const newStart = active.start + active.duration - overlap;
-    s.commit({
-      ...s.project,
-      clips: s.project.clips.map((c) =>
-        c.id === next.id
-          ? {
-              ...c,
-              start: newStart,
-              fadeIn: overlap,
-              audioFadeIn: overlap,
-              videoFadeWindow: undefined,
-              audioFadeWindow: undefined,
-            }
-          : c.id === active.id
-            ? {
-                ...c,
-                fadeOut: 0,
-                videoFadeWindow: c.videoFadeWindow
-                  ? { ...c.videoFadeWindow, fadeOut: 0 }
-                  : undefined,
-                audioFadeOut: overlap,
-                audioFadeWindow: undefined,
-              }
-            : c,
-      ),
-    });
-    notify(`已添加 ${overlap.toFixed(2)} 秒叠化（后片段提前重叠）`);
+  const applySceneTransition = (transition: TransitionId, seconds: number) => {
+    if (!active) throw new Error("请选择一个画面片段");
+    const result = applyTransition(s.project, active.id, transition, seconds);
+    s.commit(result.project);
+    notify(transition === "dissolve"
+      ? `已添加 ${result.duration.toFixed(2)} 秒叠化（后片段提前重叠）`
+      : `已添加 ${result.duration.toFixed(2)} 秒转场，可撤销`);
   };
   return (
     <div
@@ -1315,36 +1242,12 @@ export default function App() {
                 }
               />
             )}
-            {tab === "文本" && (
-              <div className="resource-content">
-                <div className="resource-section-heading">
-                  <h3>本地文字</h3>
-                  <button className="small-button" onClick={s.addText}>
-                    <Type size={13} />
-                    添加文本
-                  </button>
-                </div>
-                <p className="muted small">
-                  添加文字图层，在属性面板编辑内容与样式。
-                </p>
-                <div className="text-templates">
-                  {["经典标题", "字幕底条", "霓虹标记", "章节标题"].map(
-                    (name, i) => (
-                      <button key={name} onClick={() => addStyledText(i)}>
-                        <div className={`text-template text-template-${i}`}>
-                          {["Aa", "故事由此开始", "REACUT", "CHAPTER 01"][i]}
-                        </div>
-                        <span>{name}</span>
-                      </button>
-                    ),
-                  )}
-                </div>
-              </div>
-            )}
+            {tab === "文本" && <TextLibrary onAdd={addStyledText} onBlank={s.addText} />}
             {tab === "字幕" && <SubtitlePanel onImport={() => safe(readSubtitles)} onExport={() => safe(exportSubtitles)} />}
             {tab === "特效" && (
               <EffectsPanel
                 clip={active}
+                project={s.project}
                 kind={activeTrack?.kind}
                 locked={activeTrack?.locked}
                 onApply={(patch) => {
@@ -1353,40 +1256,10 @@ export default function App() {
                 }}
               />
             )}
-            {tab === "转场" && (
-              <div className="resource-content">
-                <h3>画面衔接</h3>
-                <p className="muted small">
-                  选择前一个视频片段，转场会作用于同轨的下一段画面。
-                </p>
-                <button
-                  className="transition-card"
-                  onClick={() => void safe(crossfade)}
-                >
-                  <div className="dissolve-visual">
-                    <span />
-                    <span />
-                  </div>
-                  <strong>叠化</strong>
-                  <span>通过重叠片段与透明度淡入衔接</span>
-                </button>
-                <button
-                  className="transition-card"
-                  onClick={() => {
-                    if (active)
-                      s.updateClip(active.id, {
-                        fadeIn: Math.min(0.5, active.duration / 2),
-                        fadeOut: Math.min(0.5, active.duration / 2),
-                      });
-                    else notify("先选择一个画面片段");
-                  }}
-                >
-                  <div className="fade-visual" />
-                  <strong>淡入淡出</strong>
-                  <span>从画布背景进入与退出</span>
-                </button>
-              </div>
-            )}
+            {tab === "转场" && <TransitionLibrary
+              disabled={!active || !!active.text || activeTrack?.kind === "audio" || !!activeTrack?.locked}
+              onApply={(transition,seconds)=>void safe(()=>applySceneTransition(transition,seconds))}
+            />}
           </div>
         </section>
         {sourceAsset ? <SourcePreview

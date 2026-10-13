@@ -61,7 +61,7 @@ const saveProject = async (): Promise<Project> => {
 };
 const canvasPixel = () =>
   page.evaluate(() => {
-    const canvas = document.querySelector("canvas")!;
+    const canvas = document.querySelector<HTMLCanvasElement>(".player-panel canvas")!;
     return Array.from(
       canvas
         .getContext("2d")!

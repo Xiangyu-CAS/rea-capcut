@@ -105,6 +105,10 @@ async function localPackage(name: string): Promise<void> {
     }
 }
 const names = new Set<string>([
+  "@modelcontextprotocol/ext-apps",
+  "@modelcontextprotocol/sdk",
+  "zod",
+  "zod-to-json-schema",
   "react",
   "react-dom",
   "scheduler",

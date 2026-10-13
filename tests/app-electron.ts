@@ -184,7 +184,7 @@ try {
   // Real media scheme decoding must paint the imported red video, not a placeholder.
   const pixel = () =>
     page!.evaluate(() => {
-      const canvas = document.querySelector("canvas")!;
+      const canvas = document.querySelector<HTMLCanvasElement>(".player-panel canvas")!;
       return Array.from(
         canvas
           .getContext("2d")!

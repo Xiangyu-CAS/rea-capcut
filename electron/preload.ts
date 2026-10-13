@@ -66,3 +66,16 @@ const api: EditorAPI = {
   chooseMediaTool: (name) => ipcRenderer.invoke("choose-media-tool", name),
 };
 contextBridge.exposeInMainWorld("editorAPI", api);
+
+// Present only in the dedicated plugin process, never in a normal desktop window.
+if (process.argv.includes("--reacut-plugin")) {
+  contextBridge.exposeInMainWorld("reacutPlugin", {
+    onCommand: (callback: (request: { action: string; args: unknown }) => Promise<unknown>) => {
+      ipcRenderer.on("plugin-command", async (_, request) => {
+        try { ipcRenderer.send("plugin-result", { id: request.id, result: await callback(request) }); }
+        catch (error) { ipcRenderer.send("plugin-result", { id: request.id, error: error instanceof Error ? error.message : "操作失败" }); }
+      });
+      ipcRenderer.send("plugin-ready");
+    },
+  });
+}

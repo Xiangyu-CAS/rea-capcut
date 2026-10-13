@@ -106,7 +106,7 @@ try {
   const pixel = (x = 0.5, y = 0.5) =>
     page!.evaluate(
       ({ x, y }) => {
-        const canvas = document.querySelector("canvas")!;
+        const canvas = document.querySelector<HTMLCanvasElement>(".player-panel canvas")!;
         return Array.from(
           canvas
             .getContext("2d")!

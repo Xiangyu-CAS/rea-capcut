@@ -681,6 +681,606 @@
       "provenance": "original-programmatic",
       "license": "MIT",
       "sha256": "546b9466f66074e0ad261c7ec2e9eccf4994142574e1d4cc0d037092f55aca3b"
+    },
+    {
+      "id": "bolt",
+      "name": "闪电强调",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "bolt.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "闪电",
+        "能量",
+        "bolt"
+      ],
+      "transparent": true,
+      "source": "bolt.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "ff3d6875d14c0be92d179752b30ca6fde1e9d22b778c88b3f9a667e9d3f44d91"
+    },
+    {
+      "id": "cloud",
+      "name": "绵软云朵",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "cloud.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "天气",
+        "天空",
+        "cloud"
+      ],
+      "transparent": true,
+      "source": "cloud.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "d6df8df0b5f63d6e11ea001478de1dae28f0bd2305da576154a2bbf09bc0b89a"
+    },
+    {
+      "id": "moon",
+      "name": "月夜星辰",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "moon.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "月亮",
+        "夜晚",
+        "moon"
+      ],
+      "transparent": true,
+      "source": "moon.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "305d639fa9459b665a17448dffa768c981350f7d57e1ff11af5d782325e275ee"
+    },
+    {
+      "id": "leaf",
+      "name": "新芽绿叶",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "leaf.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "植物",
+        "自然",
+        "leaf"
+      ],
+      "transparent": true,
+      "source": "leaf.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "9f3918ce37d5e922e93c4d7d6b619bf2749d36dc34957297bb521a67607a3825"
+    },
+    {
+      "id": "flame",
+      "name": "热力火苗",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "flame.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "火焰",
+        "热门",
+        "flame"
+      ],
+      "transparent": true,
+      "source": "flame.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "fa52e2cedcc2bd3daf95c2a4e2e7a4c1790448b0463595501fe1aec950df7b09"
+    },
+    {
+      "id": "camera",
+      "name": "旅行相机",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "camera.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "摄影",
+        "旅行",
+        "camera"
+      ],
+      "transparent": true,
+      "source": "camera.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "63fb6b525fa215330a3dd3a63bda6245e6c8e4d167a43b9c8a1cca6df3069030"
+    },
+    {
+      "id": "headphones",
+      "name": "随身耳机",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "headphones.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "音乐",
+        "聆听",
+        "headphones"
+      ],
+      "transparent": true,
+      "source": "headphones.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "a8fe24ff80b48b11f28cbeb3b113c07e1ddd73bca184cc22eeb7a13dbd53769f"
+    },
+    {
+      "id": "microphone",
+      "name": "播客话筒",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "microphone.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "录音",
+        "采访",
+        "microphone"
+      ],
+      "transparent": true,
+      "source": "microphone.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "92f1099ea1b7ce6458f1456c962a8fa7e05157c71fc0cf3778f2dcbc118c668e"
+    },
+    {
+      "id": "coffee",
+      "name": "咖啡时刻",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "coffee.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "生活",
+        "饮品",
+        "coffee"
+      ],
+      "transparent": true,
+      "source": "coffee.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "42257814a8570bd75590b5a0803d5a6c72cba0db46ce9d0732d43dbbc95bdd33"
+    },
+    {
+      "id": "paw",
+      "name": "萌宠脚印",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "paw.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "动物",
+        "宠物",
+        "paw"
+      ],
+      "transparent": true,
+      "source": "paw.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "ba486f2c2a35a579643a4a35bb03312cb734879ea4292a1287c6197b617b9cb8"
+    },
+    {
+      "id": "medal",
+      "name": "高光奖章",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "medal.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "奖励",
+        "成就",
+        "medal"
+      ],
+      "transparent": true,
+      "source": "medal.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "ebab6d6b2a4015097230c6b5eabe22c7d8a8c4803564ef12556a7688a9c1d805"
+    },
+    {
+      "id": "clock",
+      "name": "时间提醒",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "clock.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "时钟",
+        "倒计时",
+        "clock"
+      ],
+      "transparent": true,
+      "source": "clock.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "d40c314f214e8fbc254e8f8e3387998fbeddd09a748114051d112e8a54cd0315"
+    },
+    {
+      "id": "bg-aurora",
+      "name": "极光夜幕",
+      "category": "backgrounds",
+      "kind": "image",
+      "fileName": "bg-aurora.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "极光",
+        "夜景",
+        "aurora"
+      ],
+      "transparent": false,
+      "source": "bg-aurora.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "c22c00c7c6140a386d417d86fb72806b72f0f6708509515c07707097782f63d4"
+    },
+    {
+      "id": "bg-ocean",
+      "name": "海蓝波浪",
+      "category": "backgrounds",
+      "kind": "image",
+      "fileName": "bg-ocean.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "海洋",
+        "蓝色",
+        "ocean"
+      ],
+      "transparent": false,
+      "source": "bg-ocean.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "6b91dcf24be75bcdd6cb8e13d05e1c475e614a9bcb6239f0a2b84ca13a2c77f8"
+    },
+    {
+      "id": "bg-lavender",
+      "name": "薰衣草光晕",
+      "category": "backgrounds",
+      "kind": "image",
+      "fileName": "bg-lavender.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "紫色",
+        "梦幻",
+        "lavender"
+      ],
+      "transparent": false,
+      "source": "bg-lavender.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "c2d9634681a540af0e7e5d12129ffcaa2acea951166a52e4c925d9dab70c72aa"
+    },
+    {
+      "id": "bg-peach",
+      "name": "蜜桃几何",
+      "category": "backgrounds",
+      "kind": "image",
+      "fileName": "bg-peach.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "粉色",
+        "几何",
+        "peach"
+      ],
+      "transparent": false,
+      "source": "bg-peach.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "d99f89b4c2c6d3ebbf8283e9bcb22c5324474e8fcf11f58e335732352ab5b32e"
+    },
+    {
+      "id": "bg-sand",
+      "name": "大漠沙丘",
+      "category": "backgrounds",
+      "kind": "image",
+      "fileName": "bg-sand.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "沙漠",
+        "自然",
+        "sand"
+      ],
+      "transparent": false,
+      "source": "bg-sand.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "2836fe9ba7df03e1ddfa6f81a937ca6103016338729e039351dbc9259e768135"
+    },
+    {
+      "id": "bg-dots",
+      "name": "奶油波点",
+      "category": "backgrounds",
+      "kind": "image",
+      "fileName": "bg-dots.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "波点",
+        "可爱",
+        "dots"
+      ],
+      "transparent": false,
+      "source": "bg-dots.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "ef06a8ba694328f6c99202cb9342efc12c5cc0f3f56cae74a7180e0a80379040"
+    },
+    {
+      "id": "bg-blueprint",
+      "name": "工程蓝图",
+      "category": "backgrounds",
+      "kind": "image",
+      "fileName": "bg-blueprint.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "蓝图",
+        "科技",
+        "blueprint"
+      ],
+      "transparent": false,
+      "source": "bg-blueprint.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "47b87e313f6e9c616029387f6d36416b4c7529db285bed6f9e883158b3e5d18f"
+    },
+    {
+      "id": "bg-comic",
+      "name": "漫画放射",
+      "category": "backgrounds",
+      "kind": "image",
+      "fileName": "bg-comic.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "漫画",
+        "强调",
+        "comic"
+      ],
+      "transparent": false,
+      "source": "bg-comic.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "1c1e344e4128a933c0054864d9718a125b5acd1e08240063e14584b2d8821266"
+    },
+    {
+      "id": "title-pill",
+      "name": "圆角姓名牌",
+      "category": "titles",
+      "kind": "image",
+      "fileName": "title-pill.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "人物",
+        "圆角",
+        "pill"
+      ],
+      "transparent": true,
+      "source": "title-pill.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "278756e505d94985103642243f30c6468bbecb071f00bda80d214cbcc1f96d22"
+    },
+    {
+      "id": "title-news",
+      "name": "资讯双层条",
+      "category": "titles",
+      "kind": "image",
+      "fileName": "title-news.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "资讯",
+        "新闻",
+        "news"
+      ],
+      "transparent": true,
+      "source": "title-news.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "15a9d9f57a5d5a4eec314799e7eac8562326604e884a1fc97251994b91fb34c7"
+    },
+    {
+      "id": "title-split",
+      "name": "双色章节卡",
+      "category": "titles",
+      "kind": "image",
+      "fileName": "title-split.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "章节",
+        "分屏",
+        "split"
+      ],
+      "transparent": true,
+      "source": "title-split.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "7bf8b792a1a163ebf27d3388337ee451ec875ef96cce428c1add3feb1c104bdb"
+    },
+    {
+      "id": "title-subtitle",
+      "name": "柔暗字幕底",
+      "category": "titles",
+      "kind": "image",
+      "fileName": "title-subtitle.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "字幕",
+        "渐变",
+        "subtitle"
+      ],
+      "transparent": true,
+      "source": "title-subtitle.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "732084f7584571d465f4ee303462680c90b0de53fa0ea77120a037361b522b8b"
+    },
+    {
+      "id": "title-tape",
+      "name": "便签胶带",
+      "category": "titles",
+      "kind": "image",
+      "fileName": "title-tape.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "手账",
+        "胶带",
+        "tape"
+      ],
+      "transparent": true,
+      "source": "title-tape.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "82cd523f37c3e4579a4d1440582f055b9f14ed3e41813d6cfbce288d62520547"
+    },
+    {
+      "id": "title-chapter",
+      "name": "极简章节线",
+      "category": "titles",
+      "kind": "image",
+      "fileName": "title-chapter.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "章节",
+        "极简",
+        "chapter"
+      ],
+      "transparent": true,
+      "source": "title-chapter.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "bf607f0955d2197cd69274043efb6d3d21a9cdb04cb851871679272c226fbb4e"
+    },
+    {
+      "id": "sound-shutter",
+      "name": "电子快门",
+      "category": "sounds",
+      "kind": "audio",
+      "fileName": "sound-shutter.wav",
+      "width": 0,
+      "height": 0,
+      "duration": 0.22,
+      "tags": [
+        "摄影",
+        "快门",
+        "shutter"
+      ],
+      "transparent": false,
+      "source": "../../scripts/generate-assets.ts",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "bcf155d79eca340d9da306896e6be78bf6ff8f7df168fdcae05c05671a94292c"
+    },
+    {
+      "id": "sound-impact",
+      "name": "低频强调",
+      "category": "sounds",
+      "kind": "audio",
+      "fileName": "sound-impact.wav",
+      "width": 0,
+      "height": 0,
+      "duration": 0.5,
+      "tags": [
+        "鼓点",
+        "强调",
+        "impact"
+      ],
+      "transparent": false,
+      "source": "../../scripts/generate-assets.ts",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "b40ee88e98821eaf6d1fe7bcdfc48429dcbd1ee2438acd7e7768287db2f6c0dd"
+    },
+    {
+      "id": "sound-twinkle",
+      "name": "星点提示",
+      "category": "sounds",
+      "kind": "audio",
+      "fileName": "sound-twinkle.wav",
+      "width": 0,
+      "height": 0,
+      "duration": 1.5,
+      "tags": [
+        "提示",
+        "星光",
+        "twinkle"
+      ],
+      "transparent": false,
+      "source": "../../scripts/generate-assets.ts",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "8b65a40d1f6b97f03d1fcbc1055c626bf2e7c7f0ffa80f975592aba4d303412e"
+    },
+    {
+      "id": "sound-fall",
+      "name": "向下滑音",
+      "category": "sounds",
+      "kind": "audio",
+      "fileName": "sound-fall.wav",
+      "width": 0,
+      "height": 0,
+      "duration": 0.65,
+      "tags": [
+        "下降",
+        "转场",
+        "fall"
+      ],
+      "transparent": false,
+      "source": "../../scripts/generate-assets.ts",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "b03456af91f7c38c1319f8f7370cf113ca12186695d988aef64544f6d7b4449a"
     }
   ]
 }
