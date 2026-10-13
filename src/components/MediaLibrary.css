@@ -3,8 +3,8 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  color: #bbc4d2;
-  background: #1c1f26;
+  color: #c5c5c5;
+  background: #262626;
   min-width: 0;
   overflow: hidden;
   font-size: 11px;
@@ -12,7 +12,7 @@
 .media-library button {
   font-family: inherit;
   cursor: pointer;
-  color: #a7b2c3;
+  color: #bdbdbd;
   background: transparent;
   border: 0;
   border-radius: 5px;
@@ -25,7 +25,7 @@
     color 0.15s;
 }
 .media-library button:hover {
-  background: #333b47;
+  background: #404040;
   color: #e5eff9;
 }
 .media-library button:disabled {
@@ -54,28 +54,28 @@
   gap: 7px;
   font-size: 12px;
   font-weight: 600;
-  color: #e0e6ee;
+  color: #dddddd;
 }
 .media-top-title svg {
   color: #a0aaba;
 }
 .media-top-title b {
-  background: #303642;
+  background: #383838;
   border-radius: 4px;
   padding: 1px 5px;
   font-size: 9px;
   font-weight: 500;
-  color: #8f9aab;
+  color: #a0a0a0;
 }
 .media-import {
   padding: 6px 9px !important;
-  background: #283f3e !important;
-  color: #5fe0c9 !important;
+  background: #393939 !important;
+  color: #16c4cb !important;
   font-size: 10px;
   white-space: nowrap;
 }
 .media-import:hover {
-  background: #31524b !important;
+  background: #474747 !important;
 }
 .media-tools {
   display: flex;
@@ -90,10 +90,10 @@
   flex: 1;
   min-width: 0;
   gap: 7px;
-  background: #15181e;
-  border: 1px solid #303641;
+  background: #202020;
+  border: 1px solid #414141;
   border-radius: 6px;
-  color: #697688;
+  color: #929292;
   padding: 0 8px;
 }
 .media-search:focus-within {
@@ -110,7 +110,7 @@
   color: #d1d8e5;
 }
 .media-search input::placeholder {
-  color: #657183;
+  color: #8a8a8a;
 }
 .media-search button {
   padding: 1px;
@@ -127,7 +127,7 @@
 }
 .media-view button.is-active {
   color: #d2dce9;
-  background: #303642;
+  background: #383838;
 }
 .media-filters {
   display: flex;
@@ -509,4 +509,40 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.media-top { padding: 14px 14px 11px; }
+.media-tools { margin-inline: 14px; }
+.media-filters { padding-inline: 14px; }
+.media-import { font-size: 11px; }
+/* A local category rail mirrors the desktop library hierarchy on wide panels. */
+.resource-panel { container-type: inline-size; }
+@container (min-width: 360px) {
+  .media-library {
+    display: grid;
+    grid-template-columns: 84px minmax(0, 1fr);
+    grid-template-rows: 49px 37px minmax(0, 1fr) 26px;
+  }
+  .media-filters {
+    grid-column: 1;
+    grid-row: 1 / 4;
+    align-self: stretch;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 15px 8px;
+    gap: 6px;
+    border-right: 1px solid #191919;
+    background: #262626;
+  }
+  .media-filters button { justify-content: flex-start; min-height: 30px; padding: 6px 10px; font-size: 11px; color: #b6b6b6; }
+  .media-filters button.is-active { background: #393939; color: var(--accent); }
+  .media-filters button span { margin-left: auto; }
+  .media-top { grid-column: 2; grid-row: 1; padding: 10px 13px; }
+  .media-tools { grid-column: 2; grid-row: 2; margin: 0 13px 8px; }
+  .media-content { grid-column: 2; grid-row: 3; padding: 10px 13px 16px; }
+  .media-footer { grid-column: 1 / 3; grid-row: 4; }
+  .media-grid { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); }
+  .media-top-title { font-size: 11px; }
+  .media-top-title svg { display: none; }
+  .media-top-title b { font-size: 8px; }
 }

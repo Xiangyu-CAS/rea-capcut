@@ -1,65 +1,128 @@
-# ReaCut
+<p align="center">
+  <img src="public/icons/reacut.png" width="96" height="96" alt="ReaCut icon" />
+</p>
+<h1 align="center">ReaCut</h1>
+<p align="center"><strong>Edit locally. Create freely.</strong><br />An open-source desktop video editor, developed first for macOS.</p>
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/source_license-MIT-45d6c0" alt="Source license: MIT" /></a>
+  <img src="https://img.shields.io/badge/status-early_development-orange" alt="Status: early development" />
+  <img src="https://img.shields.io/badge/verified-macOS_arm64-333333" alt="Verified platform: macOS arm64" />
+</p>
+<p align="center">
+  <a href="README.md">简体中文</a> · English<br />
+  <a href="#getting-started">Getting started</a> · <a href="docs/USER_GUIDE.md">User guide</a> · <a href="CHANGELOG.md">Changelog</a> · <a href="#contributing">Contributing</a>
+</p>
 
-[中文](README.md)
+![ReaCut media library, player, inspector and multitrack timeline](docs/screenshots/ui-parity-editor.png)
 
-An independently implemented offline desktop video editor, developed first on macOS with Windows and Linux build configurations. REA research informs observable editing layouts and local format hypotheses; the implementation uses original code and open-source dependencies. It does not redistribute Jianying / CapCut proprietary code, libraries, artwork or templates, or claim complete parity with the commercial product.
+ReaCut brings media management, multitrack editing, subtitles and video export into a familiar desktop workspace. Core editing runs locally, without an account or cloud service.
 
-![ReaCut desktop editor](docs/screenshots/demo-editor.png)
+The project uses [REA](https://github.com/morluto/rea) to study Jianying's interface behavior and local project formats, then independently implements an editor with Electron, React, TypeScript and FFmpeg. REA supports development research; REA, Ghidra and Jianying are not runtime dependencies.
+
+> **Status: v0.4.0, early development.** macOS Apple Silicon is verified. Windows / Linux build configurations are available but await testing on those platforms. No GitHub Release has been published yet; use the source and packaging instructions below.
 
 ## Features
 
-Local video, audio and image import with thumbnails, waveforms, search, relinking and preview proxies. Multitrack editing includes dragging, trimming, splitting, selection, copy/paste, track rename/reorder/delete, locks, mute/hide, snapping, ripple deletion and undo/redo. Transform, source-space cropping, RGB chroma key, rectangle/ellipse masks, basic RGB adjustments, blur, audio gain, fades and constant speed changes with pitch-preserving audio are implemented locally.
+| Area | What you can do |
+| --- | --- |
+| **Media and source preview** | Import video, audio and images with thumbnails and waveforms; mark source in/out points with I/O and insert the selected range. |
+| **Multitrack editing** | Drag, trim, split, duplicate, select multiple clips, snap, lock tracks, mute, undo and redo. |
+| **Picture and sound** | Transform, crop, apply basic color adjustments, chroma key, rectangle / ellipse masks, keyframes, volume, fades and constant speed changes. |
+| **Text and subtitles** | Import SRT / basic WebVTT, edit individual cues, batch-replace text, shift timing, copy styles and export SRT. |
+| **Local projects** | Save `.reacut` projects, recover edits, relink media and collect project media into a portable folder. |
+| **Video export** | Render the full timeline, a selection or a custom range to MP4 / MOV with H.264 and AAC. |
+| **Offline assets** | Use 34 original stickers, backgrounds, title plates and synthesized sounds, plus the bundled Noto Sans SC font. |
+| **Optional editing assistant** | Connect an installed, authenticated Codex CLI / Claude Code; review edit proposals before applying them and undo in one step. |
 
-Text defaults to the bundled, unmodified Noto Sans SC font, with optional installed fonts, alignment, backgrounds and strokes. SRT / basic WebVTT can become editable text clips; text tracks can export SRT. Position, scale, rotation, opacity and volume have linear / smoothstep keyframes. Splits and trims preserve animation curves and fade envelopes. Live preview dragging moves the keyframed path with the clip and commits one undo step; the final frame remains visible at the project end. Timeline height is adjustable by dragging or keyboard. Projects save as `.reacut`, with recent projects and local recovery. MP4 / MOV export uses a separate FFmpeg process with progress, cancellation and temporary output protection.
+See the [feature matrix](docs/FEATURE_MATRIX.md) for detailed support and limitations.
 
-See the [feature matrix](docs/FEATURE_MATRIX.md) for precise limitations. Accounts, SaaS, cloud synchronization and API AI are unimplemented. Classic plaintext draft import is experimental and lossy. The installed Jianying 11.0 opaque `draft_info.json` is unsupported; see [draft interoperability](docs/CAPCUT_INTEROP.md).
+## Getting started
 
-The local macOS run passed 104 automated tests across nine test files, plus Electron import/edit/save/reopen/export workflows and separate crop/mask/chroma UI checks with decoded export pixels. macOS DMG/ZIP artifacts have been produced and checked. The application copied from the final DMG passed bundled-font, preview and nine-second mixed-audio export checks. See [validation evidence](docs/VALIDATION.md) for coverage and limits.
+### Run from source
 
-## Run
+Clone or download this repository, then run the following commands in its directory. Requirements:
 
-Use Node.js 26, or Node.js 24.x at least 24.11, and npm. Install `ffmpeg` and `ffprobe` separately; FFmpeg must include `libx264` and AAC encoding.
+- **Node.js 26**, or **Node.js 24.x starting at 24.11**, and npm.
+- **FFmpeg and FFprobe**, with `libx264` and AAC encoding enabled in FFmpeg.
 
 ```sh
 npm ci
 npm run dev
 ```
 
-This starts the Electron editor and Vite on `127.0.0.1:5173`. Browser preview supports a subset of workflows; desktop mode provides full file operations and video export. Select both media executables in Settings, or provide absolute paths with `REACUT_FFMPEG` and `REACUT_FFPROBE`. FFmpeg is not bundled. REA and Jianying are not runtime dependencies.
+This launches the Electron editor and the local Vite development server. Put the media tools on `PATH` or select their paths in application settings; see [media tools](docs/MEDIA_TOOLS.md).
+
+To try a complete example project:
 
 ```sh
-npm run typecheck
-npm test
-npm run build
-npm run dist:mac
+npm run demo
+```
+
+Open `.demo/demo.reacut` in ReaCut. It includes programmatically generated original footage, music, subtitles and keyframes. See the [demo guide](docs/DEMO.md).
+
+### Build a macOS installer
+
+Install Xcode command line tools on a native macOS host, then run:
+
+```sh
 npm run dist:mac:installer
 ```
 
-The macOS command builds a local application directory under `release/`; `npm run dist` follows electron-builder platform targets. Windows / Linux configuration is not evidence of testing on those systems. macOS builds use local ad-hoc signing and pass strict signature checks. They do not use Apple Developer ID signing, are not notarized, and have no update service.
+DMG and ZIP files are written to `release/`. The first build downloads and compiles bundled FFmpeg / FFprobe; installer users do not need to install media tools separately. Open the DMG and drag ReaCut into Applications.
 
-Additional verification and attribution collection:
+Current builds use local ad-hoc signing and are not Apple-notarized. See [validation](docs/VALIDATION.md) and [media tools](docs/MEDIA_TOOLS.md) for platform coverage and build details.
+
+## Projects and data
+
+- **Local editing:** media processing, preview, project storage and export run on your machine. Ordinary projects reference local media; collect project media or relink files when moving between machines.
+- **Optional assistant:** when you send a message, text and a limited timeline summary are sent to the selected CLI service. Media files are not attached. See the [assistant guide](docs/ASSISTANT.md).
+- **Experimental Jianying import:** converts basic clips from verified formats. Complex text styles, effects and keyframes may be lost; writing back to Jianying format is unsupported. See [interoperability](docs/CAPCUT_INTEROP.md) for version coverage.
+
+Cloud sync, SaaS, direct AI API integration, speech-to-subtitle transcription and AI portrait cutout are not implemented. ReaCut is an independent project and is not affiliated with Jianying / CapCut.
+
+## Development
 
 ```sh
-npm run fixtures
-npm run test:timeline
-npm run test:desktop
-npm run test:visual
-npm run test:storage
-npm run test:player
-npm run test:audio
-npm run test:tracks
-npm run licenses
-npm run demo
-# After building the .app; REACUT_TEST_APP can select a different bundle
-npm run test:package
+npm run check          # Type checks, unit tests and production build
+npm run test:desktop   # Build and test the basic desktop workflow
+npm run check:desktop  # Full desktop regression suite
 ```
 
-`npm run check:desktop` runs the compiled desktop regressions sequentially. UI checks use generated media and isolated user data; native dialogs are replaced only inside the test's own Electron process. Browser checks require Chrome or Playwright Chromium (`npx playwright install chromium`). See [validation evidence](docs/VALIDATION.md) for executed coverage and remaining platform limits.
+See [validation](docs/VALIDATION.md) for specialized tests, prerequisites and recorded results.
 
-[Original demo project](docs/DEMO.md) · [User guide](docs/USER_GUIDE.md) · [Architecture](docs/ARCHITECTURE.md) · [REA findings](docs/research/REA_FINDINGS.md)
+```text
+src/components/   Editor interface
+src/editor/       State, undo/redo and preview
+src/core/         Project model, timeline, subtitles and visual processing
+electron/         Local file bridge, media processing and export
+scripts/          Asset, icon and package build tools
+tests/            Core logic, media and desktop workflow tests
+docs/             User guides, architecture and research notes
+```
 
-## Licensing and local data
+## Contributing
 
-Original source code is [MIT licensed](LICENSE). Third-party licenses are retained separately in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and `licenses/`, including Electron / Chromium and Skia native components. The bundled Noto Sans SC font retains SIL OFL 1.1, its original copyright and provenance fingerprints. Optional system fonts are not redistributed. These dependencies cannot collectively be described as MIT-only.
+Bug reports, documentation improvements and pull requests are welcome. Useful areas include Windows / Linux testing, large-project performance, editing interactions and accessibility.
 
-Projects reference absolute local media paths and do not embed source media. Relink media after moving a project to another machine. Local caches, proxies, recent projects and recovery data use Electron's user-data directory. Editor workflows do not upload media or call cloud services; dependency installation and build-tool downloads may use the network. Private media, projects and raw `.research/` evidence stay outside the public repository.
+1. Include your OS, ReaCut version, reproduction steps and expected behavior in bug reports. For media issues, use a minimal sample that can be shared publicly.
+2. Discuss substantial feature changes in an issue before starting a large implementation.
+3. Run `npm run check` for code changes. For desktop interactions or export changes, run the relevant workflow checks and describe the results in your PR.
+
+Use media you own or can redistribute. Keep private projects, caches, credentials and raw `.research/` data out of contributions.
+
+## Documentation
+
+Most detailed guides are currently in Chinese.
+
+| Audience | Guides |
+| --- | --- |
+| Users | [User guide](docs/USER_GUIDE.md) · [Demo project](docs/DEMO.md) · [Editing assistant](docs/ASSISTANT.md) |
+| Capabilities and progress | [Feature matrix](docs/FEATURE_MATRIX.md) · [Changelog](CHANGELOG.md) · [Validation](docs/VALIDATION.md) |
+| Developers | [Architecture](docs/ARCHITECTURE.md) · [Media tools](docs/MEDIA_TOOLS.md) · [Offline assets](docs/ORIGINAL_ASSETS.md) |
+| REA research and interoperability | [REA findings](docs/research/REA_FINDINGS.md) · [Interface comparison](docs/UI_PARITY.md) · [Draft interoperability](docs/CAPCUT_INTEROP.md) |
+
+## License and acknowledgments
+
+ReaCut's own source code is licensed under the [MIT License](LICENSE). Third-party components retain their respective licenses: bundled FFmpeg / x264 use GPL, and Noto Sans SC uses SIL OFL 1.1. Notices, licenses and corresponding media-tool sources accompany the package; see [third-party notices](THIRD_PARTY_NOTICES.md).
+
+Thanks to [REA](https://github.com/morluto/rea) and the Electron, React, FFmpeg, Zustand, Lucide and Noto communities.

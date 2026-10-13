@@ -138,8 +138,8 @@ export function splitClip(
   const at = snapToFrame(time, project.fps),
     leftDuration = at - clip.start;
   if (
-    leftDuration < 1 / project.fps ||
-    clip.duration - leftDuration < 1 / project.fps
+    leftDuration < 1 / project.fps - 1e-9 ||
+    clip.duration - leftDuration < 1 / project.fps - 1e-9
   )
     return project;
   const right: Clip = {

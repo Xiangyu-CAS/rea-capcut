@@ -3,9 +3,9 @@
   flex-direction: column;
   height: 100%;
   min-height: 170px;
-  background: #15171c;
+  background: #262626;
   color: #c2c7d2;
-  border-top: 1px solid #30333c;
+  border-top: 1px solid #343434;
   font-family: inherit;
   font-size: 11px;
   overflow: hidden;
@@ -17,7 +17,7 @@
   justify-content: center;
   background: transparent;
   border: 0;
-  color: #a5adbc;
+  color: #c0c0c0;
   cursor: pointer;
   border-radius: 5px;
   padding: 6px;
@@ -38,8 +38,8 @@
   cursor: default;
 }
 .tl button.is-active {
-  background: #1d3e3c;
-  color: #45ddc5;
+  background: #17383a;
+  color: #16c4cb;
 }
 .tl-toolbar {
   height: 42px;
@@ -49,8 +49,8 @@
   justify-content: space-between;
   padding: 0 13px;
   gap: 16px;
-  background: #1b1d23;
-  border-bottom: 1px solid #2c3039;
+  background: #292929;
+  border-bottom: 1px solid #171717;
 }
 .tl-toolbar-group,
 .tl-toolbar-end {
@@ -108,7 +108,7 @@
   flex: 1;
   overflow: auto;
   overscroll-behavior: contain;
-  scrollbar-color: #454c58 #181a20;
+  scrollbar-color: #454c58 #282828;
   scrollbar-width: thin;
 }
 .tl-content {
@@ -120,8 +120,8 @@
   position: sticky;
   top: 0;
   z-index: 12;
-  background: #17191e;
-  border-bottom: 1px solid #292d35;
+  background: #262626;
+  border-bottom: 1px solid #333333;
 }
 .tl-ruler-label {
   position: sticky;
@@ -131,10 +131,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #1b1d23;
+  background: #292929;
   padding: 0 14px;
   box-sizing: border-box;
-  border-right: 1px solid #30343f;
+  border-right: 1px solid #1b1b1b;
   font-weight: 600;
   font-size: 10px;
 }
@@ -157,7 +157,7 @@
 }
 .tl-tick span {
   font-size: 9px;
-  color: #7c8594;
+  color: #999999;
   font-variant-numeric: tabular-nums;
 }
 .tl-tick i {
@@ -171,7 +171,7 @@
 .tl-track {
   display: flex;
   position: relative;
-  border-bottom: 1px solid #272b33;
+  border-bottom: 1px solid #303030;
   box-sizing: border-box;
 }
 .tl-track-header {
@@ -180,8 +180,8 @@
   left: 0;
   z-index: 10;
   box-sizing: border-box;
-  background: #1b1d23;
-  border-right: 1px solid #30343f;
+  background: #292929;
+  border-right: 1px solid #1b1b1b;
   padding: 12px 12px 6px;
   overflow: hidden;
 }
@@ -189,7 +189,7 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  color: #b4bdcb;
+  color: #bcbcbc;
   font-size: 11px;
   white-space: nowrap;
 }
@@ -199,12 +199,12 @@
   max-width: 96px;
 }
 .tl-track-title svg {
-  color: #838fa2;
+  color: #999999;
   flex-shrink: 0;
 }
 .tl-track-number {
   font-size: 9px;
-  color: #535c6b;
+  color: #888888;
   margin-left: auto;
 }
 .tl-track-controls {
@@ -214,16 +214,16 @@
 }
 .tl-track-controls button {
   padding: 3px;
-  color: #687385;
+  color: #999999;
 }
 .tl-lane {
   position: relative;
   flex-shrink: 0;
-  background-image: linear-gradient(90deg, #292d3588 1px, transparent 1px);
-  background-color: #15171d;
+  background-image: linear-gradient(90deg, #33333388 1px, transparent 1px);
+  background-color: #262626;
 }
 .tl-track:nth-child(odd) .tl-lane {
-  background-color: #181a20;
+  background-color: #282828;
 }
 .tl-track.is-drop-target .tl-lane {
   background-color: #1d302f;
@@ -242,8 +242,8 @@
   position: absolute;
   top: 8px;
   height: 54px;
-  background: #234c65;
-  border: 1px solid #32758c;
+  background: #17525a;
+  border: 1px solid #237580;
   border-radius: 5px;
   box-sizing: border-box;
   overflow: hidden;
@@ -257,10 +257,10 @@
   outline-offset: 2px;
 }
 .tl-clip.is-selected {
-  outline: 2px solid #46d9c4;
+  outline: 2px solid #ebf5f4;
   outline-offset: -1px;
   z-index: 4;
-  box-shadow: 0 0 0 2px #46d9c422;
+  box-shadow: 0 0 0 2px #ebf5f422;
 }
 .tl-clip.is-dragging {
   opacity: 0.8;
@@ -274,9 +274,9 @@
   color: #b4e7c7;
 }
 .tl-clip-text {
-  background: #58432d;
-  border-color: #8c6743;
-  color: #ffe2bc;
+  background: #8b483b;
+  border-color: #a45643;
+  color: #f6ded6;
 }
 .tl-clip-image {
   background: #3d446c;
@@ -437,7 +437,7 @@
   position: sticky;
   left: 0;
   z-index: 14;
-  background: #17191e;
+  background: #262626;
   width: var(--tl-gutter);
   padding: 10px 11px;
   box-sizing: border-box;
@@ -527,9 +527,9 @@
   justify-content: space-between;
   gap: 10px;
   flex-shrink: 0;
-  background: #1b1d23;
+  background: #292929;
   border-top: 1px solid #282d36;
-  color: #606c7d;
+  color: #8a8a8a;
   font-size: 9px;
 }
 .tl-status > span {
@@ -565,8 +565,8 @@
   width: 28px;
   height: 29px;
   border-radius: 5px;
-  background: #1d3e3c;
-  color: #45ddc5;
+  background: #17383a;
+  color: #16c4cb;
 }
 .tl-track-number {
   flex-shrink: 0;
@@ -734,3 +734,18 @@
   outline: 2px solid #58d7bd;
   outline-offset: 2px;
 }
+
+/* Keep JS timeline geometry unchanged; neutral surfaces and white selection aid recognition. */
+.tl { border-radius: 7px; }
+.tl-toolbar { height: 38px; }
+.tl-clip { border-radius: 4px; }
+.tl-clip.is-selected { outline: 2px solid #f0f7f6; box-shadow: none; }
+.tl-trim { background: #edf6f5; }
+.tl-trim:after { background: #27777c; }
+.tl-clip-title { background: #14393db8; font-size: 10px; }
+.tl-clip-text .tl-clip-title { background: #713d35aa; }
+.tl-ruler { border-bottom-color: #2a2a2a; }
+.tl-track-header { padding-top: 11px; }
+.tl-track-controls button:hover { background: #3b3b3b; }
+.tl-status { background: #262626; border-top-color: #383838; }
+.tl-toolbar button.is-active { color: #16c4cb; background: #181818; }

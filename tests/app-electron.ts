@@ -347,6 +347,9 @@ try {
   await verifyEditorViewport(page);
   await page.screenshot({
     path: path.join(root, "docs", "screenshots", "electron-export.png"),
+    // Public evidence must not expose the workstation username or local output path.
+    mask: [page.getByLabel("导出位置", { exact: true })],
+    maskColor: "#262626",
   });
   await page.getByRole("button", { name: "完成", exact: true }).click();
   await page

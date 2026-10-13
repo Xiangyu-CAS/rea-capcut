@@ -1,0 +1,167 @@
+/** Actual desktop integration. Uses original bundled assets and a synthetic CLI,
+ * never a real CLI account. Dialog replacements are limited to this test app. */
+import { _electron as electron, expect, type Page } from "@playwright/test";
+import { chmod, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
+import path from "node:path";
+import assert from "node:assert/strict";
+import type { Project } from "../src/core/types";
+const root = process.cwd(), output = path.join(root, ".test-output/assistant-assets-electron");
+await rm(output, { recursive: true, force: true });
+await mkdir(output, { recursive: true });
+const exported = path.join(output, "原创素材与助手.mp4");
+const saved = path.join(output, "原创素材与助手.reacut"), fixture = path.join(output, "synthetic CLI.cjs"), invocations = path.join(output, "invocations.jsonl");
+await writeFile(fixture, `#!${process.execPath}
+const fs=require('node:fs');const args=process.argv.slice(2);
+if(args.includes('--version')){console.log('ReaCut synthetic fixture 1.0');process.exit(0)}
+if(args.includes('--help')){console.log('--ignore-user-config --ephemeral --output-schema --sandbox --tools --strict-mcp-config --setting-sources --no-session-persistence --json-schema');process.exit(0)}
+let prompt='';process.stdin.setEncoding('utf8');process.stdin.on('data',d=>prompt+=d);process.stdin.on('end',()=>{
+const current=prompt.split('本次用户请求：').at(-1);fs.appendFileSync(${JSON.stringify(invocations)},JSON.stringify({args,cwd:process.cwd(),prompt,current,pid:process.pid})+'\\n');
+const event=value=>process.stdout.write(JSON.stringify(value)+'\\n');
+if(current.includes('CASE_CANCEL')){setInterval(()=>{},1000);return;}
+const response={reply:args[0]==='exec'?'Codex 合成回复：请确认两项修改。':'Claude 合成回复：请确认两项修改。',actions:[{type:'addText',text:'原创片头·你好映刻',start:0,duration:2,fontSize:32,color:'#ffffff',x:null,y:null},{type:'setProject',name:null,width:null,height:null,fps:null,background:'#172b3c'}]};
+setTimeout(()=>{if(args[0]==='exec'){event({type:'item.completed',item:{type:'agent_message',text:JSON.stringify(response)}});event({type:'turn.completed'});}else{event({type:'result',subtype:'success',is_error:false,structured_output:response});}},120);
+});
+`);
+await chmod(fixture, 0o755);
+const packaged = process.env.REACUT_TEST_APP;
+const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string,string] => entry[1] !== undefined));
+env.REACUT_USER_DATA = path.join(output,"user-data");
+delete env.ELECTRON_RUN_AS_NODE; delete env.VITE_DEV_SERVER_URL; delete env.REACUT_FFMPEG; delete env.REACUT_FFPROBE;
+if(packaged) env.PATH="";
+const app = await electron.launch({...(packaged ? { executablePath:path.join(path.resolve(packaged),"Contents/MacOS/ReaCut"),args:[],cwd:output } : {args:[path.join(root,"dist-electron/main.cjs")]}),env});
+let page: Page | undefined;
+const errors: string[] = [], failedMedia: string[] = [], checks: string[] = [];
+try {
+ await app.evaluate(({dialog}, args) => {
+  (dialog as any).showOpenDialog=async()=>({canceled:false,filePaths:[args.fixture]});
+  (dialog as any).showSaveDialog=async(_window: unknown, options: {title?:string})=>({canceled:false,filePath:options?.title?.includes("导出")?args.exported:args.saved});
+  (dialog as any).showMessageBox=async()=>({response:2});
+ },{fixture,saved,exported});
+ page = await app.firstWindow();
+ page.on("pageerror",error=>errors.push(error.message));
+ page.on("response",response=>{if(response.url().startsWith("reacut-media:")&&response.status()>=400)failedMedia.push(`${response.status()} ${response.url().split("?")[0]}`);});
+ await page.waitForSelector(".app-shell");
+ await page.evaluate(()=>{window.confirm=()=>true;});
+ await page.locator(".project-title input").fill("离线素材与助手验收");
+ await page.locator(".project-title input").blur();
+ await page.getByRole("spinbutton",{name:"宽度",exact:true}).fill("640");
+ await page.getByRole("spinbutton",{name:"宽度",exact:true}).blur();
+ await page.getByRole("spinbutton",{name:"高度",exact:true}).fill("360");
+ await page.getByRole("spinbutton",{name:"高度",exact:true}).blur();
+ const save = async (): Promise<Project> => {
+  const before=await stat(saved).then(s=>s.mtimeMs).catch(()=>-1);
+  await page!.getByRole("button",{name:"保存项目",exact:true}).click();
+  await expect.poll(()=>stat(saved).then(s=>s.mtimeMs).catch(()=>-1),{timeout:15000}).toBeGreaterThan(before);
+  return JSON.parse(await readFile(saved,"utf8"));
+ };
+ await page.getByRole("button",{name:"贴纸",exact:true}).click();
+ await expect(page.locator(".builtin-card")).toHaveCount(34);
+ const add = async (name: string) => {
+  await page!.getByRole("button",{name:`添加 ${name}`,exact:true}).click();
+  await expect(page!.getByRole("button",{name:`添加 ${name}`,exact:true})).toBeEnabled({timeout:30000});
+  await expect(page!.locator(".builtin-error")).toHaveCount(0);
+ };
+ await add("午夜渐层");
+ await add("四角星光");
+ await page.getByRole("tab",{name:"音效",exact:true}).click();
+ await add("清亮提示");
+ let project = await save();
+ assert.equal(project.assets.length,3); assert.equal(project.clips.length,3);
+ assert.deepEqual(project.assets.map(a=>a.kind).sort(),["audio","image","image"]);
+ assert(project.assets.every(a=>a.path.startsWith(env.REACUT_USER_DATA+path.sep+"builtin-assets"+path.sep)));
+ assert.equal(project.clips.find(c=>c.name==="四角星光")?.transform.scale,.35);
+ const audio=project.assets.find(a=>a.kind==="audio")!;
+ assert(audio.waveform?.some(v=>v>.02),"WAV imported with nonzero waveform");
+ assert(Math.abs(audio.duration-1.2)<.03);
+ checks.push("34 offline cards and PNG/WAV imported through native bridge","persistent user-data resources, metadata and audio waveform");
+ await expect.poll(()=>page!.evaluate(()=>{const c=document.querySelector("canvas")!;const p=c.getContext("2d")!.getImageData(c.width/2,c.height/2,1,1).data;return p[1]>180&&p[1]>p[0]+50;}),{timeout:15000}).toBe(true);
+ const pixels=await page.evaluate(()=>{const c=document.querySelector("canvas")!,x=c.getContext("2d")!;return{center:[...x.getImageData(c.width/2,c.height/2,1,1).data],corner:[...x.getImageData(3,3,1,1).data]};});
+ assert(pixels.corner[2]>pixels.corner[0],"Transparent sticker preserves blue background at corner");
+ checks.push("actual canvas PNG rendering and transparent sticker over background");
+ await page.getByRole("button",{name:"撤销",exact:true}).click();
+ project=await save(); assert.equal(project.assets.length,2);assert.equal(project.clips.length,2);
+ assert(!project.tracks.some(t=>t.name==="内置音效"));
+ checks.push("one undo removes asset, clip and new audio track together");
+ await add("清亮提示");
+ const beforeAssistant=await save();
+ await page.getByRole("button",{name:"剪辑助手",exact:true}).click();
+ const panel=page.getByRole("complementary",{name:"剪辑助手"});
+ await panel.getByRole("button",{name:"选择 CLI",exact:true}).click();
+ await expect(panel.locator(".assistant-provider-status")).toContainText("ReaCut synthetic fixture 1.0",{timeout:20000});
+ const send=async(message:string)=>{await panel.getByRole("textbox",{name:"助手消息"}).fill(message);await panel.getByRole("button",{name:"发送",exact:true}).click();};
+ await send("CASE_CODEX 添加片头与背景");
+ await expect(panel.getByRole("button",{name:"应用 2 项修改",exact:true})).toBeEnabled({timeout:20000});
+ await expect(panel.locator(".assistant-message.assistant").last()).toContainText("Codex 合成回复");
+ assert.equal((await save()).clips.length,3,"Proposal must not edit until Apply");
+ await panel.getByRole("button",{name:"应用 2 项修改",exact:true}).click();
+ project=await save(); assert.equal(project.clips.length,4);assert.equal(project.background,"#172b3c");
+ assert(project.clips.some(c=>c.text?.text==="原创片头·你好映刻"));
+ await page.getByRole("button",{name:"撤销",exact:true}).click();
+ project=await save();assert.equal(project.clips.length,3);assert.equal(project.background,beforeAssistant.background);
+ checks.push("selected Codex fixture responds through subprocess, typed proposal preview, apply and one-step undo");
+ await panel.getByRole("button",{name:"关闭剪辑助手",exact:true}).click();
+ await page.getByRole("button",{name:"剪辑助手",exact:true}).click();
+ await expect(panel.locator(".assistant-message")).toHaveCount(2);
+ await expect(panel.locator(".assistant-message.assistant")).toContainText("Codex 合成回复");
+ checks.push("project-scoped chat history survives panel reopen");
+ await panel.getByRole("combobox",{name:"助手后端"}).selectOption("claude");
+ await panel.getByRole("button",{name:"选择 CLI",exact:true}).click();
+ await expect(panel.locator(".assistant-provider-status")).toContainText("ReaCut synthetic fixture 1.0",{timeout:20000});
+ await send("CASE_CLAUDE 添加片头与背景");
+ await expect(panel.getByRole("button",{name:"应用 2 项修改",exact:true})).toBeEnabled({timeout:20000});
+ await expect(panel.locator(".assistant-message.assistant").last()).toContainText("Claude 合成回复");
+ await page.locator(".project-title input").fill("修改后的项目");await page.locator(".project-title input").blur();
+ await expect(panel.getByRole("button",{name:"项目已变化，请重新生成",exact:true})).toBeDisabled();
+ assert.equal((await save()).clips.length,3);
+ checks.push("Claude fixture protocol and stale proposal blocked after project edit");
+ await send("CASE_CANCEL 请保持请求，测试取消");
+ await expect(panel.getByRole("button",{name:"取消",exact:true})).toBeVisible();
+ await expect.poll(async()=>{const text=await readFile(invocations,"utf8").catch(()=>"");return text.includes('"current":"\\nCASE_CANCEL');},{timeout:10000}).toBe(true);
+ await panel.getByRole("button",{name:"取消",exact:true}).click();
+ await expect(panel.getByText("已取消",{exact:true})).toBeVisible({timeout:10000});
+ assert.equal((await save()).clips.length,3);assert.equal(await panel.locator(".assistant-proposal").count(),0);
+ checks.push("real running subprocess cancelled without producing changes");
+ await send("CASE_RECOVER 取消后重新请求");
+ await expect(panel.getByRole("button",{name:"应用 2 项修改",exact:true})).toBeEnabled({timeout:20000});
+ await panel.getByRole("button",{name:"应用 2 项修改",exact:true}).click();
+ project=await save();assert.equal(project.clips.length,4);
+ checks.push("new request succeeds after cancellation");
+ const calls=(await readFile(invocations,"utf8")).trim().split("\n").map(line=>JSON.parse(line));
+ assert(calls.some(c=>c.args[0]==="exec")&&calls.some(c=>c.args[0]!=="exec"));
+ assert(calls.every(c=>!c.prompt.includes(env.REACUT_USER_DATA)&&!c.prompt.includes("reacut-media:")));
+ assert(calls.every(c=>c.cwd!==root&&c.cwd.includes("assistant-runs")));
+ for(const call of calls){let alive=false;try{process.kill(call.pid,0);alive=true;}catch{}assert(!alive,"fixture child must have exited");}
+ checks.push("CLI receives path-free summary in isolated folder; child processes exit");
+ await page.screenshot({path:path.join(output,"assistant-assets.png")});
+ assert.deepEqual(errors,[]);assert.deepEqual(failedMedia,[]);
+ const bundled=await page.evaluate(()=>window.editorAPI!.getSystemInfo());
+ await page.getByRole("button",{name:"导出",exact:true}).click();
+ await page.getByRole("button",{name:"开始导出",exact:true}).click();
+ await expect(page.getByText("导出完成",{exact:true})).toBeVisible({timeout:120000});
+ const probe=spawnSync(bundled.ffprobePath || "ffprobe",["-v","error","-show_streams","-show_format","-of","json",exported],{encoding:"utf8"});
+ assert.equal(probe.status,0,probe.stderr);const exportedMedia=JSON.parse(probe.stdout);
+ const videoStream=exportedMedia.streams.find((s: {codec_type:string})=>s.codec_type==="video");
+ assert.equal(videoStream?.width,640);assert.equal(videoStream?.height,360);
+ assert(exportedMedia.streams.some((s: {codec_type:string})=>s.codec_type==="audio"));
+ assert(Math.abs(Number(exportedMedia.format.duration)-5)<.1);
+ checks.push("UI exports original PNG/WAV composition and assistant Chinese title to five-second video with audio");
+ const decodedAudio=spawnSync(bundled.ffmpegPath || "ffmpeg",["-v","error","-i",exported,"-t","1","-vn","-ac","1","-ar","48000","-f","f32le","pipe:1"],{maxBuffer:2*1024*1024});
+ assert.equal(decodedAudio.status,0,decodedAudio.stderr?.toString());
+ let energy=0;for(let at=0;at<decodedAudio.stdout.length;at+=4)energy+=decodedAudio.stdout.readFloatLE(at)**2;
+ const rms=Math.sqrt(energy/(decodedAudio.stdout.length/4));assert(rms>.015,"First second must contain audible synthesized chime");
+ const decodedFrame=spawnSync(bundled.ffmpegPath || "ffmpeg",["-v","error","-i",exported,"-frames:v","1","-f","rawvideo","-pix_fmt","rgb24","pipe:1"],{maxBuffer:2*1024*1024});
+ assert.equal(decodedFrame.status,0,decodedFrame.stderr?.toString());
+ assert.equal(decodedFrame.stdout.length,640*360*3);
+ let mintPixels=0,backgroundPixels=0,whitePixels=0;
+ for(let at=0;at<decodedFrame.stdout.length;at+=3){const [r,g,b]=decodedFrame.stdout.subarray(at,at+3);if(g>140&&g>r+45&&b>100)mintPixels++;if(b>r+10&&r<100&&g<100)backgroundPixels++;if(r>200&&g>200&&b>200)whitePixels++;}
+ assert(mintPixels>300,"First frame must include mint sticker pixels");
+ assert(backgroundPixels>100000,"First frame must preserve the blue bundled background");
+ assert(whitePixels>100,"First frame must contain the assistant's white title");
+ checks.push("decoded first frame contains background, sticker and title; first-second PCM audio RMS is audible");
+ assert.deepEqual(errors,[]);assert.deepEqual(failedMedia,[]);
+ await writeFile(path.join(output,"evidence.json"),JSON.stringify({at:new Date().toISOString(),packaged:!!packaged,emptyPath:!!packaged,checks,pixels,assets:project.assets.map(a=>({name:a.name,kind:a.kind,width:a.width,height:a.height,duration:a.duration})),clips:project.clips.length,sourceHash:createHash("sha256").update(await readFile(fixture)).digest("hex"),mediaTools:bundled,export:{width:640,height:360,duration:Number(exportedMedia.format.duration),rms,mintPixels,backgroundPixels,whitePixels},errors,failedMedia},null,2));
+ console.log(`Assistant/assets Electron: ${checks.length} checks passed (packaged=${!!packaged}).`);
+} catch(error) { if(page)await page.screenshot({path:path.join(output,"failure.png")}).catch(()=>{});throw error; }
+finally {await app.close();}

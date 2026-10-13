@@ -38,6 +38,14 @@ const env: Record<string, string> = Object.fromEntries(
 env.REACUT_USER_DATA = path.join(output, "user-data");
 delete env.ELECTRON_RUN_AS_NODE;
 delete env.VITE_DEV_SERVER_URL;
+delete env.REACUT_FFMPEG;
+delete env.REACUT_FFPROBE;
+const emptyPath = path.join(output, "empty-path");
+await mkdir(emptyPath);
+env.PATH = emptyPath;
+const bundledTools = path.join(bundle, "Contents", "Resources", "media-tools");
+// The verification probe also uses the shipped executable, not Homebrew.
+process.env.REACUT_FFPROBE = path.join(bundledTools, "ffprobe");
 const app = await electron.launch({
   executablePath: executable,
   args: [demo],
@@ -92,8 +100,10 @@ try {
   const system = await page.evaluate(() => window.editorAPI!.getSystemInfo());
   assert(
     system.ffmpeg,
-    "Packaged application must discover local FFmpeg/FFprobe",
+    "Packaged application must discover bundled FFmpeg/FFprobe with an empty PATH",
   );
+  assert.equal(system.ffmpegPath, path.join(bundledTools, "ffmpeg"));
+  assert.equal(system.ffprobePath, path.join(bundledTools, "ffprobe"));
   // Seek to an opaque middle frame and verify that the actual preview has color variation.
   const ruler = (await page.locator(".tl-ruler-body").boundingBox())!;
   await page.mouse.click(ruler.x + 90, ruler.y + 15);
@@ -177,6 +187,7 @@ try {
     app: bundle,
     appPath: native.path,
     packaged: native.packaged,
+    bundledMedia: { ffmpeg: system.ffmpegPath, ffprobe: system.ffprobePath, version: system.ffmpegVersion, emptyPath: true },
     cwd: output,
     fonts: {
       browserFaces: fonts.faces,
@@ -190,6 +201,7 @@ try {
     duration: rendered.format.duration,
     checks: [
       "packaged .app launched outside repository cwd",
+      "bundled FFmpeg and FFprobe selected with empty PATH and no overrides",
       "native canvas and bundled font",
       "isolated sandbox bridge",
       "startup .reacut argument",

@@ -1,0 +1,108 @@
+{
+  "target": "darwin-arm64",
+  "builtAt": "2026-10-13T04:11:40.112Z",
+  "recipeSHA256": "734e7e8cd2ec4976d96d0c930d980eaab818b7c7249641fd5b3e9a78bb9bdcfc",
+  "license": "GPL-2.0-or-later",
+  "sourceModifications": "none",
+  "deploymentTarget": "12.0",
+  "compiler": "Apple clang version 21.0.0 (clang-2100.3.34.2)",
+  "configure": {
+    "pkgconf": [
+      "--prefix=$BUILD_PREFIX",
+      "--disable-shared",
+      "--enable-static"
+    ],
+    "x264": [
+      "--prefix=$BUILD_PREFIX",
+      "--enable-static",
+      "--enable-pic",
+      "--disable-cli",
+      "--disable-opencl",
+      "--extra-cflags=-mmacosx-version-min=12.0"
+    ],
+    "ffmpeg": [
+      "--prefix=$BUILD_PREFIX",
+      "--cc=clang",
+      "--enable-static",
+      "--disable-shared",
+      "--disable-autodetect",
+      "--enable-gpl",
+      "--enable-libx264",
+      "--enable-zlib",
+      "--enable-pthreads",
+      "--enable-videotoolbox",
+      "--enable-audiotoolbox",
+      "--disable-network",
+      "--disable-protocols",
+      "--enable-protocol=file,pipe",
+      "--disable-devices",
+      "--enable-indev=lavfi",
+      "--disable-ffplay",
+      "--disable-doc",
+      "--disable-debug",
+      "--pkg-config=$BUILD_PREFIX/bin/pkgconf",
+      "--pkg-config-flags=--static",
+      "--extra-cflags=-mmacosx-version-min=12.0",
+      "--extra-ldflags=-mmacosx-version-min=12.0"
+    ]
+  },
+  "sources": [
+    {
+      "name": "ffmpeg",
+      "version": "9.0.2",
+      "file": "ffmpeg-9.0.2.tar.xz",
+      "url": "https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz",
+      "sha256": "8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e",
+      "directory": "ffmpeg-9.0.2"
+    },
+    {
+      "name": "x264",
+      "version": "b35605ace3ddf7c1a5d67a2eb553f034aef41d55",
+      "file": "x264-b35605ac.tar.gz",
+      "url": "https://code.videolan.org/videolan/x264/-/archive/b35605ace3ddf7c1a5d67a2eb553f034aef41d55/x264-b35605ace3ddf7c1a5d67a2eb553f034aef41d55.tar.gz",
+      "sha256": "cd71a7515b0e9a012e1ac9b1f8415bebcaf6fc97d4db32286642ac4c0fbe24f9",
+      "directory": "x264-b35605ace3ddf7c1a5d67a2eb553f034aef41d55"
+    },
+    {
+      "name": "pkgconf",
+      "version": "3.0.8",
+      "file": "pkgconf-3.0.8.tar.xz",
+      "url": "https://distfiles.ariadne.space/pkgconf/pkgconf-3.0.8.tar.xz",
+      "sha256": "943f0bc88bcaeceb630b00262e2a8ad5ea4fac3fba72a4267d8b9ec6b35d1194",
+      "directory": "pkgconf-3.0.8",
+      "buildOnly": true
+    }
+  ],
+  "tools": [
+    {
+      "name": "ffmpeg",
+      "version": "ffmpeg version 9.0.2 Copyright (c) 2000-2026 the FFmpeg developers",
+      "buildSHA256": "bc625113ba637ac62cc20c7a57e4f574d4c85909ec5d24ea54090d15dc45a11d",
+      "libraries": [
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libz.1.dylib",
+        "/System/Library/Frameworks/VideoToolbox.framework/Versions/A/VideoToolbox",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/CoreMedia.framework/Versions/A/CoreMedia",
+        "/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo",
+        "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices",
+        "/System/Library/Frameworks/AudioToolbox.framework/Versions/A/AudioToolbox"
+      ]
+    },
+    {
+      "name": "ffprobe",
+      "version": "ffprobe version 9.0.2 Copyright (c) 2007-2026 the FFmpeg developers",
+      "buildSHA256": "74d69750bb1ad8a51fa1aebb374abb26053df4561645d037e7df91b87b18735c",
+      "libraries": [
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libz.1.dylib",
+        "/System/Library/Frameworks/VideoToolbox.framework/Versions/A/VideoToolbox",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/CoreMedia.framework/Versions/A/CoreMedia",
+        "/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo",
+        "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices",
+        "/System/Library/Frameworks/AudioToolbox.framework/Versions/A/AudioToolbox"
+      ]
+    }
+  ]
+}

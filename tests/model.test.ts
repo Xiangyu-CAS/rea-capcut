@@ -42,6 +42,23 @@ function fixture(): Project {
 }
 
 describe("timeline semantics", () => {
+  it("splits at one-frame boundaries despite floating-point subtraction", () => {
+    for (const fps of [24, 25, 30, 50, 60])
+      for (const start of [2, 123, 80000]) {
+        const p = fixture(); p.fps = fps; p.clips[0].start = start;
+        const original = p.clips[0];
+        for (const at of [start + 1 / fps, start + original.duration - 1 / fps]) {
+          const next = splitClip(p, original.id, at);
+          expect(next.clips).toHaveLength(2);
+          expect(Math.min(...next.clips.map(c => c.duration))).toBeCloseTo(1 / fps, 8);
+          expect(next.clips[0].duration + next.clips[1].duration).toBeCloseTo(original.duration, 8);
+          expect(next.clips[1].sourceIn).toBeCloseTo(original.sourceIn + next.clips[0].duration * original.speed, 8);
+          expect(() => validateProject(next)).not.toThrow();
+        }
+        expect(splitClip(p, original.id, start)).toBe(p);
+        expect(splitClip(p, original.id, start + original.duration)).toBe(p);
+      }
+  });
   it("split keeps source ranges and exact animation across both clips", () => {
     const p = fixture(),
       original = p.clips[0],

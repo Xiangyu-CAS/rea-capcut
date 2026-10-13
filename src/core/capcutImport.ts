@@ -28,8 +28,8 @@ const bounded = (v: unknown, low: number, high: number, fallback: number) =>
   Math.max(low, Math.min(high, number(v, fallback)));
 const identityUrl = (path: string) => path;
 
-/** Experimental, lossy import of classic plaintext tracks/materials JSON.
- * Never decrypts drafts, fetches URLs, or modifies the source project. */
+/** Experimental, lossy conversion of decoded tracks/materials JSON.
+ * Desktop envelope decoding is handled before this platform-neutral converter. */
 export function importCapcutDraft(
   input: unknown,
   options: CapcutImportOptions = {},
@@ -38,7 +38,7 @@ export function importCapcutDraft(
     const source = input.trim().replace(/^\uFEFF/, "");
     if (!source.startsWith("{"))
       throw new Error(
-        "剪映草稿不是明文 JSON；当前版本的不透明/加密 draft_info.json 暂不支持。请选择 classic draft_content.json。",
+        "剪映草稿是不透明载荷，请在桌面客户端中通过剪映草稿导入功能打开。",
       );
     try {
       input = JSON.parse(source);
@@ -47,16 +47,28 @@ export function importCapcutDraft(
     }
   }
   const draft = object(input);
+  // Modern empty timelines omit tracks. Require the observed versioned draft
+  // structure so arbitrary objects and malformed tracks still fail validation.
+  const sparseEmpty =
+    draft.tracks === undefined &&
+    typeof draft.id === "string" && draft.id.length > 0 &&
+    Number.isInteger(draft.version) && number(draft.version) > 0 &&
+    typeof draft.new_version === "string" && draft.new_version.length > 0 &&
+    (draft.duration === undefined || draft.duration === 0) &&
+    Object.keys(object(draft.materials)).length === 0 &&
+    number(object(draft.canvas_config).width) > 0 &&
+    number(object(draft.canvas_config).height) > 0;
+  const tracks = sparseEmpty ? [] : draft.tracks;
   if (
-    !Array.isArray(draft.tracks) ||
+    !Array.isArray(tracks) ||
     !draft.materials ||
     typeof draft.materials !== "object" ||
     Array.isArray(draft.materials)
   )
-    throw new Error("不是支持的 classic 剪映草稿：需要 tracks 和 materials。");
-  if (draft.tracks.length > 1000) throw new Error("草稿轨道数量超过导入限制");
+    throw new Error("不是支持的剪映草稿：需要 tracks 和 materials，或有效的空白时间线结构。");
+  if (tracks.length > 1000) throw new Error("草稿轨道数量超过导入限制");
   const warnings: string[] = [
-    "实验性导入：仅支持 classic 明文草稿的基础时间线，导入后请核对预览与导出。",
+    "实验性导入：仅转换基础时间线，部分效果和文字样式会丢失，请核对预览与导出。",
   ];
   const warn = (message: string) => {
     if (!warnings.includes(message)) warnings.push(message);
@@ -64,9 +76,15 @@ export function importCapcutDraft(
   const project = createProject(
     options.name ?? string(draft.name, "剪映导入项目"),
   );
+  // The controlled native export uses black when no canvas background is set.
+  project.background = "#000000";
   const canvas = object(draft.canvas_config);
-  project.width = Math.round(bounded(canvas.width, 16, 7680, 1920));
-  project.height = Math.round(bounded(canvas.height, 16, 7680, 1080));
+  const hasCanvasDimensions =
+    number(canvas.width) > 0 && number(canvas.height) > 0;
+  if (hasCanvasDimensions) {
+    project.width = Math.round(bounded(canvas.width, 16, 7680, 1920));
+    project.height = Math.round(bounded(canvas.height, 16, 7680, 1080));
+  }
   const fps = number(draft.fps, 30);
   project.fps = [24, 25, 30, 50, 60].includes(fps) ? fps : 30;
   if (fps !== project.fps) warn(`帧率 ${fps} 不受支持，已改为 30 fps。`);
@@ -143,9 +161,20 @@ export function importCapcutDraft(
     project.assets.push(asset);
     return asset;
   };
+  let originalCanvas: { width: number; height: number } | undefined;
+  const positions = new Map<Clip, { x: number; y: number }>();
   const inferredDurations = new Set<string>();
+  const trackLayers = new Map<string, number>();
+  const unmappedSettings = new Set<string>();
+  const settingNames: Record<string, string> = {
+    canvases: "画布背景", placeholder_infos: "占位设置",
+    sound_channel_mappings: "声道设置", material_colors: "素材颜色",
+    vocal_separations: "人声分离", material_animations: "片段动画",
+    transitions: "转场", video_effects: "视频特效", audio_effects: "音频效果",
+    audio_fades: "声音淡入淡出", masks: "蒙版",
+  };
   let totalSegments = 0;
-  for (const rawTrack of draft.tracks) {
+  for (const rawTrack of tracks) {
     const sourceTrack = object(rawTrack),
       kind = string(sourceTrack.type);
     if (!["video", "audio", "text"].includes(kind)) {
@@ -160,6 +189,13 @@ export function importCapcutDraft(
       ),
     );
     project.tracks.push(track);
+    const layers = array(sourceTrack.segments)
+      .map((item) => object(item).track_render_index)
+      .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
+    const uniqueLayers = [...new Set(layers)];
+    trackLayers.set(track.id, uniqueLayers[0] ?? project.tracks.length - 1);
+    if (uniqueLayers.length > 1)
+      warn("同轨片段的图层顺序不同，已按首个片段的轨道层级导入；请核对遮挡关系。");
     for (const rawSegment of array(sourceTrack.segments)) {
       if (++totalSegments > 10000) throw new Error("草稿片段数量超过导入限制");
       const segment = object(rawSegment),
@@ -244,28 +280,22 @@ export function importCapcutDraft(
       }
       clip.speed = speed;
       clip.volume = bounded(segment.volume, 0, 4, 1);
+      if (clip.volume !== number(segment.volume, 1))
+        warn("片段音量超出支持范围，已限制到 0–4 倍；请核对声音。");
       const transform = object(segment.clip),
         position = object(transform.transform),
         scale = object(transform.scale),
         flip = object(transform.flip);
-      clip.transform.x = bounded(
-        (number(position.x) * project.width) / 2,
-        -1e9,
-        1e9,
-        0,
-      );
-      clip.transform.y = bounded(
-        (-number(position.y) * project.height) / 2,
-        -1e9,
-        1e9,
-        0,
-      );
       clip.transform.scale = bounded(scale.x, 0.05, 10, 1);
       clip.transform.rotation = bounded(transform.rotation, -1e9, 1e9, 0);
       clip.transform.opacity = bounded(transform.alpha, 0, 1, 1);
+      if (clip.transform.scale !== number(scale.x, 1))
+        warn("片段缩放超出支持范围，已限制到 0.05–10 倍。");
+      if (clip.transform.opacity !== number(transform.alpha, 1))
+        warn("片段透明度超出支持范围，已限制到 0–1。");
       clip.transform.flipX = flip.horizontal === true;
       clip.transform.flipY = flip.vertical === true;
-      if (number(scale.y, clip.transform.scale) !== clip.transform.scale)
+      if (number(scale.y, number(scale.x, 1)) !== number(scale.x, 1))
         warn("非等比缩放导入为统一缩放，画面可能改变。");
       if (kind === "text") {
         const text = parseText(material.data.content);
@@ -288,9 +318,7 @@ export function importCapcutDraft(
       for (const ref of refs) {
         const extra = materialById.get(ref);
         if (extra && extra.category !== "speeds")
-          warn(
-            `附加素材 ${extra.category} 未映射（效果/转场/动画/淡入淡出等可能丢失）。`,
-          );
+          unmappedSettings.add(settingNames[extra.category] ?? "其他附加效果");
         if (
           extra?.category === "speeds" &&
           array(extra.data.curve_speed).length
@@ -299,14 +327,52 @@ export function importCapcutDraft(
       }
       if (Object.keys(object(material.data.crop)).length)
         warn("剪映裁切信息未映射，使用完整素材画面。");
+      // Only accepted visual segments may establish an unspecified canvas.
+      // Library-only materials and rejected clips must not affect its size.
+      if (!hasCanvasDimensions && !originalCanvas && kind === "video" && asset) {
+        const width = number(material.data.width),
+          height = number(material.data.height);
+        if (
+          Number.isInteger(width) &&
+          width > 0 &&
+          width <= 100000 &&
+          Number.isInteger(height) &&
+          height > 0 &&
+          height <= 100000
+        )
+          originalCanvas = { width, height };
+      }
+      positions.set(clip, { x: number(position.x), y: number(position.y) });
       project.clips.push(clip);
     }
   }
+  if (!hasCanvasDimensions) {
+    if (originalCanvas) {
+      project.width = Math.round(bounded(originalCanvas.width, 16, 7680, 1920));
+      project.height = Math.round(bounded(originalCanvas.height, 16, 7680, 1080));
+      warn(
+        `草稿没有有效画布尺寸，已由首个可导入视觉片段推断为 ${project.width} × ${project.height}；请核对画布比例。`,
+      );
+    } else {
+      warn(
+        "草稿没有有效画布尺寸，也没有可用于推断的视觉片段，已使用默认 1920 × 1080。请核对画布比例。",
+      );
+    }
+  }
+  for (const [clip, position] of positions) {
+    clip.transform.x = bounded((position.x * project.width) / 2, -1e9, 1e9, 0);
+    clip.transform.y = bounded((-position.y * project.height) / 2, -1e9, 1e9, 0);
+  }
+  // Native higher track_render_index is drawn above lower values. ReaCut's
+  // first track is the top layer; source array order is the fallback.
+  project.tracks.sort((a, b) => trackLayers.get(b.id)! - trackLayers.get(a.id)!);
   if (!project.tracks.length) project.tracks = [createTrack("video")];
   if (!project.clips.length) warn("没有可导入的基础片段。");
+  if (unmappedSettings.size)
+    warn(`未转换的附加设置：${[...unmappedSettings].join("、")}。请核对相关效果。`);
   const bg = object(canvas.background);
   if (Object.keys(bg).length)
-    warn("剪映画布背景未映射，使用 ReaCut 默认背景。");
+    warn("剪映画布背景未映射，使用黑色背景。");
   return { project: validateProject(project), warnings };
 }
 

@@ -1,0 +1,686 @@
+{
+  "schema": 1,
+  "generator": "scripts/generate-assets.ts",
+  "assets": [
+    {
+      "id": "sparkle",
+      "name": "四角星光",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "sparkle.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "星星",
+        "闪耀",
+        "sparkle"
+      ],
+      "transparent": true,
+      "source": "sparkle.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "08e5a80e1f79fd7974a04c2dedbfcabcbcf706f246bcdd07c833ed3029c87f9f"
+    },
+    {
+      "id": "burst",
+      "name": "活力爆炸贴",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "burst.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "爆炸",
+        "强调",
+        "burst"
+      ],
+      "transparent": true,
+      "source": "burst.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "edf21913e590fe396db7db5257321d317a2636033f56dda73e257295ce66ec04"
+    },
+    {
+      "id": "heart",
+      "name": "珊瑚爱心",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "heart.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "爱心",
+        "喜欢",
+        "heart"
+      ],
+      "transparent": true,
+      "source": "heart.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "c95df4114cad8d765f706c3693420bed9414b921be72e679e9c87b69d7ea95fb"
+    },
+    {
+      "id": "arrow-curved",
+      "name": "手绘转弯箭头",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "arrow-curved.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "箭头",
+        "指引",
+        "arrow"
+      ],
+      "transparent": true,
+      "source": "arrow-curved.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "513690055e6688180e87b997e8ffa63181a19e32a85c768e7b306183c1a30a0d"
+    },
+    {
+      "id": "arrow-left",
+      "name": "向左倒带",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "arrow-left.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "倒带",
+        "箭头",
+        "reverse"
+      ],
+      "transparent": true,
+      "source": "arrow-left.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "f561ccd00414a5dc487e20b232c8f357c27d94281e25c360ff652cf4eb6dfe7f"
+    },
+    {
+      "id": "play",
+      "name": "薄荷播放键",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "play.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "播放",
+        "视频",
+        "play"
+      ],
+      "transparent": true,
+      "source": "play.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "4e52a51306fb757e1bfc66111cf6c37801908a9e6082727af4f6e001daa83150"
+    },
+    {
+      "id": "check",
+      "name": "完成勾选",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "check.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "成功",
+        "完成",
+        "check"
+      ],
+      "transparent": true,
+      "source": "check.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "a1f9f90c91e8e0e1ce6c183aa3200610eecc44da6bb423a92228bf0f46c4189d"
+    },
+    {
+      "id": "pin",
+      "name": "旅行定位",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "pin.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "旅行",
+        "位置",
+        "pin"
+      ],
+      "transparent": true,
+      "source": "pin.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "e2a5dfdeeadc5a4ea359daecb69913b15b945b576a562f42000eb208b4728c75"
+    },
+    {
+      "id": "speech",
+      "name": "对话气泡",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "speech.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "对话",
+        "文字",
+        "speech"
+      ],
+      "transparent": true,
+      "source": "speech.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "9c170009d12e12dc8716d89ef120477fcad67dc6c36b9b6a6785fd4d61f1c88d"
+    },
+    {
+      "id": "quote",
+      "name": "引用符号",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "quote.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "采访",
+        "引用",
+        "quote"
+      ],
+      "transparent": true,
+      "source": "quote.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "12c4661d8557a1ca4d3d1d5959f1ae035ce4f5c1f7a9fd3d9b51665c4d8f63a3"
+    },
+    {
+      "id": "film",
+      "name": "迷你胶片",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "film.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "电影",
+        "胶片",
+        "film"
+      ],
+      "transparent": true,
+      "source": "film.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "9884e1cbc9bd29db37f6cf25f2342d149e8c4783f58df80b3c79398856f501f7"
+    },
+    {
+      "id": "clap",
+      "name": "开拍场记板",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "clap.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "场记",
+        "电影",
+        "clap"
+      ],
+      "transparent": true,
+      "source": "clap.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "405f13276180cf2d0908db9c05855204a19a00888808a723b0f93063843a18c6"
+    },
+    {
+      "id": "sun",
+      "name": "日光小太阳",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "sun.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "天气",
+        "阳光",
+        "sun"
+      ],
+      "transparent": true,
+      "source": "sun.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "5a26fa1a623f50de0b02f006bf96c204e741e19fe3104229d814cd28750bd032"
+    },
+    {
+      "id": "rainbow",
+      "name": "柔彩彩虹",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "rainbow.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "彩虹",
+        "生活",
+        "rainbow"
+      ],
+      "transparent": true,
+      "source": "rainbow.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "72e4b1fb7f358a26cb8c490d7f42c6b7460ac3ddc0f9ed2fefb931a73315301f"
+    },
+    {
+      "id": "confetti",
+      "name": "庆祝纸屑",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "confetti.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "庆祝",
+        "节日",
+        "confetti"
+      ],
+      "transparent": true,
+      "source": "confetti.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "c6707fb3cb83e65edc9c1fa005905ea11cfb6c767149c780682a5e8e1e90a559"
+    },
+    {
+      "id": "focus",
+      "name": "取景框",
+      "category": "stickers",
+      "kind": "image",
+      "fileName": "focus.png",
+      "width": 512,
+      "height": 512,
+      "duration": 5,
+      "tags": [
+        "镜头",
+        "对焦",
+        "focus"
+      ],
+      "transparent": true,
+      "source": "focus.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "6980831d3628e231fc4fadf4498416fe3a810c3e6e3b0e9ebb41e8f0d2da475f"
+    },
+    {
+      "id": "bg-midnight",
+      "name": "午夜渐层",
+      "category": "backgrounds",
+      "kind": "image",
+      "fileName": "bg-midnight.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "深蓝",
+        "渐变",
+        "dark"
+      ],
+      "transparent": false,
+      "source": "bg-midnight.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "dae1a2b6a1eb65e9900b86719e3a1284c2f9ae17c7a74d6d5a4a1e0b34ab40c4"
+    },
+    {
+      "id": "bg-sunrise",
+      "name": "日出珊瑚",
+      "category": "backgrounds",
+      "kind": "image",
+      "fileName": "bg-sunrise.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "暖色",
+        "渐变",
+        "warm"
+      ],
+      "transparent": false,
+      "source": "bg-sunrise.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "1ca84334970aa8a666b7977ce1d5000af81f1b1b350aba5028c790a5a2a09f16"
+    },
+    {
+      "id": "bg-mint",
+      "name": "薄荷流光",
+      "category": "backgrounds",
+      "kind": "image",
+      "fileName": "bg-mint.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "清新",
+        "绿色",
+        "mint"
+      ],
+      "transparent": false,
+      "source": "bg-mint.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "c31938e5ad92ca694b7b26015a753c54a70998bf0a42b413cfe04c571f5225ee"
+    },
+    {
+      "id": "bg-paper",
+      "name": "暖白纸纹",
+      "category": "backgrounds",
+      "kind": "image",
+      "fileName": "bg-paper.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "纸张",
+        "极简",
+        "paper"
+      ],
+      "transparent": false,
+      "source": "bg-paper.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "4cac66901fa24fc17eb49a6d293435298a7b9c3728baec976eaa51a8bf647932"
+    },
+    {
+      "id": "bg-grid",
+      "name": "深色坐标网格",
+      "category": "backgrounds",
+      "kind": "image",
+      "fileName": "bg-grid.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "科技",
+        "网格",
+        "grid"
+      ],
+      "transparent": false,
+      "source": "bg-grid.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "1fb83ae17e952065224c5b42545ea00f3db281aafc8b673cb2ac3a96d6523ff4"
+    },
+    {
+      "id": "bg-orbit",
+      "name": "蓝紫轨道",
+      "category": "backgrounds",
+      "kind": "image",
+      "fileName": "bg-orbit.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "科技",
+        "圆环",
+        "orbit"
+      ],
+      "transparent": false,
+      "source": "bg-orbit.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "70eae2d30402784f8e1a195b9350c46b0330257bbdce9013132bf81392c2c5ef"
+    },
+    {
+      "id": "title-mint",
+      "name": "薄荷人物条",
+      "category": "titles",
+      "kind": "image",
+      "fileName": "title-mint.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "人物",
+        "下三分之一",
+        "采访"
+      ],
+      "transparent": true,
+      "source": "title-mint.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "57905266fbe52f2bef5f897c7e2a945d924b5c7f8e4dde470766aba4a59a51a3"
+    },
+    {
+      "id": "title-coral",
+      "name": "珊瑚字幕条",
+      "category": "titles",
+      "kind": "image",
+      "fileName": "title-coral.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "字幕",
+        "下三分之一",
+        "标题"
+      ],
+      "transparent": true,
+      "source": "title-coral.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "34da47a580307ad9763eacc66faf17d6e2d6948f6b741f9e7243679779619794"
+    },
+    {
+      "id": "title-glass",
+      "name": "深色信息卡",
+      "category": "titles",
+      "kind": "image",
+      "fileName": "title-glass.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "信息",
+        "卡片",
+        "标题"
+      ],
+      "transparent": true,
+      "source": "title-glass.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "3c4f8a1f97bc00c0233273750b16f1800616fe19e809555c7948c93178a47363"
+    },
+    {
+      "id": "title-frame",
+      "name": "电影细线边框",
+      "category": "titles",
+      "kind": "image",
+      "fileName": "title-frame.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "边框",
+        "电影",
+        "标题"
+      ],
+      "transparent": true,
+      "source": "title-frame.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "f56d05d466cad1119f384e214a1592506ed155a10a0c770659f0e1276030402b"
+    },
+    {
+      "id": "title-corner",
+      "name": "角标与侧栏",
+      "category": "titles",
+      "kind": "image",
+      "fileName": "title-corner.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "角标",
+        "栏目",
+        "标题"
+      ],
+      "transparent": true,
+      "source": "title-corner.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "bcf1986de8afa77df9b297e9d1b15919fa028a437f2f2bd7cb7008a0d143dc3e"
+    },
+    {
+      "id": "title-ribbon",
+      "name": "重点飘带",
+      "category": "titles",
+      "kind": "image",
+      "fileName": "title-ribbon.png",
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "tags": [
+        "重点",
+        "飘带",
+        "标题"
+      ],
+      "transparent": true,
+      "source": "title-ribbon.svg",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "952cdb3f47146598c91882aee7e1bd753495cf858d5824b9d800f756808b98d5"
+    },
+    {
+      "id": "sound-pop",
+      "name": "轻快气泡",
+      "category": "sounds",
+      "kind": "audio",
+      "fileName": "sound-pop.wav",
+      "width": 0,
+      "height": 0,
+      "duration": 0.25,
+      "tags": [
+        "气泡",
+        "转场",
+        "pop"
+      ],
+      "transparent": false,
+      "source": "../../scripts/generate-assets.ts",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "1b4d80e4869085e8164a29e39ce704223578b716f8e7c1962f0bf6f0dbee6a5b"
+    },
+    {
+      "id": "sound-click",
+      "name": "柔和点按",
+      "category": "sounds",
+      "kind": "audio",
+      "fileName": "sound-click.wav",
+      "width": 0,
+      "height": 0,
+      "duration": 0.12,
+      "tags": [
+        "点击",
+        "界面",
+        "click"
+      ],
+      "transparent": false,
+      "source": "../../scripts/generate-assets.ts",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "df05ffe30811e5f5e7cc33a4baefc2111d25b3b34ffd0c40f0444efef8b7c277"
+    },
+    {
+      "id": "sound-chime",
+      "name": "清亮提示",
+      "category": "sounds",
+      "kind": "audio",
+      "fileName": "sound-chime.wav",
+      "width": 0,
+      "height": 0,
+      "duration": 1.2,
+      "tags": [
+        "铃声",
+        "提示",
+        "chime"
+      ],
+      "transparent": false,
+      "source": "../../scripts/generate-assets.ts",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "d305ed72fccd44117821b947e3e3f04a5693557ec15293882802fc89d7004fb5"
+    },
+    {
+      "id": "sound-rise",
+      "name": "向上滑音",
+      "category": "sounds",
+      "kind": "audio",
+      "fileName": "sound-rise.wav",
+      "width": 0,
+      "height": 0,
+      "duration": 0.65,
+      "tags": [
+        "上升",
+        "转场",
+        "rise"
+      ],
+      "transparent": false,
+      "source": "../../scripts/generate-assets.ts",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "8809eb44b523391daabe0ecb83e9c6c2ddf454e626fcf26923feb004a797236b"
+    },
+    {
+      "id": "sound-whoosh",
+      "name": "空气掠过",
+      "category": "sounds",
+      "kind": "audio",
+      "fileName": "sound-whoosh.wav",
+      "width": 0,
+      "height": 0,
+      "duration": 0.8,
+      "tags": [
+        "掠过",
+        "转场",
+        "whoosh"
+      ],
+      "transparent": false,
+      "source": "../../scripts/generate-assets.ts",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "a84775d8aa8b6b759e359561c3a622a7f713651ad0923179a191b14895d731e9"
+    },
+    {
+      "id": "sound-complete",
+      "name": "完成三音",
+      "category": "sounds",
+      "kind": "audio",
+      "fileName": "sound-complete.wav",
+      "width": 0,
+      "height": 0,
+      "duration": 1.4,
+      "tags": [
+        "成功",
+        "完成",
+        "complete"
+      ],
+      "transparent": false,
+      "source": "../../scripts/generate-assets.ts",
+      "provenance": "original-programmatic",
+      "license": "MIT",
+      "sha256": "546b9466f66074e0ad261c7ec2e9eccf4994142574e1d4cc0d037092f55aca3b"
+    }
+  ]
+}

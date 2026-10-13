@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs><linearGradient id="ribbon" gradientUnits="userSpaceOnUse" x1="230" y1="292" x2="650" y2="732">
+    <stop stop-color="#98f9e5"/><stop offset="1" stop-color="#45d6c0"/>
+  </linearGradient></defs>
+  <rect x="45" y="45" width="934" height="934" rx="205" fill="#14191d"/>
+  <path d="
+  M 230 300 L 340 362 L 340 350
+  C 340 309 365 292 402 292 L 723 292
+  C 767 292 790 315 790 359 L 790 426
+  Q 790 441 777 448 L 664 512 L 777 576
+  Q 790 583 790 598 L 790 665
+  C 790 709 767 732 723 732 L 402 732
+  C 365 732 340 715 340 674 L 340 662
+  L 230 724 L 230 635 L 495 512 L 230 389 Z
+  M 410 378 Q 401 378 409 383 L 548 464
+  L 695 383 Q 704 378 695 378 Z
+  M 410 646 Q 401 646 409 641 L 548 560
+  L 695 641 Q 704 646 695 646 Z
+" fill="url(#ribbon)" fill-rule="evenodd"/>
+</svg>

@@ -41,7 +41,7 @@ interface EditorState {
   updateProject: (patch: Partial<Project>) => void;
   addAssets: (assets: MediaAsset[]) => void;
   removeAsset: (assetId: string) => void;
-  addAssetClip: (assetId: string, start?: number, trackId?: string) => void;
+  addAssetClip: (assetId: string, start?: number, trackId?: string, range?: { sourceIn: number; duration: number }) => void;
   addText: () => void;
   addSubtitles: (cues: Subtitle[]) => void;
   updateClip: (clipId: string, patch: Partial<Clip>) => void;
@@ -186,10 +186,14 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       throw new Error("素材仍被时间线使用，请先删除对应片段");
     get().commit({ ...p, assets: p.assets.filter((a) => a.id !== assetId) });
   },
-  addAssetClip: (assetId, start, trackId) => {
+  addAssetClip: (assetId, start, trackId, range) => {
     let p = get().project;
     const asset = p.assets.find((a) => a.id === assetId);
     if (!asset || (start !== undefined && !Number.isFinite(start))) return;
+    if (range && (asset.missing || !Number.isFinite(range.sourceIn) || !Number.isFinite(range.duration) ||
+        range.sourceIn < 0 || range.duration < 1 / p.fps - 1e-9 || range.duration > 86400 ||
+        (asset.kind === "image" ? range.sourceIn !== 0 : range.sourceIn + range.duration > asset.duration + 1e-9)))
+      throw new Error("素材选段无效或超出源素材范围");
     let track: Track | undefined;
     if (trackId !== undefined) {
       track = p.tracks.find(
@@ -205,6 +209,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         .filter((c) => c.trackId === track!.id)
         .reduce((end, c) => Math.max(end, c.start + c.duration), 0),
       clip = createClip(asset, track.id, start ?? end, p.fps);
+    if (range) { clip.sourceIn = range.sourceIn; clip.duration = range.duration; }
     get().commit({ ...p, clips: [...p.clips, clip] });
     set({ selectedIds: [clip.id], playhead: clip.start });
   },

@@ -22,6 +22,7 @@ import type {
   ShapeMask,
 } from "../src/core/types";
 import { fadeWindow } from "../src/core/model";
+import { resolveExportRange } from "../src/core/exportRange";
 import { colorAdjustmentFilters } from "../src/core/color";
 import { applyShapeMask, getCropPixels } from "../src/core/visual";
 import { findMediaTool } from "./media";
@@ -136,6 +137,7 @@ function validate(project: Project, options: ExportOptions): number {
   )
     throw new Error("导出文件不能覆盖工程的源素材，请选择其他位置。");
   color(project.background);
+  const range = resolveExportRange(project, options);
   const assets = new Map(project.assets.map((a) => [a.id, a]));
   const tracks = new Map(project.tracks.map((t) => [t.id, t]));
   for (const clip of project.clips) {
@@ -257,7 +259,7 @@ function validate(project: Project, options: ExportOptions): number {
     } else {
       const asset = assets.get(clip.assetId ?? "");
       if (!asset) throw new Error(`片段 ${clip.name} 找不到源素材。`);
-      if (asset.missing) throw new Error(`素材丢失：${asset.name}`);
+      if (asset.missing && clip.start < range.end && clip.start + clip.duration > range.start) throw new Error(`素材丢失：${asset.name}`);
       if (
         asset.kind !== "image" &&
         clip.sourceIn + clip.duration * clip.speed > asset.duration + 0.08
@@ -405,6 +407,7 @@ export async function createExportArguments(
   output: string,
 ): Promise<string[]> {
   const duration = validate(project, options);
+  const range = resolveExportRange(project, options);
   const args = [
     "-hide_banner",
     "-y",
@@ -426,6 +429,7 @@ export async function createExportArguments(
     for (const clip of project.clips
       .filter((c) => c.trackId === track.id)
       .sort((a, b) => a.start - b.start)) {
+      if (clip.start >= range.end || clip.start + clip.duration <= range.start) continue;
       const asset: MediaAsset | undefined = assets.get(clip.assetId ?? "");
       const text = clip.text ? await renderText(clip, directory) : undefined;
       const visual = Boolean(
@@ -436,12 +440,20 @@ export async function createExportArguments(
       const file = text?.file ?? asset!.path;
       await access(file);
       const still = Boolean(text || asset?.kind === "image");
+      // Keep the frame immediately before a fractional trim point. Input -ss
+      // still seeks to the preceding keyframe; the audio path continues to
+      // trim precisely at time zero, while video can retain negative PTS.
+      const keepSeekPredecessor =
+        !still && asset?.kind === "video" && !track.hidden && clip.sourceIn > 0;
       // Seek before decoding so a late trim in a long recording does not decode its entire prefix.
       args.push(
         ...(still
           ? ["-loop", "1", "-framerate", number(options.fps)]
           : clip.sourceIn > 0
-            ? ["-ss", number(clip.sourceIn)]
+            ? [
+                "-ss", number(clip.sourceIn),
+                ...(keepSeekPredecessor ? ["-noaccurate_seek"] : []),
+              ]
             : []),
         "-protocol_whitelist",
         "file,pipe",
@@ -451,9 +463,14 @@ export async function createExportArguments(
       const index = input++;
       if (visual && !track.hidden) {
         const filters = [
-          `trim=start=0:duration=${number(still ? clip.duration : clip.duration * clip.speed)}`,
-          `setpts=(PTS-STARTPTS)/${still ? "1" : number(clip.speed)}`,
-          `fps=${number(options.fps)}`,
+          keepSeekPredecessor
+            ? `trim=end=${number(clip.duration * clip.speed)}`
+            : `trim=start=0:duration=${number(still ? clip.duration : clip.duration * clip.speed)}`,
+          `setpts=${keepSeekPredecessor ? "PTS" : "(PTS-STARTPTS)"}/${still ? "1" : number(clip.speed)}`,
+          // A frame becomes eligible only at its source PTS. Rounding its new
+          // output tick up preserves the preceding frame between source PTSs,
+          // matching browser seeking instead of selecting a future frame.
+          `fps=${number(options.fps)}:round=up${keepSeekPredecessor ? ":start_time=0" : ""}`,
           "format=rgba",
         ];
         const sourceWidth = text?.width ?? asset!.width;
@@ -637,10 +654,10 @@ export async function createExportArguments(
       }
     }
   }
-  graph.push(`[base${layer}]format=yuv420p[vout]`);
+  graph.push(`[base${layer}]${options.range ? `trim=start=${number(range.start)}:end=${number(range.end)},setpts=PTS-STARTPTS,` : ""}format=yuv420p[vout]`);
   if (audios.length)
     graph.push(
-      `${audios.join("")}amix=inputs=${audios.length}:duration=longest:dropout_transition=0:normalize=0,apad,atrim=duration=${number(duration)},alimiter=limit=1:level=false[aout]`,
+      `${audios.join("")}amix=inputs=${audios.length}:duration=longest:dropout_transition=0:normalize=0,apad,atrim=duration=${number(duration)},alimiter=limit=1:level=false${options.range ? `,atrim=start=${number(range.start)}:end=${number(range.end)},asetpts=PTS-STARTPTS` : ""}[aout]`,
     );
   args.push("-filter_complex", graph.join(";"), "-map", "[vout]");
   if (audios.length)
@@ -672,7 +689,7 @@ export async function createExportArguments(
     "-r",
     number(options.fps),
     "-t",
-    number(duration),
+    number(range.duration),
     "-movflags",
     "+faststart",
     "-progress",
@@ -691,7 +708,8 @@ export async function startExport(
   onProgress: (progress: ExportProgress) => void,
 ): Promise<{ jobId: string }> {
   if (exportsShuttingDown) throw new Error("应用正在关闭。");
-  const duration = validate(project, options);
+  validate(project, options);
+  const duration = resolveExportRange(project, options).duration;
   const executable = await findMediaTool("ffmpeg");
   if (exportsShuttingDown) throw new Error("应用正在关闭。");
   const outputIdentity = await realpath(options.path).catch(() =>

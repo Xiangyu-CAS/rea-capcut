@@ -13,15 +13,15 @@
     "PingFang SC",
     "Microsoft YaHei",
     sans-serif;
-  background: #111215;
-  color: #e6e7ec;
+  background: #151515;
+  color: #dedede;
   font-size: 12px;
-  --accent: #46ddca;
-  --accent-soft: rgba(70, 221, 202, 0.12);
-  --panel: #1a1c21;
-  --border: #2b2d34;
-  --muted: #868b98;
-  --text: #e6e7ec;
+  --accent: #16c4cb;
+  --accent-soft: rgba(22, 196, 203, 0.12);
+  --panel: #262626;
+  --border: #363636;
+  --muted: #8d8d8d;
+  --text: #dedede;
 }
 * {
   box-sizing: border-box;
@@ -42,7 +42,7 @@ button {
   justify-content: center;
   gap: 7px;
   border: 1px solid transparent;
-  color: #b5bbc8;
+  color: #bcbcbc;
   background: transparent;
   border-radius: 5px;
   cursor: pointer;
@@ -53,8 +53,8 @@ button {
     color 0.12s;
 }
 button:hover {
-  background: #2a2d35;
-  color: #f4f6fb;
+  background: #373737;
+  color: #f4f4f4;
 }
 button:disabled {
   opacity: 0.35;
@@ -74,9 +74,9 @@ textarea:focus-visible {
 input,
 select,
 textarea {
-  border: 1px solid #343740;
-  background: #24262d;
-  color: #e6e7ec;
+  border: 1px solid #414141;
+  background: #202020;
+  color: #dedede;
   border-radius: 5px;
   padding: 7px 9px;
   min-width: 0;
@@ -119,7 +119,7 @@ h3 {
   font-size: 12px;
   font-weight: 600;
   margin: 18px 0 13px;
-  color: #cdd1dc;
+  color: #d1d1d1;
 }
 h3:first-child {
   margin-top: 0;
@@ -145,8 +145,8 @@ h3:first-child {
 }
 .panel {
   background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  border: 1px solid #2c2c2c;
+  border-radius: 7px;
   overflow: hidden;
   min-width: 0;
   min-height: 0;
@@ -154,16 +154,16 @@ h3:first-child {
 .app-shell {
   height: 100dvh;
   display: grid;
-  grid-template-rows: 54px minmax(250px, 1fr) minmax(230px, 34vh) 27px;
+  grid-template-rows: 44px minmax(250px, 1fr) minmax(230px, 34vh) 27px;
   gap: 7px;
   padding: 0 8px;
-  background: #121317;
+  background: #151515;
 }
 .titlebar {
-  height: 54px;
+  height: 44px;
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
   padding: 0 8px 0 74px;
   -webkit-app-region: drag;
   position: relative;
@@ -226,16 +226,16 @@ h3:first-child {
   font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #bfc5d1;
+  color: #cdcdcd;
 }
 .project-title input:focus {
-  background: #24262d;
-  border-color: #3d434d;
+  background: #202020;
+  border-color: #4d4d4d;
 }
 .save-dot {
   width: 5px;
   height: 5px;
-  background: #515a65;
+  background: #777777;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -269,7 +269,7 @@ h3:first-child {
   left: 0;
   z-index: 30;
   width: 238px;
-  background: #24262d;
+  background: #202020;
   border: 1px solid #3c404b;
   border-radius: 8px;
   padding: 5px;
@@ -293,8 +293,9 @@ h3:first-child {
   margin: 4px 0;
 }
 .editor-workspace {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(290px, 31%) minmax(280px, 1fr) 300px;
+  grid-template-columns: minmax(290px, 33%) minmax(280px, 1fr) minmax(300px, 29%);
   gap: 7px;
   min-height: 0;
 }
@@ -307,7 +308,7 @@ h3:first-child {
   align-items: center;
   justify-content: space-evenly;
   border-bottom: 1px solid var(--border);
-  height: 66px;
+  height: 52px;
   flex-shrink: 0;
   gap: 3px;
   padding: 4px 10px;
@@ -317,10 +318,12 @@ h3:first-child {
   flex-direction: column;
   gap: 7px;
   border-radius: 6px;
-  min-width: 44px;
+  min-width: 30px;
+  flex: 1;
+  white-space: nowrap;
   font-size: 10px;
-  padding: 7px 6px;
-  height: 54px;
+  padding: 7px 3px;
+  height: 44px;
 }
 .resource-tabs button.active {
   background: transparent;
@@ -346,18 +349,18 @@ h3:first-child {
   margin: 0;
 }
 .small-button {
-  background: #2a2d35;
+  background: #373737;
   font-size: 10px;
   border-color: #373b45;
 }
 .panel-heading {
-  height: 42px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 15px;
   border-bottom: 1px solid var(--border);
-  color: #d1d6df;
+  color: #d1d1d1;
   font-size: 11px;
   flex-shrink: 0;
 }
@@ -373,7 +376,7 @@ h3:first-child {
   min-height: 0;
   position: relative;
   overflow: hidden;
-  background: #16181d;
+  background: #242424;
 }
 .player-stage:fullscreen {
   background: #0b0c10;
@@ -423,7 +426,7 @@ h3:first-child {
   display: flex;
   align-items: center;
   padding: 0 12px;
-  border-top: 1px solid #23262d;
+  border-top: 1px solid #303030;
   gap: 4px;
   flex-shrink: 0;
   position: relative;
@@ -442,7 +445,7 @@ h3:first-child {
   font-weight: 500;
 }
 .timecode span {
-  color: #697386;
+  color: #929292;
 }
 .transport {
   display: flex;
@@ -535,25 +538,25 @@ h3:first-child {
   gap: 7px;
   margin-bottom: 16px;
   padding-bottom: 14px;
-  border-bottom: 1px solid #292c34;
+  border-bottom: 1px solid #3b3b3b;
 }
 .clip-info strong {
   font-size: 11px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #c8cfdd;
+  color: #d0d0d0;
 }
 .clip-info span {
   font-size: 10px;
-  color: #788293;
+  color: #898989;
 }
 .property-row {
   display: flex;
   align-items: center;
   gap: 9px;
   min-height: 36px;
-  color: #9ba4b5;
+  color: #b0b0b0;
   font-size: 11px;
   margin-bottom: 5px;
 }
@@ -571,8 +574,8 @@ h3:first-child {
   align-items: center;
   justify-content: flex-end;
   width: 125px;
-  background: #24262d;
-  border: 1px solid #323640;
+  background: #202020;
+  border: 1px solid #383838;
   border-radius: 4px;
   padding-right: 8px;
   flex-shrink: 0;
@@ -587,20 +590,20 @@ h3:first-child {
 }
 .numeric-field span {
   font-size: 10px;
-  color: #6d788c;
+  color: #858585;
 }
 .diamond-btn {
   padding: 3px;
   width: 17px;
   min-height: 21px;
-  color: #657181;
+  color: #929292;
 }
 .stacked-label {
   display: flex;
   flex-direction: column;
   gap: 8px;
   font-size: 11px;
-  color: #8c96a7;
+  color: #a5a5a5;
   margin-bottom: 15px;
 }
 .section-title {
@@ -623,17 +626,17 @@ h3:first-child {
   display: flex;
   justify-content: space-between;
   margin-bottom: 12px;
-  color: #98a4b6;
+  color: #b0b0b0;
   font-size: 11px;
 }
 .slider-property span {
-  color: #627082;
+  color: #949494;
   font-size: 10px;
 }
 .segmented {
   display: flex;
   gap: 2px;
-  background: #24272f;
+  background: #202020;
   border-radius: 4px;
 }
 .segmented button {
@@ -645,7 +648,7 @@ h3:first-child {
   align-items: center;
   justify-content: space-between;
   padding: 10px 0;
-  color: #98a3b4;
+  color: #b0b0b0;
   font-size: 11px;
 }
 .toggle-property input {
@@ -674,7 +677,7 @@ h3:first-child {
   font-size: 10px;
   color: #63776e;
   text-align: center;
-  border-top: 1px solid #292c34;
+  border-top: 1px solid #3b3b3b;
   padding-top: 18px;
 }
 .status-dot {
@@ -687,7 +690,7 @@ h3:first-child {
 }
 .field-hint {
   font-size: 10px;
-  color: #737e91;
+  color: #969696;
   line-height: 1.8;
   margin: 15px 0;
 }
@@ -782,8 +785,8 @@ h3:first-child {
 }
 .text-template {
   height: 80px;
-  background: #22252d;
-  border: 1px solid #323846;
+  background: #343434;
+  border: 1px solid #414141;
   border-radius: 7px;
   display: flex;
   align-items: center;
@@ -838,7 +841,7 @@ h3:first-child {
 }
 .full-width {
   width: 100%;
-  background: #262b34;
+  background: #363636;
   font-size: 11px;
 }
 .future-feature {
@@ -865,7 +868,7 @@ h3:first-child {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  background: #22252d;
+  background: #343434;
   padding: 13px;
   gap: 9px;
   margin-top: 15px;
@@ -951,8 +954,8 @@ h3:first-child {
   max-height: calc(100dvh - 48px);
   display: flex;
   flex-direction: column;
-  background: #20232b;
-  border: 1px solid #3a414e;
+  background: #282828;
+  border: 1px solid #444444;
   box-shadow: 0 20px 90px #0009;
   border-radius: 12px;
   overflow: hidden;
@@ -965,7 +968,7 @@ h3:first-child {
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid #343947;
+  border-bottom: 1px solid #3c3c3c;
 }
 .modal h2 {
   font-size: 14px;
@@ -983,7 +986,7 @@ h3:first-child {
   justify-content: flex-end;
   gap: 10px;
   padding: 15px 20px;
-  border-top: 1px solid #333945;
+  border-top: 1px solid #3c3c3c;
 }
 .modal > footer .muted {
   display: flex;
@@ -993,7 +996,7 @@ h3:first-child {
   font-size: 10px;
 }
 .modal > footer button {
-  background: #303541;
+  background: #3b3b3b;
   min-width: 75px;
 }
 .modal > footer button.primary {
@@ -1004,7 +1007,7 @@ h3:first-child {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #343947;
+  border-bottom: 1px solid #3c3c3c;
   background: linear-gradient(120deg, #233b3d, #242933);
 }
 .export-preview > div {
@@ -1204,7 +1207,7 @@ kbd {
 }
 .about-logo {
   width: 66px;
-  height: 66px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1243,15 +1246,15 @@ kbd {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #3a414c;
+  background: #4a4a4a;
   border-radius: 5px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #586171;
+  background: #646464;
 }
 @media (max-width: 1250px) {
   .editor-workspace {
-    grid-template-columns: 290px minmax(240px, 1fr) 272px;
+    grid-template-columns: minmax(280px, 32%) minmax(220px, 1fr) 292px;
   }
   .offline-pill,
   .brand-cn {
@@ -1287,17 +1290,17 @@ kbd {
 }
 @media (max-height: 750px) {
   .app-shell {
-    grid-template-rows: 50px minmax(210px, 1fr) minmax(210px, 35vh) 25px;
+    grid-template-rows: 44px minmax(210px, 1fr) minmax(210px, 35vh) 25px;
   }
   .resource-tabs {
-    height: 59px;
+    height: 52px;
   }
   .resource-tabs button {
-    height: 48px;
+    height: 44px;
     gap: 5px;
   }
   .titlebar {
-    height: 50px;
+    height: 44px;
   }
 }
 
@@ -1332,3 +1335,44 @@ kbd {
   background: #45515d;
   border-radius: 2px;
 }
+
+/* Familiar desktop editing geometry: aligned panel headers and compact chrome. */
+.resource-tabs { background: #303030; padding: 3px 9px; gap: 3px; }
+.resource-tabs button { gap: 4px; font-size: 11px; padding: 4px 3px; }
+.resource-tabs button svg { width: 18px; height: 18px; flex-shrink: 0; }
+.panel-heading { background: #303030; font-size: 12px; }
+.player-controls { background: #262626; border-top: 0; }
+.player-stage canvas { box-shadow: none; }
+.timecode { font-size: 11px; }
+.player-selection-hint { color: #d0d0d0; background: #1b1b1bd9; }
+.project-title input { color: #e0e0e0; font-weight: 500; }
+.brand strong { font-size: 13px; }
+.brand-icon { background: transparent; }
+.export-button { min-height: 27px; padding: 4px 15px; color: #062e30; }
+.app-status { color: #929292; }
+.resource-content { padding: 15px; }
+.text-templates { gap: 10px; }
+@media (max-width: 1100px) {
+  .editor-workspace { grid-template-columns: 280px minmax(210px, 1fr) 280px; }
+  .editor-workspace.assistant-open { grid-template-columns: 280px minmax(200px, 1fr) 310px; }
+  .titlebar { padding-left: 68px; gap: 8px; }
+  .titlebar-menus { gap: 0; }
+  .project-title { max-width: 170px; left: 52%; }
+  .project-title input { width: 145px; }
+  .titlebar-actions { gap: 2px; }
+  .resource-tabs { padding-inline: 5px; gap: 0; }
+  .resource-tabs button { min-width: 35px; font-size: 10px; }
+  .timecode { font-size: 9px; }
+  .player-controls { gap: 0; padding-inline: 6px; }
+  .transport { gap: 0; }
+  .transport button { padding: 3px; }
+  .player-tools button { width: 22px; }
+}
+
+.workspace-divider { position:absolute;top:0;bottom:0;width:7px;cursor:col-resize;z-index:5;touch-action:none;outline:none; }
+.workspace-divider::after {content:"";position:absolute;top:30%;bottom:30%;left:2px;width:3px;border-radius:3px;background:transparent;}
+.workspace-divider:hover::after,.workspace-divider:focus-visible::after {background:var(--accent);}
+
+.editor-workspace {min-width:0;}
+.player-panel {container-type:inline-size;}
+@container(max-width:420px){.player-controls{gap:0;padding-inline:6px}.player-controls .timecode{font-size:9px}.player-controls .transport{position:static;transform:none;margin-left:auto;gap:0}.player-controls .transport button{padding:3px}.player-controls .player-tools button{width:23px}}

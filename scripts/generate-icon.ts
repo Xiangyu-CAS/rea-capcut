@@ -1,46 +1,52 @@
-import { createCanvas } from "@napi-rs/canvas";
+import { createCanvas, Path2D } from "@napi-rs/canvas";
 import { mkdir, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 const root = path.resolve("build");
 await mkdir(path.join(root, "icon.iconset"), { recursive: true });
+await mkdir(path.resolve("public/icons"), { recursive: true });
+// Independently drawn vector geometry: left-facing crossed ribbon with softened folds.
+// Visual direction requested by the user: mirror the familiar right-facing edit mark.
+const ribbon = `
+  M 230 300 L 340 362 L 340 350
+  C 340 309 365 292 402 292 L 723 292
+  C 767 292 790 315 790 359 L 790 426
+  Q 790 441 777 448 L 664 512 L 777 576
+  Q 790 583 790 598 L 790 665
+  C 790 709 767 732 723 732 L 402 732
+  C 365 732 340 715 340 674 L 340 662
+  L 230 724 L 230 635 L 495 512 L 230 389 Z
+  M 410 378 Q 401 378 409 383 L 548 464
+  L 695 383 Q 704 378 695 378 Z
+  M 410 646 Q 401 646 409 641 L 548 560
+  L 695 641 Q 704 646 695 646 Z
+`;
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs><linearGradient id="ribbon" gradientUnits="userSpaceOnUse" x1="230" y1="292" x2="650" y2="732">
+    <stop stop-color="#98f9e5"/><stop offset="1" stop-color="#45d6c0"/>
+  </linearGradient></defs>
+  <rect x="45" y="45" width="934" height="934" rx="205" fill="#14191d"/>
+  <path d="${ribbon}" fill="url(#ribbon)" fill-rule="evenodd"/>
+</svg>
+`;
+await writeFile(path.resolve("public/icons/reacut.svg"), svg);
 function icon(size: number): Buffer {
-  const canvas = createCanvas(size, size),
-    ctx = canvas.getContext("2d"),
-    s = size / 1024;
-  ctx.scale(s, s);
-  const fill = ctx.createLinearGradient(120, 70, 850, 980);
-  fill.addColorStop(0, "#6cf2d9");
-  fill.addColorStop(0.6, "#36cebb");
-  fill.addColorStop(1, "#18998e");
-  ctx.fillStyle = fill;
-  ctx.beginPath();
-  ctx.roundRect(45, 45, 934, 934, 205);
-  ctx.fill();
-  ctx.strokeStyle = "#153d38";
-  ctx.lineWidth = 61;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.beginPath();
-  ctx.arc(323, 657, 94, 0, Math.PI * 2);
-  ctx.moveTo(596, 657);
-  ctx.arc(690, 657, 94, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(394, 590);
-  ctx.lineTo(701, 271);
-  ctx.moveTo(617, 590);
-  ctx.lineTo(310, 271);
-  ctx.stroke();
-  ctx.fillStyle = "#a7ffe9";
-  ctx.beginPath();
-  ctx.arc(512, 463, 23, 0, Math.PI * 2);
-  ctx.fill();
+  const canvas = createCanvas(size, size), ctx = canvas.getContext("2d");
+  ctx.scale(size / 1024, size / 1024);
+  ctx.fillStyle = "#14191d";
+  ctx.beginPath(); ctx.roundRect(45, 45, 934, 934, 205); ctx.fill();
+  const color = ctx.createLinearGradient(230, 292, 650, 732);
+  color.addColorStop(0, "#98f9e5"); color.addColorStop(1, "#45d6c0");
+  ctx.fillStyle = color;
+  ctx.fill(new Path2D(ribbon), "evenodd");
   return canvas.toBuffer("image/png");
 }
 for (const size of [16, 32, 64, 128, 256, 512, 1024]) {
   const bytes = icon(size);
-  if (size === 512) await writeFile(path.join(root, "icon.png"), bytes);
+  if (size === 512) {
+    await writeFile(path.join(root, "icon.png"), bytes);
+    await writeFile(path.resolve("public/icons/reacut.png"), bytes);
+  }
   if (size <= 512) {
     await writeFile(
       path.join(root, "icon.iconset", `icon_${size}x${size}.png`),
@@ -88,4 +94,4 @@ if (process.platform === "darwin") {
   );
   if (result.status !== 0) throw new Error("iconutil failed");
 }
-console.log("Generated original ReaCut icons in build/");
+console.log("Generated left-facing ReaCut icons in build/ and public/icons/");

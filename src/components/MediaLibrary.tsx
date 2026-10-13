@@ -12,6 +12,7 @@ import {
   MoreHorizontal,
   Music2,
   Plus,
+  Play,
   Search,
   Trash2,
   Upload,
@@ -29,6 +30,7 @@ export interface MediaLibraryProps {
   importing?: boolean;
   onImportFiles?: (files: File[]) => void;
   onRevealAsset?: (assetId: string) => void;
+  onPreviewAsset?: (assetId: string) => void;
 }
 export function formatMediaDuration(seconds: number) {
   const value = Math.max(0, Math.floor(seconds));
@@ -52,6 +54,7 @@ export default function MediaLibrary({
   importing = false,
   onImportFiles,
   onRevealAsset,
+  onPreviewAsset,
 }: MediaLibraryProps) {
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<MediaKind | "all">("all");
@@ -114,9 +117,10 @@ export default function MediaLibrary({
           setSelected(asset.id);
           setMenu(null);
         }}
-        onClick={() => {
+        onClick={(event) => {
           setSelected(asset.id);
           setMenu(null);
+          if (!(event.target as HTMLElement).closest("button")) onPreviewAsset?.(asset.id);
         }}
         onDoubleClick={(event) => {
           if (
@@ -132,6 +136,12 @@ export default function MediaLibrary({
         }}
         onKeyDown={(event) => {
           if (event.target !== event.currentTarget) return;
+          if (event.key === " " && onPreviewAsset) {
+            event.preventDefault();
+            event.stopPropagation();
+            setSelected(asset.id);
+            onPreviewAsset(asset.id);
+          }
           if (event.key === "Enter" && !asset.missing) {
             event.preventDefault();
             onAddAsset(asset.id);
@@ -230,6 +240,7 @@ export default function MediaLibrary({
             className="media-context"
             onClick={(event) => event.stopPropagation()}
           >
+            {onPreviewAsset && <button onClick={() => { onPreviewAsset(asset.id);setMenu(null); }}><Play size={13} /> 预览素材</button>}
             <button
               disabled={asset.missing}
               onClick={() => {

@@ -1,10 +1,12 @@
 import { spawn, type ChildProcess } from "node:child_process";
-import { constants, existsSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { access, mkdir, stat, rename, rm } from "node:fs/promises";
 import path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import { GlobalFonts } from "@napi-rs/canvas";
 import type { MediaAsset } from "../src/core/types";
+import { findMediaTool } from "./mediaTools";
+export { findMediaTool } from "./mediaTools";
 
 let mediaShuttingDown = false;
 const mediaTasks = new Map<ChildProcess, Promise<void>>();
@@ -31,39 +33,6 @@ export function mediaURL(file: string): string {
 export function systemFontFamilies(): string[] {
   return [...new Set(GlobalFonts.families.map((font) => font.family))].sort(
     (a, b) => a.localeCompare(b),
-  );
-}
-
-export async function findMediaTool(
-  name: "ffmpeg" | "ffprobe",
-): Promise<string> {
-  const configured =
-    process.env[name === "ffmpeg" ? "REACUT_FFMPEG" : "REACUT_FFPROBE"];
-  const executable = process.platform === "win32" ? `${name}.exe` : name;
-  const candidates = configured
-    ? [configured]
-    : (process.env.PATH ?? "")
-        .split(path.delimiter)
-        .filter(Boolean)
-        .map((p) => path.join(p, executable))
-        .concat([
-          `/opt/homebrew/bin/${name}`,
-          `/usr/local/bin/${name}`,
-          `/usr/bin/${name}`,
-        ]);
-  for (const candidate of candidates) {
-    try {
-      await access(
-        candidate,
-        process.platform === "win32" ? constants.F_OK : constants.X_OK,
-      );
-      return candidate;
-    } catch {
-      /* next executable */
-    }
-  }
-  throw new Error(
-    `找不到 ${name}。请安装 FFmpeg，或设置 ${name === "ffmpeg" ? "REACUT_FFMPEG" : "REACUT_FFPROBE"} 为可执行文件完整路径。`,
   );
 }
 
@@ -160,14 +129,16 @@ export async function systemMediaInfo(): Promise<{
   ffmpeg: boolean;
   ffmpegVersion?: string;
   ffmpegPath?: string;
+  ffprobePath?: string;
 }> {
   try {
     const ffmpegPath = await findMediaTool("ffmpeg");
-    await findMediaTool("ffprobe");
+    const ffprobePath = await findMediaTool("ffprobe");
     const output = await runMediaTool("ffmpeg", ["-version"], 10_000);
     return {
       ffmpeg: true,
       ffmpegPath,
+      ffprobePath,
       ffmpegVersion: output.toString().split("\n")[0],
     };
   } catch {

@@ -1,6 +1,6 @@
 {
   "name": "reacut",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "private": true,
   "description": "An open source offline desktop video editor informed by REA research",
   "type": "module",
@@ -30,8 +30,17 @@
     "test:tracks": "npm run build && tsx tests/track-electron.ts",
     "test:audio": "npm run build && tsx tests/audio-electron.ts",
     "test:package": "tsx tests/package-electron.ts",
-    "check:desktop": "npm run build && tsx tests/app-electron.ts && tsx tests/visual-ui-electron.ts && tsx tests/storage-electron.ts && tsx tests/player-electron.ts && tsx tests/audio-electron.ts && tsx tests/track-electron.ts && tsx tests/transition-electron.ts",
-    "test:transition": "npm run build && tsx tests/transition-electron.ts"
+    "check:desktop": "npm run build && tsx tests/app-electron.ts && tsx tests/visual-ui-electron.ts && tsx tests/storage-electron.ts && tsx tests/player-electron.ts && tsx tests/audio-electron.ts && tsx tests/track-electron.ts && tsx tests/transition-electron.ts && tsx tests/capcut-import-electron.ts",
+    "test:transition": "npm run build && tsx tests/transition-electron.ts",
+    "test:capcut": "npm run build && tsx tests/capcut-import-electron.ts",
+    "media:build": "node scripts/build-media-tools.mjs",
+    "assets": "tsx scripts/generate-assets.ts",
+    "test:subtitles": "npm run build && tsx tests/subtitle-electron.ts",
+    "test:portable": "npm run build && tsx tests/portable-range-electron.ts",
+    "test:source": "npm run build && tsx tests/source-preview-electron.ts",
+    "test:source:browser": "tsx tests/source-preview-browser.ts",
+    "test:assets": "npm run build && tsx tests/assistant-assets-electron.ts",
+    "test:workspace": "npm run build && tsx tests/workspace-electron.ts"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.11",
@@ -75,7 +84,16 @@
         "zip"
       ],
       "icon": "build/icon.icns",
-      "identity": "-"
+      "identity": "-",
+      "extraResources": [
+        {
+          "from": "media-tools/darwin-${arch}",
+          "to": "media-tools",
+          "filter": [
+            "**/*"
+          ]
+        }
+      ]
     },
     "win": {
       "target": [
@@ -91,7 +109,8 @@
     },
     "asarUnpack": [
       "node_modules/@napi-rs/**",
-      "dist/fonts/**"
+      "dist/fonts/**",
+      "dist/builtin-assets/**"
     ],
     "fileAssociations": [
       {
@@ -99,7 +118,8 @@
         "name": "ReaCut Project",
         "role": "Editor"
       }
-    ]
+    ],
+    "beforePack": "scripts/prepare-media-tools.cjs"
   },
   "engines": {
     "node": "^24.11.0 || >=26.0.0"

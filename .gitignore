@@ -14,3 +14,5 @@ playwright-report/
 .demo/
 fixtures/
 build/icon.iconset/
+.media-build/
+media-tools/

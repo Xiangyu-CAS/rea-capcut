@@ -1,5 +1,7 @@
 # 剪映 macOS：独立实现的取证记录
 
+本页保留首轮观察；草稿解码、调用链与受控导出的新结论见 [第二轮报告](DRAFT_FORMAT_ROUND2.md)，下文“未解码”等状态指首轮当时的边界。
+
 调查日期：2026-10-13（Asia/Shanghai）。目标：`/Applications/VideoFusion-macOS.app`，`com.lemon.lvpro`，`CFBundleShortVersionString=11.0.12922`，`CFBundleVersion=11.1.0-beta3`。目标是记录行为和数据模型线索，指导自主实现；不将剪映源代码、二进制、图标、字体或模板素材加入开源产品。
 
 ## Evidence 索引

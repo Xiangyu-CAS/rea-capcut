@@ -19,6 +19,7 @@ import type { Clip, Keyframe, Project } from "../core/types";
 import { DEFAULT_TRANSFORM, DEFAULT_ADJUSTMENTS } from "../core/defaults";
 import { evaluateKeyframes, formatTime, id } from "../core/model";
 import VisualTools from "./VisualTools";
+import "./Inspector.css";
 import { useEditorStore } from "../editor/store";
 interface Props {
   project: Project;
@@ -36,6 +37,7 @@ function NumberField({
   onChange,
   suffix,
   diamond,
+  range = false,
 }: {
   label: string;
   value: number;
@@ -45,10 +47,29 @@ function NumberField({
   onChange: (v: number) => void;
   suffix?: string;
   diamond?: () => void;
+  range?: boolean;
 }) {
   return (
     <label className="property-row">
       <span>{label}</span>
+      {range && (
+        <input
+          className="property-range"
+          aria-label={`${label}滑块`}
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onPointerDown={() => useEditorStore.getState().beginTransaction()}
+          onPointerUp={() => useEditorStore.getState().endTransaction()}
+          onPointerCancel={() => useEditorStore.getState().endTransaction()}
+          onKeyDown={() => useEditorStore.getState().beginTransaction()}
+          onKeyUp={() => useEditorStore.getState().endTransaction()}
+          onBlur={() => useEditorStore.getState().endTransaction()}
+          onChange={(event) => onChange(Number(event.target.value))}
+        />
+      )}
       <div className="numeric-field">
         <input
           aria-label={label}
@@ -302,23 +323,46 @@ export default function Inspector({
     else onUpdate({ transform: { ...clip.transform, [property]: value } });
   };
   const visual = asset?.kind !== "audio";
+  const pictureTabs = ["画面", "裁剪", "抠像", "蒙版"];
+  const pictureActive = pictureTabs.includes(tab);
   const tabs = clip.text
     ? ["文本", "画面", "动画", "速度"]
     : visual
-      ? ["画面", "裁剪", "抠像", "蒙版", "音频", "调色", "动画", "速度"]
-      : ["音频", "动画", "速度"];
+      ? ["画面", "音频", "速度", "动画", "调色"]
+      : ["音频", "速度", "动画"];
+  const tabLabel = (value: string) =>
+    value === "速度" ? "变速" : value === "调色" ? "调整" : value;
   return (
     <aside className="inspector panel">
       <div className="inspector-tabs">
-        {tabs.map((t) => (
-          <button
-            key={t}
-            className={tab === t ? "active" : ""}
-            onClick={() => setTab(t)}
-          >
-            {t}
-          </button>
-        ))}
+        <nav className="inspector-main-tabs" aria-label="片段属性">
+          {tabs.map((t) => (
+            <button
+              key={t}
+              aria-label={t}
+              aria-pressed={tab === t || (t === "画面" && pictureActive)}
+              className={tab === t || (t === "画面" && pictureActive) ? "active" : ""}
+              onClick={() => setTab(t)}
+            >
+              {tabLabel(t)}
+            </button>
+          ))}
+        </nav>
+        {visual && !clip.text && (
+          <nav className="inspector-picture-tabs" aria-label="画面工具" hidden={!pictureActive}>
+            {pictureTabs.map((t) => (
+              <button
+                key={t}
+                aria-label={t === "画面" ? "基础画面" : t}
+                aria-pressed={tab === t}
+                className={tab === t ? "active" : ""}
+                onClick={() => setTab(t)}
+              >
+                {t === "画面" ? "基础" : t}
+              </button>
+            ))}
+          </nav>
+        )}
       </div>
       <div className="inspector-content">
         <div className="clip-info">
@@ -345,7 +389,7 @@ export default function Inspector({
           {tab === "画面" && (
             <>
               <div className="section-title">
-                <h3>变换</h3>
+                <h3>位置大小</h3>
                 <button
                   title="重置变换"
                   onClick={() =>
@@ -362,6 +406,7 @@ export default function Inspector({
               </div>
               <NumberField
                 label="缩放"
+                range
                 value={evaluated.transform.scale * 100}
                 min={1}
                 max={1000}
@@ -369,6 +414,7 @@ export default function Inspector({
                 onChange={(v) => animate("scale", v / 100)}
                 diamond={() => key("scale", evaluated.transform.scale)}
               />
+              <div className="position-fields">
               <NumberField
                 label="位置 X"
                 value={evaluated.transform.x}
@@ -381,6 +427,7 @@ export default function Inspector({
                 onChange={(v) => animate("y", v)}
                 diamond={() => key("y", evaluated.transform.y)}
               />
+              </div>
               <NumberField
                 label="旋转"
                 value={evaluated.transform.rotation}

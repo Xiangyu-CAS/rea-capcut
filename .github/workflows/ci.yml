@@ -32,6 +32,15 @@ jobs:
       - name: Desktop integration (macOS)
         if: runner.os == 'macOS'
         run: npm run check:desktop
+      - name: Local workflow regressions (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          npx tsx tests/assistant-assets-electron.ts
+          npx tsx tests/subtitle-electron.ts
+          npx tsx tests/portable-range-electron.ts
+          npx tsx tests/source-preview-electron.ts
+          npx tsx tests/workspace-electron.ts
+          npx tsx tests/large-subtitles-electron.ts
       - name: Upload desktop evidence
         if: runner.os == 'macOS' && always()
         uses: actions/upload-artifact@v7

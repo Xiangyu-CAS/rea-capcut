@@ -10,6 +10,7 @@ import {
 import { createReadStream } from "node:fs";
 import {
   access,
+  copyFile,
   mkdir,
   readFile,
   rename,
@@ -19,7 +20,10 @@ import {
 import path from "node:path";
 import { Readable } from "node:stream";
 import { fileURLToPath } from "node:url";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
+import { BUILTIN_ASSETS } from "../src/core/builtinAssets";
+import { discoverAssistantProviders, startAssistantSession } from "./assistantBackend";
+import type { AssistantMessage, AssistantProvider, AssistantRequest } from "../src/core/assistantTypes";
 import {
   importAssets,
   mediaURL,
@@ -29,14 +33,25 @@ import {
   registerBundledFont,
 } from "./media";
 import { startExport, cancelExport, cancelAllExports } from "./export";
+import { resolvePortableDocument, startPortablePackage, cancelPortablePackage, cancelPortablePackages, savePortableDocument } from "./portableProject";
+import { setBundledMediaToolsDirectory } from "./mediaTools";
 import { validateProject } from "../src/core/model";
+import { decodeCapcutDraft } from "./capcutCodec";
+import {
+  discoverSelectedCapcutProject,
+  readSelectedCapcutTimeline,
+  type CapcutProjectIOPlan,
+} from "./capcutProjectIO";
 import type {
+  CapcutImportSelection,
   MediaAsset,
   Project,
   RecentProject,
   ExportOptions,
 } from "../src/core/types";
 
+if (app.isPackaged && process.platform === "darwin")
+  setBundledMediaToolsDirectory(path.join(process.resourcesPath, "media-tools"));
 if (process.env.REACUT_USER_DATA)
   app.setPath("userData", path.resolve(process.env.REACUT_USER_DATA));
 protocol.registerSchemesAsPrivileged([
@@ -52,6 +67,27 @@ protocol.registerSchemesAsPrivileged([
   },
 ]);
 let window: BrowserWindow | null = null;
+let assistantOverrides: Partial<Record<AssistantProvider, string>> = {};
+let assistantRunning: { requestId: string; cancel: () => void; done: Promise<void> } | null = null;
+let assistantStarting = false;
+let assistantPendingId: string | null = null;
+let assistantCancelPending = false;
+let assistantStartDone: Promise<void> = Promise.resolve();
+let assistantHistoryWrites = Promise.resolve();
+function assistantHistoryFile(projectId: unknown): string {
+  if (typeof projectId !== "string" || !projectId || projectId.length > 256) throw new Error("无效项目 ID");
+  return userFile(`assistant/${createHash("sha256").update(projectId).digest("hex")}.json`);
+}
+function cleanAssistantMessages(value: unknown): AssistantMessage[] {
+  if (!Array.isArray(value) || value.length > 60) throw new Error("对话记录过大");
+  const messages = value.map(item => {
+    if (!item || !["user", "assistant"].includes(item.role) || typeof item.content !== "string" || item.content.length > 12000)
+      throw new Error("对话记录格式无效");
+    return { role: item.role, content: item.content } as AssistantMessage;
+  });
+  if (JSON.stringify(messages).length > 250000) throw new Error("对话记录过大");
+  return messages;
+}
 let pendingProject = process.argv.find(
   (argument) => path.isAbsolute(argument) && /\.reacut$/i.test(argument),
 );
@@ -68,6 +104,22 @@ const allowedMedia = new Set<string>();
 const recentPaths = new Set<string>();
 const outputPaths = new Set<string>();
 const savePaths = new Set<string>();
+const portablePaths = new Set<string>();
+const capcutSelections = new Map<
+  string,
+  { plan: CapcutProjectIOPlan; ownerId: number; expiresAt: number; reading: boolean }
+>();
+const pruneCapcutSelections = () => {
+  for (const [token, selection] of capcutSelections)
+    if (selection.expiresAt <= Date.now()) capcutSelections.delete(token);
+};
+function validateCapcutToken(token: unknown): asserts token is string {
+  if (
+    typeof token !== "string" ||
+    !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(token)
+  )
+    throw new Error("剪映项目选择无效，请重新选择项目");
+}
 const menuAction = (action: string) =>
   window?.webContents.send("menu-action", action);
 const userFile = (name: string) => path.join(app.getPath("userData"), name);
@@ -169,7 +221,10 @@ async function readProject(file: string) {
   const metadata = await stat(file);
   if (metadata.size > 30 * 1024 * 1024)
     throw new Error("项目文件过大（最大 30MB）");
-  return hydrateProject(JSON.parse(await readFile(file, "utf8")));
+  const input = JSON.parse(await readFile(file, "utf8"));
+  const project = await hydrateProject(await resolvePortableDocument(input, file));
+  if (input?.format === "reacut-portable") portablePaths.add(path.resolve(file));
+  return project;
 }
 function handle(name: string, callback: (...args: any[]) => unknown) {
   ipcMain.handle(name, (event, ...args) => {
@@ -183,6 +238,71 @@ function handle(name: string, callback: (...args: any[]) => unknown) {
   });
 }
 function registerIPC() {
+  handle("import-builtin-asset", async (id: unknown) => {
+    const definition = BUILTIN_ASSETS.find(asset => asset.id === id);
+    if (!definition) throw new Error("未找到内置素材");
+    const source = app.isPackaged
+      ? path.join(app.getAppPath().replace(/\.asar$/, ".asar.unpacked"), "dist/builtin-assets", definition.fileName)
+      : path.join(__dirname, "../public/builtin-assets", definition.fileName);
+    const bytes = await readFile(source);
+    const directory = userFile("builtin-assets");
+    await mkdir(directory, { recursive: true });
+    const target = path.join(directory, `${definition.id}-${createHash("sha256").update(bytes).digest("hex").slice(0, 16)}${path.extname(definition.fileName)}`);
+    try { await access(target); } catch { await copyFile(source, target); }
+    const [asset] = await importAssets([target], cacheDir());
+    asset.name = definition.name; authorizeAsset(asset); return asset;
+  });
+  handle("assistant-providers", () => discoverAssistantProviders(assistantOverrides));
+  handle("assistant-choose-cli", async (provider: AssistantProvider) => {
+    if (provider !== "codex" && provider !== "claude") throw new Error("无效助手类型");
+    const result = await dialog.showOpenDialog(window!, { title: `选择 ${provider === "codex" ? "Codex" : "Claude Code"} CLI`, properties: ["openFile"] });
+    if (!result.canceled) {
+      assistantOverrides[provider] = result.filePaths[0];
+      await mkdir(path.dirname(userFile("assistant-clis.json")), { recursive: true });
+      await writeFile(userFile("assistant-clis.json"), JSON.stringify(assistantOverrides), { mode: 0o600 });
+    }
+    return discoverAssistantProviders(assistantOverrides);
+  });
+  handle("assistant-start", async (request: AssistantRequest) => {
+    if (assistantStarting || assistantRunning) throw new Error("助手正在处理上一条消息");
+    if (!request || typeof request.requestId !== "string" || !["codex", "claude"].includes(request.provider)) throw new Error("助手请求无效");
+    assistantStarting = true;
+    assistantPendingId = request.requestId; assistantCancelPending = false;
+    let resolveStart!: () => void;
+    assistantStartDone = new Promise<void>(resolve => { resolveStart = resolve; });
+    const owner = window!.webContents;
+    try {
+      const running = await startAssistantSession(request, event => {
+        if (!owner.isDestroyed()) owner.send("assistant-event", event);
+      }, { executablePath: assistantOverrides[request.provider], sessionRoot: userFile("assistant-runs") });
+      assistantRunning = { requestId: request.requestId, ...running };
+      void running.done.finally(() => { if (assistantRunning?.requestId === request.requestId) assistantRunning = null; }).catch(() => {});
+      if (owner.isDestroyed() || assistantCancelPending) running.cancel();
+    } finally { assistantStarting = false; assistantPendingId = null; resolveStart(); }
+  });
+  handle("assistant-cancel", async (requestId: unknown) => {
+    if (assistantPendingId === requestId) { assistantCancelPending = true; await assistantStartDone; }
+    const running = assistantRunning;
+    if (running && running.requestId === requestId) { running.cancel(); await running.done; }
+  });
+  handle("assistant-history", async (projectId: unknown) => {
+    const file = assistantHistoryFile(projectId);
+    await assistantHistoryWrites.catch(() => {});
+    try {
+      if ((await stat(file)).size > 1024 * 1024) throw new Error("对话记录过大");
+      return cleanAssistantMessages(JSON.parse(await readFile(file, "utf8")));
+    } catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") return []; throw error; }
+  });
+  handle("assistant-save-history", async (projectId: unknown, input: unknown) => {
+    const file = assistantHistoryFile(projectId), messages = cleanAssistantMessages(input);
+    assistantHistoryWrites = assistantHistoryWrites.catch(() => {}).then(async () => {
+      await mkdir(path.dirname(file), { recursive: true });
+      const temporary = `${file}.tmp`;
+      await writeFile(temporary, JSON.stringify(messages), { mode: 0o600 });
+      await rename(temporary, file);
+    });
+    await assistantHistoryWrites;
+  });
   handle("import-media", async (paths?: string[]) => {
     let selected = paths;
     if (!selected) {
@@ -296,10 +416,24 @@ function registerIPC() {
       file = result.filePath;
       savePaths.add(file);
     }
-    await atomicWrite(file, JSON.stringify(project, null, 2));
+    if (portablePaths.has(path.resolve(file))) {
+      for (const asset of project.assets) if (!allowedMedia.has(path.resolve(asset.path))) throw new Error("项目引用了未经导入的素材");
+      await savePortableDocument(project, file);
+    } else await atomicWrite(file, JSON.stringify(project, null, 2));
     await remember(project, file);
     return file;
   });
+  handle("package-project", async (input: unknown) => {
+    const project = validateProject(input), owner = window!.webContents;
+    for (const asset of project.assets) if (!allowedMedia.has(path.resolve(asset.path))) throw new Error("项目引用了未经导入的素材");
+    const selected = await dialog.showOpenDialog(window!, { title: "选择素材包保存位置", properties: ["openDirectory", "createDirectory"] });
+    if (selected.canceled || !selected.filePaths[0] || owner.isDestroyed()) return null;
+    return startPortablePackage(project, selected.filePaths[0], event => {
+      if (event.status === "complete" && event.path) outputPaths.add(event.path);
+      if (!owner.isDestroyed()) owner.send("package-progress", event);
+    });
+  });
+  handle("cancel-package", (jobId: string) => cancelPortablePackage(jobId));
   handle("autosave-project", (input: unknown) => {
     const project = validateProject(input);
     const serialized = JSON.stringify(project);
@@ -358,6 +492,82 @@ function registerIPC() {
     if ((await stat(file)).size > 20 * 1024 * 1024)
       throw new Error("文件超过 20MB");
     return { text: await readFile(file, "utf8"), name: path.basename(file) };
+  });
+  handle("choose-capcut-project", async (mode: "file" | "directory") => {
+    if (mode !== "file" && mode !== "directory")
+      throw new Error("请选择草稿文件或项目文件夹");
+    const owner = window!;
+    const result = await dialog.showOpenDialog(owner, {
+      title: mode === "file" ? "选择剪映草稿文件" : "选择剪映项目文件夹",
+      properties: [mode === "file" ? "openFile" : "openDirectory"],
+      ...(mode === "file"
+        ? { filters: [{ name: "剪映草稿", extensions: ["json"] }] }
+        : {}),
+    });
+    if (result.canceled || !result.filePaths[0]) return null;
+    if (owner !== window || owner.isDestroyed()) return null;
+    const plan = await discoverSelectedCapcutProject(result.filePaths[0], mode);
+    if (owner !== window || owner.isDestroyed()) return null;
+    pruneCapcutSelections();
+    while (capcutSelections.size >= 8)
+      capcutSelections.delete(capcutSelections.keys().next().value!);
+    const token = randomUUID();
+    capcutSelections.set(token, {
+      plan,
+      ownerId: owner.webContents.id,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+      reading: false,
+    });
+    const selection: CapcutImportSelection = {
+      token,
+      name: path.basename(plan.selection.projectDirectory),
+      timelines: plan.timelines.map(({ id, name, isMain, isActive }) => ({
+        id,
+        name,
+        isMain,
+        isActive,
+      })),
+      recommendedTimelineId: plan.recommendedTimelineId,
+      requiresTimelineChoice: plan.requiresTimelineChoice,
+      warnings: plan.warnings,
+    };
+    return selection;
+  });
+  handle("read-capcut-draft", async (token: unknown, timelineId?: unknown) => {
+    validateCapcutToken(token);
+    pruneCapcutSelections();
+    const selection = capcutSelections.get(token);
+    if (!selection || selection.ownerId !== window!.webContents.id)
+      throw new Error("剪映项目选择已失效，请重新选择项目");
+    if (selection.reading) throw new Error("所选时间线正在读取，请稍候");
+    if (
+      timelineId !== undefined &&
+      (typeof timelineId !== "string" ||
+        !selection.plan.timelines.some((choice) => choice.id === timelineId))
+    )
+      throw new Error("请选择项目中已有的时间线");
+    selection.reading = true;
+    try {
+      const result = await readSelectedCapcutTimeline(
+        selection.plan,
+        timelineId as string | undefined,
+      );
+      const decoded = decodeCapcutDraft(result.text);
+      capcutSelections.delete(token);
+      return {
+        text: decoded.text,
+        name: result.name,
+        warnings: selection.plan.warnings,
+      };
+    } finally {
+      selection.reading = false;
+    }
+  });
+  handle("discard-capcut-project", (token: unknown) => {
+    validateCapcutToken(token);
+    const selection = capcutSelections.get(token);
+    if (selection?.ownerId === window!.webContents.id)
+      capcutSelections.delete(token);
   });
   handle("write-text-file", async (text: string, name: string) => {
     if (typeof text !== "string" || text.length > 20 * 1024 * 1024)
@@ -521,6 +731,10 @@ function createWindow() {
       });
   });
   window.on("closed", () => {
+    void cancelPortablePackages();
+    assistantCancelPending = true;
+    assistantRunning?.cancel();
+    capcutSelections.clear();
     window = null;
     dirty = false;
     closeAllowed = false;
@@ -530,6 +744,11 @@ function createWindow() {
   else void window.loadFile(path.join(directory, "../dist/index.html"));
 }
 void app.whenReady().then(async () => {
+  try {
+    const settings = JSON.parse(await readFile(userFile("assistant-clis.json"), "utf8"));
+    for (const key of ["codex", "claude"] as const)
+      if (typeof settings[key] === "string" && path.isAbsolute(settings[key])) assistantOverrides[key] = settings[key];
+  } catch { /* default CLI discovery */ }
   registerBundledFont(
     path.join(
       app.getAppPath().replace(/\.asar$/, ".asar.unpacked"),
@@ -599,6 +818,14 @@ void app.whenReady().then(async () => {
           click: () => menuAction("import"),
         },
         {
+          label: "导入剪映草稿文件…",
+          click: () => menuAction("import-capcut-file"),
+        },
+        {
+          label: "导入剪映项目文件夹…",
+          click: () => menuAction("import-capcut-directory"),
+        },
+        {
           label: "导出视频",
           accelerator: "CmdOrCtrl+E",
           click: () => menuAction("export"),
@@ -663,7 +890,9 @@ app.on("before-quit", (event) => {
     return;
   }
   void Promise.all([
+    (async () => { assistantCancelPending = true; await assistantStartDone; const running = assistantRunning; running?.cancel(); await running?.done; await assistantHistoryWrites.catch(() => {}); })(),
     cancelAllExports(),
+    cancelPortablePackages(),
     shutdownMediaTasks(),
     writeQueue.catch(() => {}),
   ]).finally(() => {

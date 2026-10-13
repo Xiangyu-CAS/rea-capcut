@@ -48,7 +48,11 @@ The font remains under OFL 1.1 and is not relicensed as MIT. No glyphs, names, b
 
 ## External programs and research tools
 
-FFmpeg and FFprobe are separately installed executables. ReaCut invokes them as subprocesses and does not bundle their binaries, shared libraries or source. The user's installed FFmpeg build has its own upstream and optional codec licenses. This repository does not redistribute that build.
+macOS installers from ReaCut 0.2.1 include separately executed FFmpeg and FFprobe 9.0.2, built from unmodified [FFmpeg source](https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz), with unmodified [x264 source](https://code.videolan.org/videolan/x264/-/tree/b35605ace3ddf7c1a5d67a2eb553f034aef41d55). FFmpeg is copyright its developers (2000–2026); x264 retains its upstream authors' copyrights. This build enables GPL components and libx264 and is distributed under **GPL-2.0-or-later**, not MIT or an LGPL-only designation. `--enable-nonfree` is not used. See [FFmpeg licensing](https://ffmpeg.org/legal.html).
+
+The app's `Contents/Resources/media-tools/` directory contains the executables, original license texts, exact corresponding source archives, a build recipe and `manifest.json` with pinned URLs, source checksums and build flags. Source is provided together with every installer, including the build-only pkgconf source. No FFmpeg/x264 source patches are applied. Preserve this directory when redistributing. `buildSHA256` records binaries before application signing; signing can change their bytes. The standalone recipe is also in `scripts/build-media-tools.mjs`; it builds static codec libraries and verifies that executable dependencies are exclusively macOS system libraries/frameworks.
+
+ReaCut invokes these tools as separate local processes. The independently written ReaCut source remains MIT; each included component retains its own license. User-selected custom FFmpeg builds and Windows/Linux source-development installations have their own configuration and licenses. REA, Ghidra and Jianying binaries are not used to build these media tools.
 
 REA is a development research tool from [morluto/rea](https://github.com/morluto/rea). Its tools are not imported, copied into the runtime, or required to run ReaCut. The public research report distinguishes observed behavior from inference and original design. Raw local evidence remains excluded from the repository.
 
