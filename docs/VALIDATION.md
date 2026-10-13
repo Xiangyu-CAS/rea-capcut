@@ -1,5 +1,25 @@
 # 本机验证记录
 
+## v0.5.0 GitHub 预览版安装包（2026-10-13）
+
+发布附件由本机 Apple Silicon 重新构建，包含后台插件 Dock 修复。安装包为 ad-hoc 签名，未 Apple 公证；Windows / Intel Mac / Linux 不在此次二进制发布范围内。
+
+- 类型检查及生产构建通过；此前同一产品代码的核心回归为 293 项通过、1 项缺少 libx265 跳过。
+- 实际打包应用在仓库外工作目录、空 `PATH` 和隔离用户目录中启动，通过字体、缩略图、预览、渲染隔离及内置 FFmpeg / FFprobe 核对，导出 1280×720、9 秒、含中文字幕与混音的视频，renderer errors 为空。
+- 实际打包应用通过插件协议、素材导入、原子编辑、版本冲突、撤销重做、截图、断连保存与退出测试。应用中的主进程、preload 和插件 HTML 与本次构建逐字节一致。
+- `codesign --verify --deep --strict`、`hdiutil verify` 与插件 ZIP 完整性检查通过。包内含媒体工具对应源码、构建脚本和许可证；未包含私人项目或研究原始目录。
+- GitHub 首轮 CI 的 Linux 核心任务通过，macOS / Windows 核心任务及云端打包任务存在失败，尚未解决；本地安装包验收不能代替 CI 全绿。详见 [首次运行](https://github.com/Xiangyu-CAS/rea-capcut/actions/runs/38387098585)。
+
+附件与 SHA-256：
+
+| 文件 | SHA-256 |
+| --- | --- |
+| `ReaCut-0.5.0-arm64.dmg` | `ee23ae803a064d34e79ba68282959188fc7ff9b48649fee21b1aa0c0a8344849` |
+| `ReaCut-0.5.0-arm64-mac.zip` | `2586d1e187a9af0780ee8dc7a69a8a958b793fb6a0fc9926596db64de1f1c9ff` |
+| `ReaCut-plugin-0.5.0.zip` | `05abdeb012d46a44c3a2df5a0a3a59421634248b826673ea83ae2af77b324e8a` |
+
+本机证据：`.test-output/package-electron/evidence.json`、`.test-output/plugin-electron/evidence.json`。
+
 ## macOS 插件 Dock 修复（2026-10-13）
 
 后台插件改用 accessory 激活策略；显示桌面窗口时切回 regular，关闭窗口后隐藏 Dock 图标并保留编辑器。`tests/plugin-dock-electron.ts` 在隔离目录内验证上述三种状态及连续 20 次画面刷新均不显示窗口或 Dock 图标；类型检查与生产构建通过。修复应用位于 `release/plugin-dock-fix/mac-arm64/ReaCut.app`，打包后的插件协议、素材导入、编辑、撤销重做、截图及断连保存回归通过，严格签名检查通过。本机插件配置已指向修复应用。后续确认旧连接仍在使用原应用，核对空项目无未保存修改后正常退出；需重连插件加载修复应用，尚未取得修复版在 Codex 宿主内的最终确认。下文此前生成的 DMG 不含这次修复。

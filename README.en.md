@@ -20,7 +20,7 @@ ReaCut brings media management, multitrack editing, subtitles and video export i
 
 The project uses [REA](https://github.com/morluto/rea) to study Jianying's interface behavior and local project formats, then independently implements an editor with Electron, React, TypeScript and FFmpeg. REA supports development research; REA, Ghidra and Jianying are not runtime dependencies.
 
-> **Status: v0.5.0, early development.** macOS Apple Silicon is verified. Windows / Linux build configurations are available but await testing on those platforms. No GitHub Release has been published yet; use the source and packaging instructions below.
+> **Status: v0.5.0, early development.** macOS Apple Silicon is verified. Windows / Linux build configurations are available but await testing on those platforms. Download the [v0.5.0 preview release](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.5.0), or follow the source instructions below.
 
 ## Features
 
@@ -42,11 +42,11 @@ See the [feature matrix](docs/FEATURE_MATRIX.md) for detailed support and limita
 
 ### Option 1: standalone DMG
 
-Open the ReaCut DMG, drag the app into Applications, and launch it. macOS packages include FFmpeg and FFprobe. GitHub Releases are not published yet; use a locally built DMG or build one below.
+Download the [ReaCut 0.5.0 DMG for macOS Apple Silicon](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.5.0/ReaCut-0.5.0-arm64.dmg), open it, drag the app into Applications, and launch it. FFmpeg and FFprobe are bundled. This preview is ad-hoc signed and is not Apple-notarized.
 
 ### Option 2: inside the Codex side panel
 
-Install **ReaCut 0.5.0+**, Codex desktop, its `codex` CLI, and Python 3. From this repository or the extracted plugin ZIP:
+Install **ReaCut 0.5.0+**, Codex desktop, its `codex` CLI, and Python 3. Download the [Codex plugin ZIP](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.5.0/ReaCut-plugin-0.5.0.zip), then run from its extracted directory or this repository:
 
 ```sh
 sh scripts/install-plugin.sh

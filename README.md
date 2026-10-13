@@ -20,7 +20,7 @@ ReaCut 将素材管理、多轨剪辑、字幕和视频导出放在一个熟悉�
 
 项目使用 [REA](https://github.com/morluto/rea) 辅助研究剪映的界面行为和本地项目格式，再以 Electron、React、TypeScript 和 FFmpeg 独立实现编辑器。REA 是开发研究工具，运行 ReaCut 不需要安装 REA、Ghidra 或剪映。
 
-> **开发状态：v0.5.0，早期开发中。** macOS Apple Silicon 已验证；Windows / Linux 已提供构建配置，尚待实机验证。当前尚未发布 GitHub Release，可按下方步骤从源码运行或构建安装包。
+> **开发状态：v0.5.0，早期开发中。** macOS Apple Silicon 已验证；Windows / Linux 已提供构建配置，尚待实机验证。可从 [v0.5.0 预览版 Release](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.5.0) 下载安装包，或按下方步骤从源码运行。
 
 ## 核心功能
 
@@ -43,11 +43,11 @@ ReaCut 将素材管理、多轨剪辑、字幕和视频导出放在一个熟悉�
 
 ### 方式一：独立 DMG 桌面版
 
-打开 ReaCut DMG，将应用拖入“应用程序”，直接启动即可剪辑。macOS 安装包自带 FFmpeg / FFprobe，不需要另外安装。当前尚未发布 GitHub Release，可使用本地构建的 DMG，或按下方步骤自行构建。
+下载 [ReaCut 0.5.0 DMG（macOS Apple Silicon）](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.5.0/ReaCut-0.5.0-arm64.dmg)，打开后将应用拖入“应用程序”，直接启动即可剪辑。安装包自带 FFmpeg / FFprobe，不需要另外安装。当前为预览版，采用 ad-hoc 签名，尚未完成 Apple 公证。
 
 ### 方式二：作为 Codex 插件在右侧打开
 
-先安装 **ReaCut 0.5.0+** 和 Codex 桌面端，确保终端有 `codex` CLI 与 Python 3。在仓库目录或插件 ZIP 解压目录运行：
+先安装 **ReaCut 0.5.0+** 和 Codex 桌面端，确保终端有 `codex` CLI 与 Python 3。下载 [Codex 插件包](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.5.0/ReaCut-plugin-0.5.0.zip)，在解压目录或仓库目录运行：
 
 ```sh
 sh scripts/install-plugin.sh
