@@ -2,7 +2,7 @@
   <img src="public/icons/reacut.png" width="96" height="96" alt="ReaCut 图标" />
 </p>
 <h1 align="center">ReaCut · 映刻</h1>
-<p align="center"><strong>本地剪辑，自由创作。</strong><br />一个开源桌面视频编辑器，macOS 优先。</p>
+<p align="center"><strong>借助 <a href="https://github.com/morluto/rea">REA</a> 研究剪映 / CapCut，独立重实现的开源视频编辑器。</strong><br />macOS 优先；仅开展授权范围内的研究，不复制剪映专有代码或素材。</p>
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/source_license-MIT-45d6c0" alt="Source license: MIT" /></a>
   <img src="https://img.shields.io/badge/status-early_development-orange" alt="Status: early development" />

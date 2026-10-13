@@ -2,7 +2,7 @@
   <img src="public/icons/reacut.png" width="96" height="96" alt="ReaCut icon" />
 </p>
 <h1 align="center">ReaCut</h1>
-<p align="center"><strong>Edit locally. Create freely.</strong><br />An open-source desktop video editor, developed first for macOS.</p>
+<p align="center"><strong>An independent, open-source video editor rebuilt from <a href="https://github.com/morluto/rea">REA</a>-assisted research into Jianying / CapCut.</strong><br />macOS first. Research is limited to authorized scope, without copying proprietary Jianying / CapCut code or assets.</p>
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/source_license-MIT-45d6c0" alt="Source license: MIT" /></a>
   <img src="https://img.shields.io/badge/status-early_development-orange" alt="Status: early development" />
