@@ -1,6 +1,6 @@
 {
   "name": "reacut",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": true,
   "description": "An open source offline desktop video editor informed by REA research",
   "type": "module",
@@ -43,7 +43,8 @@
     "test:creative": "npm run build && tsx tests/creative-library-electron.ts",
     "test:workspace": "npm run build && tsx tests/workspace-electron.ts",
     "plugin:pack": "node scripts/package-plugin.mjs",
-    "test:plugin": "tsx tests/plugin-electron.ts"
+    "test:plugin": "tsx tests/plugin-electron.ts",
+    "test:plugin:launcher": "python3 tests/plugin-launcher.py"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.11",
@@ -98,7 +99,10 @@
             "**/*"
           ]
         }
-      ]
+      ],
+      "extendInfo": {
+        "LSUIElement": true
+      }
     },
     "win": {
       "target": [

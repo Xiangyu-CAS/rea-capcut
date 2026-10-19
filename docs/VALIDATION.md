@@ -1,5 +1,17 @@
 # 本机验证记录
 
+## v0.5.1 插件重复启动修复（2026-10-19）
+
+用户报告仍有 ReaCut 短暂弹出。进程证据确认已运行此前 Dock 修复版，但每次 MCP 连接仍无条件创建 Electron 子进程；同一宿主短时间内建立多个连接。此前只在应用 JavaScript 中隐藏 Dock 的修复未覆盖连接前的应用启动阶段。
+
+- Python 启动器改为按需代理：initialize、ping、tools/list、resources/list、resources/templates/list 和固定 UI 资源读取均不执行应用。首次实际 tools/call 才启动一个子进程；异常退出后不自动重启或重放操作。
+- macOS 应用声明 `LSUIElement=true`，普通桌面启动显式设置 regular 策略；插件保持 accessory。签名严格校验通过。
+- `python3 tests/plugin-launcher.py` 六项回归通过：连续发现和资源读取不启动、首次工具调用只启动一次、EOF 与 SIGTERM 保存退出、失败子进程不重启、损坏资源拒绝、缺少应用时仍可发现工具。
+- 实际 0.5.1 打包应用通过新启动器执行完整插件协议、导入、编辑、冲突拒绝、撤销重做、截图与断连保存回归。空 PATH 的桌面启动、Dock 图标显示、字体/预览及 9 秒含中文文字与音频的视频导出通过；renderer errors 为空。生产构建与类型检查通过。
+- Dock 生命周期专项通过，包括连续 20 次截图不显示窗口或 Dock。本机插件已更新到 0.5.1，旧版缓存入口同步换为按需启动器，旧实例已请求正常退出并保留恢复数据。
+
+本机应用：`release/v0.5.1-lazy/mac-arm64/ReaCut.app`。这是本地修复，未替换 GitHub v0.5.0 的已发布附件。Windows / Linux 尚未实机验证。
+
 ## v0.5.0 GitHub 预览版安装包（2026-10-13）
 
 发布附件由本机 Apple Silicon 重新构建，包含后台插件 Dock 修复。安装包为 ad-hoc 签名，未 Apple 公证；Windows / Intel Mac / Linux 不在此次二进制发布范围内。

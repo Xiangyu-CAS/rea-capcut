@@ -5,7 +5,7 @@ const stage = `release/plugin-package/reacut-plugin-${version}`;
 await rm(stage, { recursive: true, force: true });
 await mkdir(`${stage}/scripts`, { recursive: true });
 await mkdir(`${stage}/.agents/plugins`, { recursive: true });
-for (const name of ['plugin.json','mcp.json','.mcp.json','.codex-plugin','skills','assets','scripts','LICENSE'])
+for (const name of ['plugin.json','protocol.json','mcp.json','.mcp.json','.codex-plugin','skills','assets','scripts','LICENSE'])
   await cp(`plugin/${name}`, `${stage}/plugin/${name}`, { recursive: true, filter: source => !source.includes('__pycache__') && !source.endsWith('.pyc') });
 await cp('scripts/install-plugin.sh', `${stage}/scripts/install-plugin.sh`);
 await cp('.agents/plugins/marketplace.json', `${stage}/.agents/plugins/marketplace.json`);

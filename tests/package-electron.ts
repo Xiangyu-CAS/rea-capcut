@@ -67,11 +67,13 @@ try {
   const native = await app.evaluate(({ app, BrowserWindow }) => ({
     path: app.getAppPath(),
     packaged: app.isPackaged,
+    dockVisible: process.platform === 'darwin' ? app.dock?.isVisible() : undefined,
     security: (
       BrowserWindow.getAllWindows()[0].webContents as any
     ).getLastWebPreferences(),
   }));
   assert(native.packaged);
+  if (process.platform === 'darwin') assert.equal(native.dockVisible, true, 'Desktop launch must show its Dock icon');
   assert(native.path.startsWith(bundle));
   assert.equal(native.security.sandbox, true);
   assert.equal(native.security.nodeIntegration, false);

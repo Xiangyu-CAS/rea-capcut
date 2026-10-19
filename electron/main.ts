@@ -53,7 +53,7 @@ import type {
 
 const pluginMode = process.argv.includes("--reacut-plugin");
 // A connected MCP server is a background app until its desktop window is shown.
-if (pluginMode && process.platform === "darwin") app.setActivationPolicy("accessory");
+if (process.platform === "darwin") app.setActivationPolicy(pluginMode ? "accessory" : "regular");
 if (pluginMode && !process.env.REACUT_USER_DATA)
   app.setPath("userData", path.join(app.getPath("appData"), "ReaCut-Plugin", "sessions", randomUUID()));
 if (app.isPackaged && process.platform === "darwin")

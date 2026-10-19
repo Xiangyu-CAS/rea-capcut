@@ -8,10 +8,12 @@ const output = path.join(root, '.test-output/plugin-electron');
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 const binary = process.env.REACUT_TEST_APP;
+const launcher = process.env.REACUT_TEST_LAUNCHER;
 const env: NodeJS.ProcessEnv = { ...process.env, REACUT_USER_DATA: path.join(output, 'user-data'), VITE_DEV_SERVER_URL: '' };
 if (binary) { env.PATH = ''; delete env.REACUT_FFMPEG; delete env.REACUT_FFPROBE; }
-const child = spawn(binary || path.join(root, 'node_modules/electron/dist/Electron.app/Contents/MacOS/Electron'),
-  binary ? ['--reacut-plugin'] : [root, '--reacut-plugin'],
+if (launcher && binary) env.REACUT_APP = binary;
+const child = spawn(launcher ? (process.env.REACUT_TEST_PYTHON || '/usr/bin/python3') : binary || path.join(root, 'node_modules/electron/dist/Electron.app/Contents/MacOS/Electron'),
+  launcher ? [launcher] : binary ? ['--reacut-plugin'] : [root, '--reacut-plugin'],
   { env, stdio: ['pipe','pipe','pipe'] });
 let errors = '';
 child.stderr.on('data', b => { errors += b.toString(); });
