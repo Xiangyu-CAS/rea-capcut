@@ -11,7 +11,7 @@
 </p>
 <p align="center">
   <a href="README.md">简体中文</a> · English<br />
-  <a href="#getting-started">Getting started</a> · <a href="docs/USER_GUIDE.md">User guide</a> · <a href="CHANGELOG.md">Changelog</a> · <a href="#contributing">Contributing</a>
+  <a href="#getting-started">Getting started</a> · <a href="docs/USER_GUIDE.md">User guide</a> · <a href="docs/WEEKLY_TODO.md">Weekly feature plan (中文)</a> · <a href="CHANGELOG.md">Changelog</a> · <a href="#contributing">Contributing</a>
 </p>
 
 ![ReaCut media library, player, inspector and multitrack timeline](docs/screenshots/ui-parity-editor.png)
@@ -20,7 +20,7 @@ ReaCut brings media management, multitrack editing, subtitles and video export i
 
 The project uses [REA](https://github.com/morluto/rea) to study Jianying's interface behavior and local project formats, then independently implements an editor with Electron, React, TypeScript and FFmpeg. REA supports development research; REA, Ghidra and Jianying are not runtime dependencies.
 
-> **Status: v0.5.0, early development.** macOS Apple Silicon is verified. Windows / Linux build configurations are available but await testing on those platforms. Download the [v0.5.0 preview release](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.5.0), or follow the source instructions below.
+> **Current source: v0.5.1, early development.** Includes the lazy plugin startup fix; packages for this version have not been published yet. macOS Apple Silicon is verified. Windows / Linux build configurations are available but await testing on those platforms. Published packages are available in the [v0.5.0 preview release](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.5.0), or follow the source instructions below. See the [weekly feature plan (中文)](docs/WEEKLY_TODO.md) for upcoming work.
 
 ## Features
 

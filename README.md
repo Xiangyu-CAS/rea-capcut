@@ -11,7 +11,7 @@
 </p>
 <p align="center">
   简体中文 · <a href="README.en.md">English</a><br />
-  <a href="#快速开始">快速开始</a> · <a href="docs/USER_GUIDE.md">使用指南</a> · <a href="CHANGELOG.md">更新记录</a> · <a href="#参与贡献">参与贡献</a>
+  <a href="#快速开始">快速开始</a> · <a href="docs/USER_GUIDE.md">使用指南</a> · <a href="docs/WEEKLY_TODO.md">本周功能计划</a> · <a href="CHANGELOG.md">更新记录</a> · <a href="#参与贡献">参与贡献</a>
 </p>
 
 ![ReaCut 的素材库、播放器、属性面板与多轨时间线](docs/screenshots/ui-parity-editor.png)
@@ -20,7 +20,7 @@ ReaCut 将素材管理、多轨剪辑、字幕和视频导出放在一个熟悉�
 
 项目使用 [REA](https://github.com/morluto/rea) 辅助研究剪映的界面行为和本地项目格式，再以 Electron、React、TypeScript 和 FFmpeg 独立实现编辑器。REA 是开发研究工具，运行 ReaCut 不需要安装 REA、Ghidra 或剪映。
 
-> **开发状态：v0.5.0，早期开发中。** macOS Apple Silicon 已验证；Windows / Linux 已提供构建配置，尚待实机验证。可从 [v0.5.0 预览版 Release](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.5.0) 下载安装包，或按下方步骤从源码运行。
+> **当前源码：v0.5.1，早期开发中。** 包含插件按需启动修复；此版本安装包尚未发布。macOS Apple Silicon 已验证；Windows / Linux 已提供构建配置，尚待实机验证。已发布的安装包见 [v0.5.0 预览版 Release](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.5.0)，也可按下方步骤从源码运行。下一阶段计划见 [本周功能计划](docs/WEEKLY_TODO.md)。
 
 ## 核心功能
 
