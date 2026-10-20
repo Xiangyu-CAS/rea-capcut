@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { AudioLines, Brackets, ChevronLeft, ChevronRight, CircleAlert, Pause, Play, Plus, RotateCcw, Volume2, VolumeX, X } from "lucide-react";
-import type { MediaAsset } from "../core/types";
+import type { PlacementMode } from "../core/timelineEdits";
+import type { MediaAsset, Track } from "../core/types";
 import { formatTime } from "../core/model";
 import "./SourcePreview.css";
 
@@ -8,7 +9,8 @@ export interface SourcePreviewProps {
   asset: MediaAsset;
   fps: number;
   onClose: () => void;
-  onAddRange: (sourceIn: number, duration: number) => void;
+  tracks?: Track[];
+  onAddRange: (sourceIn: number, duration: number, mode?: PlacementMode, trackId?: string) => void;
 }
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
@@ -16,7 +18,7 @@ const clamp = (value: number, min: number, max: number) => Math.min(max, Math.ma
 export default function SourcePreview(props: SourcePreviewProps) {
   return <SourcePreviewSession key={`${props.asset.id}:${props.asset.url}:${props.asset.previewUrl ?? ""}`} {...props} />;
 }
-function SourcePreviewSession({ asset, fps, onClose, onAddRange }: SourcePreviewProps) {
+function SourcePreviewSession({ asset, fps, onClose, onAddRange, tracks }: SourcePreviewProps) {
   const media = useRef<HTMLMediaElement | null>(null);
   const panel = useRef<HTMLElement>(null);
   const alive = useRef(true);
@@ -32,6 +34,8 @@ function SourcePreviewSession({ asset, fps, onClose, onAddRange }: SourcePreview
   const [ready, setReady] = useState(false);
   const [muted, setMuted] = useState(false);
   const [error, setError] = useState("");
+  const [mode, setMode] = useState<PlacementMode>("insert");
+  const [trackId, setTrackId] = useState(tracks?.find(t => !t.locked)?.id ?? "");
   const outRef = useRef(sourceOut);
   outRef.current = sourceOut;
   const sourceUrl = asset.previewUrl || asset.url;
@@ -131,7 +135,7 @@ function SourcePreviewSession({ asset, fps, onClose, onAddRange }: SourcePreview
   const add = () => {
     if (unavailable) return;
     pause();
-    onAddRange(image ? 0 : sourceIn, image ? duration : sourceOut - sourceIn);
+    onAddRange(image ? 0 : sourceIn, image ? duration : sourceOut - sourceIn, mode, trackId || undefined);
   };
   return (
     <section ref={panel} className="source-preview player-panel panel" aria-label="素材源预览" tabIndex={0} onKeyDown={keyDown}
@@ -165,8 +169,12 @@ function SourcePreviewSession({ asset, fps, onClose, onAddRange }: SourcePreview
           <label><button title="将当前位置设为出点 · O" aria-label="标记源素材出点" disabled={unavailable} onClick={() => setOut(time)}>出点 <kbd>O</kbd></button><input aria-label="源素材出点" type="number" min={sourceIn+minLength} max={duration} step={frame} value={Number(sourceOut.toFixed(6))} disabled={unavailable} onChange={event => {if(event.target.value !== "") setOut(Number(event.target.value));}} /><span>秒</span></label>
           <button title="重置为完整素材" aria-label="重置源素材范围" disabled={unavailable} onClick={() => {setSourceIn(0);setSourceOut(duration);seek(0);}}><RotateCcw size={14} /></button>
         </div>}
+        {tracks && <div className="source-placement">
+          <label>入轨方式<select aria-label="入轨方式" value={mode} onChange={e => setMode(e.target.value as PlacementMode)}><option value="insert">插入（整体后移）</option><option value="overwrite">覆盖（保留两侧）</option><option value="overlay">叠加（不移动）</option></select></label>
+          <label>目标轨道<select aria-label="目标轨道" value={trackId} onChange={e => setTrackId(e.target.value)}><option value="">自动选择 / 新建</option>{tracks.map(t => <option key={t.id} value={t.id} disabled={t.locked}>{t.name}{t.locked ? " · 已锁定" : ""}</option>)}</select></label>
+        </div>}
         <div className="source-add-row"><span>{image ? `${asset.width} × ${asset.height} · 图片` : <><Brackets size={12} /> 已选 {formatTime(Math.max(0, sourceOut-sourceIn),frameRate)}</>}</span><button className="primary" disabled={unavailable} onClick={add}><Plus size={14} />{image ? "添加图片" : "添加选中片段"}</button></div>
-        {!image && <p className="source-tip">聚焦预览后按 I / O 标记，空格播放选段，← / → 逐帧定位</p>}
+        {!image && <p className="source-tip">{tracks ? (mode === "insert" ? "在播放头插入，所有轨道后续内容一起后移；受影响锁轨会阻止操作。" : mode === "overwrite" ? "覆盖目标轨及关联画声区间，其他轨道保留。" : "叠加到播放头，不移动或裁掉已有内容。") : "聚焦预览后按 I / O 标记，空格播放选段，← / → 逐帧定位"}</p>}
         {!image && ready && duration < frame - 1e-8 && <p className="source-error">素材不足项目的一帧，暂时无法添加。</p>}
       </footer>
     </section>

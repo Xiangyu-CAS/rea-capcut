@@ -1,3 +1,4 @@
+import { linkedIds } from "./timelineEdits";
 /** Original, offline editing recipes. MIT; no third-party templates or media. */
 import type { Clip, Keyframe, Project, TextStyle } from "./types";
 import {
@@ -542,6 +543,10 @@ export function applyTransition(
     audioFadeOut: duration,
     audioFadeWindow: undefined,
   };
+  const outgoingIds = new Set(linkedIds(project, [front.id]));
+  const incomingIds = new Set(linkedIds(project, [next.id]));
+  if (project.clips.some(c => (outgoingIds.has(c.id) || incomingIds.has(c.id)) && project.tracks.find(t => t.id === c.trackId)?.locked))
+    throw new Error("关联音频轨道已锁定，请先解锁");
   // A trimmed envelope's original end need not equal this clip's end: materialize the outgoing dip.
   if (transition === "dip") outgoing.videoFadeWindow = undefined;
   return {
@@ -549,7 +554,9 @@ export function applyTransition(
     project: {
       ...project,
       clips: project.clips.map((c) =>
-        c.id === front.id ? outgoing : c.id === next.id ? incoming : c,
+        c.id === front.id ? outgoing : c.id === next.id ? incoming :
+        incomingIds.has(c.id) ? { ...c, start: c.start + newStart - next.start, audioFadeIn: duration, audioFadeWindow: undefined } :
+        outgoingIds.has(c.id) ? { ...c, audioFadeOut: duration, audioFadeWindow: undefined } : c,
       ),
     },
   };

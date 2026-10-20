@@ -15,6 +15,7 @@ import {
   EyeOff,
   Film,
   LockKeyhole,
+  Link2,
   Magnet,
   MoreHorizontal,
   MousePointer2,
@@ -33,6 +34,7 @@ import {
   ZoomOut,
 } from "lucide-react";
 import type { Clip, Project, Track, TrackKind } from "../core/types";
+import { linkedIds, trimLinked } from "../core/timelineEdits";
 import { snapToFrame } from "../core/model";
 import "./Timeline.css";
 
@@ -228,6 +230,7 @@ export default function Timeline(props: TimelineProps) {
     gestureRef.current = g;
     setGesture(g);
   };
+  const trimPreview = gesture?.kind === "trim" ? trimLinked(project, gesture.id, gesture.edge, gesture.time) : project;
   const displayClip = (clip: Clip) => {
     if (gesture?.kind === "move" && gesture.ids.includes(clip.id))
       return {
@@ -243,15 +246,7 @@ export default function Timeline(props: TimelineProps) {
             ? gesture.targetTrackId
             : clip.trackId,
       };
-    if (gesture?.kind === "trim" && gesture.id === clip.id)
-      return gesture.edge === "start"
-        ? {
-            ...clip,
-            start: gesture.time,
-            duration: clip.start + clip.duration - gesture.time,
-            sourceIn: clip.sourceIn + (gesture.time - clip.start) * clip.speed,
-          }
-        : { ...clip, duration: gesture.time - clip.start };
+    if (gesture?.kind === "trim") return trimPreview.clips.find(c => c.id === clip.id) ?? clip;
     return clip;
   };
   const clips = project.clips.map(displayClip);
@@ -466,20 +461,23 @@ export default function Timeline(props: TimelineProps) {
     if (event.button !== 0) return;
     event.stopPropagation();
     event.preventDefault();
+    (event.currentTarget as HTMLElement).focus({ preventScroll: true });
     const track = project.tracks.find((t) => t.id === clip.trackId);
     if (track?.locked) return;
     const additive = event.metaKey || event.ctrlKey || event.shiftKey;
+    const groupIds = linkedIds(project, [clip.id]);
     const ids = selectedIds.includes(clip.id)
       ? additive && !trim
-        ? selectedIds.filter((id) => id !== clip.id)
-        : selectedIds
+        ? selectedIds.filter((id) => !groupIds.includes(id))
+        : [clip.id, ...selectedIds.filter(id => id !== clip.id)]
       : additive
-        ? [...selectedIds, clip.id]
-        : [clip.id];
+        ? [...new Set([...selectedIds, ...groupIds])]
+        : groupIds;
     onSelect(ids);
     if (additive && !ids.includes(clip.id)) return;
     const startX = event.clientX,
       startY = event.clientY;
+    if (project.clips.some(c => ids.includes(c.id) && project.tracks.find(t => t.id === c.trackId)?.locked)) return;
     const movable = ids.filter(
       (id) =>
         !project.tracks.find(
@@ -506,7 +504,7 @@ export default function Timeline(props: TimelineProps) {
       if (trim) {
         let time = snap(
           (trim === "start" ? clip.start : clip.start + clip.duration) + delta,
-          [clip.id],
+          groupIds,
         );
         time =
           trim === "start"
@@ -1125,6 +1123,7 @@ export default function Timeline(props: TimelineProps) {
                           ) : (
                             <Film size={12} />
                           )}
+                          {clip.linkId && <Link2 size={12} aria-label="画声关联" />}
                           <span>{clip.name}</span>
                           {clip.speed !== 1 && <b>{clip.speed}×</b>}
                           {(clip.muted || track.muted) && <VolumeX size={12} />}

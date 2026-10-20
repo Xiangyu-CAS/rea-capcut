@@ -12,12 +12,10 @@ import {
   createClip,
   clone,
   id,
-  splitClip,
-  trimClip,
-  changeClipSpeed,
   snapToFrame,
   validateProject,
 } from "../core/model";
+import { linkedIds, moveLinked, speedLinked, slipLinked, placeAsset, trimLinked, splitLinked, unlinkClips, type PlacementMode } from "../core/timelineEdits";
 import type { Subtitle } from "../core/subtitles";
 interface EditorState {
   project: Project;
@@ -42,6 +40,8 @@ interface EditorState {
   addAssets: (assets: MediaAsset[]) => void;
   removeAsset: (assetId: string) => void;
   addAssetClip: (assetId: string, start?: number, trackId?: string, range?: { sourceIn: number; duration: number }) => void;
+  placeAsset: (assetId: string, trackId: string | undefined, range: { sourceIn: number; duration: number }, mode: PlacementMode) => void;
+  unlinkSelected: () => void;
   addText: () => void;
   addSubtitles: (cues: Subtitle[]) => void;
   updateClip: (clipId: string, patch: Partial<Clip>) => void;
@@ -76,9 +76,15 @@ const acceptsClip = (p: Project, track: Track, clip: Clip) =>
     : !!p.assets.find((a) => a.id === clip.assetId && acceptsAsset(track, a));
 const editable = (p: Project, clip: Clip) =>
   !!p.tracks.find((t) => t.id === clip.trackId && !t.locked);
+function copyLink(group: string | undefined, copies: Map<string, string>) {
+  if (!group) return undefined;
+  if (!copies.has(group)) copies.set(group, id());
+  return copies.get(group);
+}
 const freshCopy = (clip: Clip): Clip => ({
   ...clone(clip),
   id: id(),
+  linkId: undefined,
   keyframes: clip.keyframes.map((k) => ({ ...clone(k), id: id() })),
 });
 function patchClip(
@@ -106,9 +112,11 @@ function patchClip(
   )
     rest.audioFadeWindow = undefined;
   if (rest.speed !== undefined) {
-    p = changeClipSpeed(p, clipId, rest.speed);
+    p = speedLinked(p, clipId, rest.speed);
     delete rest.speed;
   }
+  if (rest.start !== undefined) { p = moveLinked(p, [clipId], rest.start - original.start); delete rest.start; }
+  if (rest.sourceIn !== undefined) { p = slipLinked(p, clipId, rest.sourceIn); delete rest.sourceIn; }
   if (!Object.keys(rest).length) return p;
   return {
     ...p,
@@ -213,6 +221,17 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     get().commit({ ...p, clips: [...p.clips, clip] });
     set({ selectedIds: [clip.id], playhead: clip.start });
   },
+  placeAsset: (assetId, trackId, range, mode) => {
+    const result = placeAsset(get().project, assetId, trackId, get().playhead, range, mode);
+    get().commit(result.project);
+    set({ selectedIds: [result.clipId] });
+  },
+  unlinkSelected: () => {
+    const s = get(), next = unlinkClips(s.project, s.selectedIds);
+    if (next === s.project) return;
+    s.commit(next);
+    set({ selectedIds: s.selectedIds.slice(0, 1) });
+  },
   addText: () => {
     let p = get().project;
     let track = p.tracks.find((t) => t.kind === "text" && !t.locked);
@@ -260,29 +279,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     for (const clipId of get().selectedIds) p = patchClip(p, clipId, patch);
     get().commit(p);
   },
-  moveClips: (ids, delta, trackId) => {
-    const p = get().project;
-    if (!Number.isFinite(delta)) return;
-    const moving = p.clips.filter((c) => ids.includes(c.id) && editable(p, c));
-    if (!moving.length) return;
-    const adjusted = Math.max(delta, -Math.min(...moving.map((c) => c.start))),
-      target = p.tracks.find((t) => t.id === trackId && !t.locked);
-    get().commit({
-      ...p,
-      clips: p.clips.map((c) =>
-        !moving.includes(c)
-          ? c
-          : {
-              ...c,
-              start: Math.max(0, snapToFrame(c.start + adjusted, p.fps)),
-              trackId:
-                target && acceptsClip(p, target, c) ? target.id : c.trackId,
-            },
-      ),
-    });
-  },
+  moveClips: (ids, delta, trackId) => get().commit(moveLinked(get().project, ids, delta, trackId)),
   trim: (clipId, edge, time) =>
-    get().commit(trimClip(get().project, clipId, edge, time)),
+    get().commit(trimLinked(get().project, clipId, edge, time)),
   split: () => {
     let p = get().project;
     const ids = get().selectedIds.length
@@ -293,16 +292,17 @@ export const useEditorStore = create<EditorState>((set, get) => ({
               c.start < get().playhead && c.start + c.duration > get().playhead,
           )
           .map((c) => c.id);
-    for (const clipId of ids) p = splitClip(p, clipId, get().playhead);
+    p = splitLinked(p, ids, get().playhead);
     get().commit(p);
   },
   deleteSelected: () => {
     const s = get(),
       p = s.project,
+      selected = new Set(linkedIds(p, s.selectedIds)),
       removed = p.clips.filter(
-        (c) => s.selectedIds.includes(c.id) && editable(p, c),
+        (c) => selected.has(c.id),
       );
-    if (!removed.length) return;
+    if (!removed.length || removed.some(c => !editable(p, c))) return;
     let clips = p.clips.filter((c) => !removed.includes(c));
     if (s.magnetic) {
       const ranges = new Map<string, [number, number][]>();
@@ -326,6 +326,17 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         ),
       }));
     }
+    if (s.magnetic) {
+      const offsets = new Map<string, number>();
+      for (const c of clips) {
+        if (!c.linkId) continue;
+        const delta = c.start - p.clips.find(original => original.id === c.id)!.start;
+        const previous = offsets.get(c.linkId);
+        if (previous !== undefined && Math.abs(previous - delta) > 1e-8)
+          throw new Error("磁性删除会使后续画声错位，请关闭磁性删除或先解除关联");
+        offsets.set(c.linkId, delta);
+      }
+    }
     get().commit({ ...p, clips });
     set({
       selectedIds: s.selectedIds.filter(
@@ -335,11 +346,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
   duplicate: () => {
     const s = get(),
-      originals = s.project.clips.filter(
-        (c) => s.selectedIds.includes(c.id) && editable(s.project, c),
-      );
+      selected = new Set(linkedIds(s.project, s.selectedIds)),
+      originals = s.project.clips.filter((c) => selected.has(c.id));
+    if (originals.some(c => !editable(s.project, c))) return;
+    const copyGroups = new Map<string, string>();
     const copies = originals.map((c) => ({
       ...freshCopy(c),
+      linkId: copyLink(c.linkId, copyGroups),
       start: c.start + c.duration,
     }));
     if (copies.length) {
@@ -356,6 +369,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   paste: () => {
     const s = get();
     if (!s.clipboard.length) return;
+    const copyGroups = new Map<string, string>();
     const min = Math.min(...s.clipboard.map((c) => c.start)),
       clips = s.clipboard
         .filter((c) =>
@@ -366,12 +380,20 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         )
         .map((c) => ({
           ...freshCopy(c),
+          linkId: copyLink(c.linkId, copyGroups),
           start: Math.max(
             0,
             snapToFrame(s.playhead + c.start - min, s.project.fps),
           ),
         }));
     if (!clips.length) return;
+    // Never paste just one half of an associated group when its other track is locked or missing.
+    for (const group of new Set(s.clipboard.map(c => c.linkId).filter(Boolean))) {
+      const originalCount = s.clipboard.filter(c => c.linkId === group).length;
+      const pastedGroup = copyGroups.get(group!);
+      const pastedCount = pastedGroup ? clips.filter(c => c.linkId === pastedGroup).length : 0;
+      if (pastedCount !== originalCount) return;
+    }
     get().commit({ ...s.project, clips: [...s.project.clips, ...clips] });
     set({ selectedIds: clips.map((c) => c.id) });
   },
@@ -433,7 +455,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       tracks: p.tracks.map((t) => (t.id === trackId ? { ...t, ...rest } : t)),
     });
   },
-  select: (selectedIds) => set({ selectedIds: [...selectedIds] }),
+  select: (selectedIds) => set({ selectedIds: linkedIds(get().project, selectedIds) }),
   seek: (time) => {
     if (Number.isFinite(time))
       set({ playhead: Math.max(0, time), playing: false });

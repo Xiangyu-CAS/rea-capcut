@@ -26,7 +26,7 @@
     "test:visual": "npm run build && tsx tests/visual-ui-electron.ts",
     "test:storage": "npm run build && tsx tests/storage-electron.ts",
     "test:player": "npm run build && tsx tests/player-electron.ts",
-    "dist:mac:installer": "npm run build && electron-builder --mac dmg zip",
+    "dist:mac:installer": "npm run build && electron-builder --mac dmg zip --publish never",
     "test:tracks": "npm run build && tsx tests/track-electron.ts",
     "test:audio": "npm run build && tsx tests/audio-electron.ts",
     "test:package": "tsx tests/package-electron.ts",
@@ -44,7 +44,8 @@
     "test:workspace": "npm run build && tsx tests/workspace-electron.ts",
     "plugin:pack": "node scripts/package-plugin.mjs",
     "test:plugin": "tsx tests/plugin-electron.ts",
-    "test:plugin:launcher": "python3 tests/plugin-launcher.py"
+    "test:plugin:launcher": "python3 tests/plugin-launcher.py",
+    "test:editing": "npm run build && tsx tests/timeline-edits-electron.ts"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.11",

@@ -20,14 +20,14 @@ ReaCut 将素材管理、多轨剪辑、字幕和视频导出放在一个熟悉�
 
 项目使用 [REA](https://github.com/morluto/rea) 辅助研究剪映的界面行为和本地项目格式，再以 Electron、React、TypeScript 和 FFmpeg 独立实现编辑器。REA 是开发研究工具，运行 ReaCut 不需要安装 REA、Ghidra 或剪映。
 
-> **当前源码：v0.5.1，早期开发中。** 包含插件按需启动修复；此版本安装包尚未发布。macOS Apple Silicon 已验证；Windows / Linux 已提供构建配置，尚待实机验证。已发布的安装包见 [v0.5.0 预览版 Release](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.5.0)，也可按下方步骤从源码运行。下一阶段计划见 [本周功能计划](docs/WEEKLY_TODO.md)。
+> **当前源码：v0.5.1，早期开发中。** 包含插件按需启动修复及未发布的时间线编辑升级；此版本安装包尚未发布。macOS Apple Silicon 已验证；Windows / Linux 已提供构建配置，尚待实机验证。已发布的安装包见 [v0.5.0 预览版 Release](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.5.0)，也可按下方步骤从源码运行。下一阶段计划见 [本周功能计划](docs/WEEKLY_TODO.md)。
 
 ## 核心功能
 
 | 能力 | 可以做什么 |
 | --- | --- |
 | **素材与源预览** | 导入视频、音频和图片，查看缩略图与波形；用 I/O 标记入出点，将选段加入时间线。 |
-| **多轨剪辑** | 拖拽、裁剪、分割、复制、多选、吸附、锁轨、静音，以及撤销与重做。 |
+| **多轨剪辑** | 插入 / 覆盖 / 叠加入轨，画声关联移动和裁剪；拖拽、分割、复制、多选、吸附、锁轨及撤销重做。见 [操作说明](docs/TIMELINE_EDITING.md)。 |
 | **画面与声音** | 变换、裁剪、基础调色、色度抠像、矩形 / 椭圆蒙版、关键帧、音量、淡入淡出和常规变速。 |
 | **文字与字幕** | SRT / 基础 WebVTT 导入、逐句编辑、批量替换、时间偏移、统一样式和 SRT 导出。 |
 | **本地项目** | `.reacut` 保存、自动恢复、素材重新链接；收集项目素材为可搬移的文件夹。 |

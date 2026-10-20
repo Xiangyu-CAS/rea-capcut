@@ -20,14 +20,14 @@ ReaCut brings media management, multitrack editing, subtitles and video export i
 
 The project uses [REA](https://github.com/morluto/rea) to study Jianying's interface behavior and local project formats, then independently implements an editor with Electron, React, TypeScript and FFmpeg. REA supports development research; REA, Ghidra and Jianying are not runtime dependencies.
 
-> **Current source: v0.5.1, early development.** Includes the lazy plugin startup fix; packages for this version have not been published yet. macOS Apple Silicon is verified. Windows / Linux build configurations are available but await testing on those platforms. Published packages are available in the [v0.5.0 preview release](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.5.0), or follow the source instructions below. See the [weekly feature plan (中文)](docs/WEEKLY_TODO.md) for upcoming work.
+> **Current source: v0.5.1, early development.** Includes the lazy plugin startup fix and unreleased timeline editing improvements; packages for this version have not been published yet. macOS Apple Silicon is verified. Windows / Linux build configurations are available but await testing on those platforms. Published packages are available in the [v0.5.0 preview release](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.5.0), or follow the source instructions below. See the [weekly feature plan (中文)](docs/WEEKLY_TODO.md) for upcoming work.
 
 ## Features
 
 | Area | What you can do |
 | --- | --- |
 | **Media and source preview** | Import video, audio and images with thumbnails and waveforms; mark source in/out points with I/O and insert the selected range. |
-| **Multitrack editing** | Drag, trim, split, duplicate, select multiple clips, snap, lock tracks, mute, undo and redo. |
+| **Multitrack editing** | Insert / overwrite / overlay source ranges; linked video/audio selection, movement and trimming; split, duplicate, snap, lock tracks, undo and redo. See [workflow and limits (中文)](docs/TIMELINE_EDITING.md). |
 | **Picture and sound** | Transform, crop, apply basic color adjustments, chroma key, rectangle / ellipse masks, keyframes, volume, fades and constant speed changes. |
 | **Text and subtitles** | Import SRT / basic WebVTT, edit individual cues, batch-replace text, shift timing, copy styles and export SRT. |
 | **Local projects** | Save `.reacut` projects, recover edits, relink media and collect project media into a portable folder. |

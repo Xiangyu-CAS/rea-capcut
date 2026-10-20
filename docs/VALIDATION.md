@@ -1,5 +1,17 @@
 # 本机验证记录
 
+## 时间线插入、覆盖与画声关联（2026-10-20，未发布源码）
+
+- `npm run check` 通过：类型检查、25 个测试文件 / 310 项测试、生产构建。新增 16 项语义回归覆盖全轨插入、关联区间覆盖、源范围、锁轨、动画/淡化相位、历史、保存结构、复制、助手操作、磁性删除与转场关联。
+- `tests/timeline-edits-electron.ts` 在独立用户目录中通过五组工作流验收：实际拖动并观察关联伙伴实时移动、键盘裁剪、锁轨与解除关联；三份合成源素材 I/O 插入/覆盖；一次撤销与重做；保存及实际进程重启；预览与 UI 导出。
+- 五秒、160×90、30 fps 成片逐区间解码，红 / 洋红 / 绿 / 青 / 黄与预览一致；音频测得 440 / 660 / 880 / 330 / 220 Hz，RMS 范围 0.08808–0.08859，无被覆盖原声重复叠加，renderer errors 为空。
+- 相关源码桌面回归通过：基础编辑/保存/导出 14 组、源预览 4 组、音频分离/共享源重新链接 9 组、转场 7 组、布局恢复 5 组；时间线浏览器交互回归通过。轨道 UI 回归在本轮早期构建上通过。
+- 根据既有 CI 日志修复两个问题：安装包命令增加 `--publish never`，不再因构建阶段意外发布而索要 GH_TOKEN；布局持久化测试重启后显式恢复同一窗口宽度再比较。未据此宣称整个 GitHub CI 已通过；Windows 的媒体工具发现、合成 CLI 和路径断言问题仍待处理。
+
+[操作与边界](TIMELINE_EDITING.md) · [机器可读解码证据](validation/timeline-editing-2026-10-20.json) · [覆盖模式截图](screenshots/timeline-source-overwrite.png) · [关联时间线截图](screenshots/timeline-linked-editing.png)
+
+本机可复现产物：`.test-output/timeline-edits-electron/rough-cut.mp4`、`rough-cut.reacut`、`evidence.json`。素材全部由测试生成，无私人素材。本轮没有构建或替换已安装应用 / GitHub Release；公开安装包仍为 v0.5.0。Windows/Linux 和 Codex 宿主中的本轮交互尚未验证。
+
 ## v0.5.1 插件重复启动修复（2026-10-19）
 
 用户报告仍有 ReaCut 短暂弹出。进程证据确认已运行此前 Dock 修复版，但每次 MCP 连接仍无条件创建 Electron 子进程；同一宿主短时间内建立多个连接。此前只在应用 JavaScript 中隐藏 Dock 的修复未覆盖连接前的应用启动阶段。

@@ -516,6 +516,7 @@ export function validateProject(input: unknown): Project {
     const c = object(raw, "片段");
     recordId(c, "片段");
     str(c.name, "片段名称", 4096, true);
+    if (c.linkId !== undefined) str(c.linkId, "画声关联 ID", 256);
     const track = tracks.get(str(c.trackId, "片段轨道 ID", 256));
     if (!track) fail("片段轨道引用");
     const asset =

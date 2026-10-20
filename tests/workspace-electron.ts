@@ -20,6 +20,7 @@ try{
  await right.focus();await page.keyboard.press('ArrowLeft');await expect.poll(async()=>Math.round((await geometry()).right-original.right)).toBe(10);
  await expect(page.getByRole('button',{name:'撤销',exact:true})).toBeDisabled();const adjusted=await geometry();checks.push('pointer drag and arrow keys resize adjacent panels without changing project undo history');
  await app.close();app=await launch();page=await app.firstWindow();page.on('pageerror',e=>errors.push(e.message));await expect(page.locator('.tl-clip')).toHaveCount(1);
+ await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setSize(1470,834));await expect.poll(()=>page.evaluate(()=>window.innerWidth)).toBe(1470);
  await expect.poll(async()=>Math.round((await geometry()).left)).toBe(Math.round(adjusted.left));checks.push('panel widths persist across an actual application restart');
  await app.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0];w.setMinimumSize(1024,600);w.setSize(1024,720);});await expect.poll(()=>page.evaluate(()=>window.innerWidth)).toBe(1024);
  await expect.poll(async()=>{const g=await geometry();return g.document<=g.window;}).toBe(true);let small=await geometry();assert(small.center>=319.9&&small.left>=279.9&&small.right>=279.9&&small.document<=small.window);await page.getByRole('button',{name:'剪辑助手',exact:true}).click();small=await geometry();assert(small.center>=319.9&&small.right>=309.9&&small.document<=small.window);checks.push('saved widths adapt at 1024px and maintain usable player/assistant minimums without page overflow');

@@ -1,5 +1,7 @@
 import type { Clip, Project, Track } from "./types";
-import { changeClipSpeed, clone, createClip, createTrack, projectDuration, snapToFrame, splitClip, trimClip, validateProject } from "./model";
+import { clone, createClip, createTrack, projectDuration, snapToFrame, validateProject } from "./model";
+
+import { linkedIds, moveLinked, speedLinked, splitLinked, trimLinked } from "./timelineEdits";
 
 const fields: Record<string, string[]> = {
   addText: ["text", "start", "duration", "fontSize", "color", "x", "y"],
@@ -112,13 +114,18 @@ export function previewAssistantEdits(input: Project, actions: unknown): Assista
       ].filter(Boolean).join(" · ");
     } else {
       const clip = requireClip(action.clipId); target = clip.name;
+      const temporal = ['moveClip','trimClip','splitClip','setSpeed','deleteClip'].includes(type);
+      const members = linkedIds(project, [clip.id]);
+      if (temporal && project.clips.some(c => members.includes(c.id) && project.tracks.find(t => t.id === c.trackId)?.locked))
+        throw new Error('关联片段所在轨道已锁定');
+      if (temporal && clip.linkId) target += '（含关联画声）';
       switch (type) {
-        case "deleteClip": project.clips = project.clips.filter(c => c.id !== clip.id); break;
+        case "deleteClip": project.clips = project.clips.filter(c => !members.includes(c.id)); break;
         case "splitClip": {
           const at = snapToFrame(number(action.time, "分割时间"), project.fps);
           if (at < clip.start + 1 / project.fps - 1e-6 || at > clip.start + clip.duration - 1 / project.fps + 1e-6)
             throw new Error("分割点须位于片段内部");
-          const next = splitClip(project, clip.id, at);
+          const next = splitLinked(project, [clip.id], at);
           if (next === project) throw new Error("分割点未形成有效片段，请重新选择片段内部的帧边界");
           project = next; detail = `${at.toFixed(2)}s`; break;
         }
@@ -129,18 +136,18 @@ export function previewAssistantEdits(input: Project, actions: unknown): Assista
           if (at < clip.start || at > clip.start + clip.duration ||
             (action.edge === "start" ? clip.start + clip.duration - at : at - clip.start) < 1 / project.fps - 1e-6)
             throw new Error("裁剪时间须位于当前片段范围内");
-          project = trimClip(project, clip.id, action.edge, at); detail = `${action.edge === "start" ? "起点" : "终点"} ${at.toFixed(2)}s`; break;
+          project = trimLinked(project, clip.id, action.edge, at); detail = `${action.edge === "start" ? "起点" : "终点"} ${at.toFixed(2)}s`; break;
         }
         case "moveClip": {
-          clip.start = snapToFrame(number(action.start, "起点"), project.fps);
+          const at = snapToFrame(number(action.start, "起点"), project.fps);
           if (action.trackId !== undefined) {
             const track = project.tracks.find(t => t.id === text(action.trackId, "轨道 ID", 256));
             if (!track || track.locked || !compatible(track, clip)) throw new Error("目标轨道不可用或类型不兼容");
-            clip.trackId = track.id;
           }
-          detail = `${clip.start.toFixed(2)}s${action.trackId !== undefined ? ` · 轨道“${project.tracks.find(t => t.id === clip.trackId)!.name}”` : ""}`; break;
+          project = moveLinked(project, [clip.id], at - clip.start, action.trackId as string | undefined);
+          detail = `${at.toFixed(2)}s${action.trackId !== undefined ? ` · 轨道“${project.tracks.find(t => t.id === action.trackId)!.name}”` : ""}`; break;
         }
-        case "setSpeed": project = changeClipSpeed(project, clip.id, number(action.speed, "速度", .1, 8)); detail = `${action.speed}×`; break;
+        case "setSpeed": project = speedLinked(project, clip.id, number(action.speed, "速度", .1, 8)); detail = `${action.speed}×`; break;
         case "setVolume":
           if (clip.keyframes.some(key => key.property === "volume"))
             throw new Error("该片段已有音量关键帧，请先在属性面板调整或移除对应关键帧，再生成音量建议");

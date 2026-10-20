@@ -1,0 +1,91 @@
+{
+  "at": "2026-10-20T10:16:57.388Z",
+  "checks": [
+    "separation creates a persistent pair; single click selects both; pointer move previews both; trim and undo preserve synchronization",
+    "locked partner blocks edits and unlink; unlink allows independent edits and can be undone",
+    "three synthetic sources: I/O insert ripples both tracks; overwrite retains both sides and removes associated old audio; each action undoes in one step",
+    "save and actual process restart retain associations; decoded preview shows red / magenta / green / cyan / yellow at exact edited positions",
+    "actual 5-second export matches five preview colors and five source tones; RMS confirms no doubled old audio in replaced intervals"
+  ],
+  "previews": [
+    [
+      254,
+      0,
+      0
+    ],
+    [
+      255,
+      0,
+      254
+    ],
+    [
+      1,
+      128,
+      1
+    ],
+    [
+      1,
+      255,
+      255
+    ],
+    [
+      255,
+      255,
+      0
+    ]
+  ],
+  "pixels": [
+    [
+      254,
+      0,
+      0
+    ],
+    [
+      255,
+      0,
+      254
+    ],
+    [
+      0,
+      128,
+      1
+    ],
+    [
+      0,
+      255,
+      255
+    ],
+    [
+      253,
+      253,
+      0
+    ]
+  ],
+  "audioStats": [
+    {
+      "hz": 440,
+      "rms": 0.08819778024204232
+    },
+    {
+      "hz": 660,
+      "rms": 0.08859377851484034
+    },
+    {
+      "hz": 880,
+      "rms": 0.08839631422481313
+    },
+    {
+      "hz": 330,
+      "rms": 0.0885206378749355
+    },
+    {
+      "hz": 220,
+      "rms": 0.08808247936049136
+    }
+  ],
+  "duration": 5,
+  "width": 160,
+  "height": 90,
+  "errors": [],
+  "scope": "macOS arm64, source-built Electron desktop, synthetic media only; not packaged app or Codex host validation"
+}

@@ -45,6 +45,7 @@ import type {
   Project,
   RecentProject,
 } from "./core/types";
+import { detachLinkedAudio } from "./core/timelineEdits";
 import { parseSubtitles, stringifySubtitles } from "./core/subtitles";
 import { importCapcutDraft } from "./core/capcutImport";
 import SubtitlePanel from "./components/SubtitlePanel";
@@ -831,7 +832,7 @@ export default function App() {
             break;
           case "Backspace":
           case "Delete":
-            state.deleteSelected();
+            void safe(() => state.deleteSelected());
             break;
           case "ArrowLeft":
             state.seek(
@@ -1013,49 +1014,11 @@ export default function App() {
     }
   };
   const detachAudio = () => {
-    if (!active || !active.assetId) return;
-    const asset = s.project.assets.find((a) => a.id === active.assetId);
-    if (!asset?.hasAudio || asset.kind === "audio")
-      throw new Error("请选择带声音的视频片段");
-    if (activeTrack?.locked) throw new Error("请先解锁轨道");
-    const audio = {
-      ...asset,
-      id: id(),
-      kind: "audio" as const,
-      name: asset.name + " · 音频",
-      width: 0,
-      height: 0,
-      thumbnail: undefined,
-      previewUrl: asset.previewUrl,
-    };
-    const track =
-      s.project.tracks.find((t) => t.kind === "audio" && !t.locked) ??
-      createTrack("audio", "分离音频");
-    const clip = {
-      ...clone(active),
-      id: id(),
-      assetId: audio.id,
-      trackId: track.id,
-      name: audio.name,
-      keyframes: active.keyframes
-        .filter((k) => k.property === "volume")
-        .map((k) => ({ ...k, id: id() })),
-    };
-    s.commit({
-      ...s.project,
-      assets: [...s.project.assets, audio],
-      tracks: s.project.tracks.includes(track)
-        ? s.project.tracks
-        : [...s.project.tracks, track],
-      clips: [
-        ...s.project.clips.map((c) =>
-          c.id === active.id ? { ...c, muted: true } : c,
-        ),
-        clip,
-      ],
-    });
-    s.select([clip.id]);
-    notify("音频已分离到独立轨道");
+    if (!active) return;
+    const result = detachLinkedAudio(s.project, active.id);
+    s.commit(result.project);
+    s.select([active.id]);
+    notify("音频已分离，画声保持关联；可在底部解除关联");
   };
   const applySceneTransition = (transition: TransitionId, seconds: number) => {
     if (!active) throw new Error("请选择一个画面片段");
@@ -1265,9 +1228,10 @@ export default function App() {
         {sourceAsset ? <SourcePreview
           asset={sourceAsset}
           fps={s.project.fps}
+          tracks={s.project.tracks.filter(t => t.kind === sourceAsset.kind || (sourceAsset.kind === "image" && t.kind === "video"))}
           onClose={() => setSourceAssetId(null)}
-          onAddRange={(sourceIn, duration) => void safe(() => {
-            s.addAssetClip(sourceAsset.id, s.playhead, undefined, { sourceIn, duration });
+          onAddRange={(sourceIn, duration, mode, trackId) => void safe(() => {
+            s.placeAsset(sourceAsset.id, trackId, { sourceIn, duration }, mode ?? "insert");
             setSourceAssetId(null);
           })}
         /> : <Player
@@ -1341,7 +1305,7 @@ export default function App() {
           onMoveClips={s.moveClips}
           onTrim={s.trim}
           onSplit={s.split}
-          onDelete={s.deleteSelected}
+          onDelete={() => void safe(s.deleteSelected)}
           onZoom={s.setZoom}
           onTrackUpdate={s.updateTrack}
           onTrackDelete={s.deleteTrack}
@@ -1369,8 +1333,10 @@ export default function App() {
           {s.project.assets.length} 个素材 · {s.project.clips.length} 个片段
         </span>
         <div>
+          {active?.linkId && <button onClick={() => { s.unlinkSelected(); }} disabled={s.project.clips.some(c => c.linkId === active.linkId && s.project.tracks.find(t => t.id === c.trackId)?.locked)}>解除画声关联</button>}
           {active?.assetId &&
-            s.project.assets.find((a) => a.id === active.assetId)?.hasAudio && (
+            s.project.assets.find((a) => a.id === active.assetId)?.kind === "video" &&
+            s.project.assets.find((a) => a.id === active.assetId)?.hasAudio && !active.linkId && (
               <button onClick={() => void safe(detachAudio)}>分离音频</button>
             )}
           {s.project.assets.some((a) => a.missing) && (

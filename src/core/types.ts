@@ -80,6 +80,8 @@ export interface ShapeMask {
 }
 export interface Clip {
   id: string;
+  /** Persistent editing association; rendering still uses each clip’s own timing. */
+  linkId?: string;
   trackId: string;
   assetId?: string;
   name: string;
