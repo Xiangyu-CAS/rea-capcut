@@ -62,25 +62,26 @@ import { TextLibrary, TransitionLibrary } from "./components/CreativeLibrary";
 import { addTextPreset, applyTransition, type TextPreset, type TransitionId } from "./core/creativePresets";
 import Player from "./components/Player";
 import Inspector from "./components/Inspector";
+import { useTranslation, useLanguageStore, type Language, type TranslationKey } from "./i18n";
 import "./styles.css";
 type Modal = "package" | "export" | "settings" | "shortcuts" | "about" | "capcut" | null;
 type PendingCapcutImport = {
   selection: CapcutImportSelection;
   capturedProject: Project;
 };
-const shortcuts = [
-  ["播放 / 暂停", "Space"],
-  ["分割片段", "⌘ / Ctrl + B"],
-  ["删除片段", "Delete / Backspace"],
-  ["撤销 / 重做", "⌘ + Z / ⇧ + ⌘ + Z"],
-  ["复制 / 粘贴", "⌘ + C / ⌘ + V"],
-  ["复制片段", "⌘ / Ctrl + D"],
-  ["全选片段", "⌘ / Ctrl + A"],
-  ["上一帧 / 下一帧", "← / →"],
-  ["新建 / 打开 / 保存", "⌘ + N / O / S"],
-  ["导入 / 导出", "⌘ + I / E"],
-  ["时间线放大 / 缩小", "+ / −"],
-  ["跳至开始 / 结束", "Home / End"],
+const shortcuts: Array<[TranslationKey, string]> = [
+  ["shortcuts.playPause", "Space"],
+  ["shortcuts.split", "⌘ / Ctrl + B"],
+  ["shortcuts.deleteClip", "Delete / Backspace"],
+  ["shortcuts.undoRedo", "⌘ + Z / ⇧ + ⌘ + Z"],
+  ["shortcuts.copyPaste", "⌘ + C / ⌘ + V"],
+  ["shortcuts.duplicate", "⌘ / Ctrl + D"],
+  ["shortcuts.selectAll", "⌘ / Ctrl + A"],
+  ["shortcuts.prevNextFrame", "← / →"],
+  ["shortcuts.newOpenSave", "⌘ + N / O / S"],
+  ["shortcuts.importExport", "⌘ + I / E"],
+  ["shortcuts.zoomInOut", "+ / −"],
+  ["shortcuts.jumpStartEnd", "Home / End"],
 ];
 function ModalShell({
   title,
@@ -93,6 +94,7 @@ function ModalShell({
   children: React.ReactNode;
   wide?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <div
       className="modal-backdrop"
@@ -109,7 +111,7 @@ function ModalShell({
       >
         <header>
           <h2>{title}</h2>
-          <button aria-label="关闭对话框" onClick={onClose}>
+          <button aria-label={t("dialog.close")} onClick={onClose}>
             <X size={18} />
           </button>
         </header>
@@ -572,6 +574,8 @@ export default function App() {
   );
   const active = s.project.clips.find((c) => c.id === s.selectedIds[0]);
   const activeTrack = s.project.tracks.find((t) => t.id === active?.trackId);
+  const { t, language } = useTranslation();
+  const setLanguage = useLanguageStore((s) => s.setLanguage);
   const refreshSystem = async () => {
     if (window.editorAPI) setSystem(await window.editorAPI.getSystemInfo());
   };
@@ -1100,21 +1104,21 @@ export default function App() {
         <div className="titlebar-menus">
           <div className="file-menu-container">
             <button
-              aria-label="文件菜单"
+              aria-label={t("toolbar.fileMenu.aria")}
               onClick={() => setFileMenu(!fileMenu)}
             >
-              文件
+              {t("toolbar.file")}
               <ChevronDown size={12} />
             </button>
             {fileMenu && (
               <div className="file-menu">
                 {[
-                  ["new", "新建项目", "⌘N"],
-                  ["open", "打开项目", "⌘O"],
-                  ["save", "保存项目", "⌘S"],
-                  ["save-as", "另存为", "⇧⌘S"],
-                  ["import", "导入素材", "⌘I"],
-                  ["export", "导出视频", "⌘E"],
+                  ["new", t("toolbar.newProject"), "⌘N"],
+                  ["open", t("toolbar.openProject"), "⌘O"],
+                  ["save", t("toolbar.saveProject"), "⌘S"],
+                  ["save-as", t("toolbar.saveAs"), "⇧⌘S"],
+                  ["import", t("toolbar.importMedia"), "⌘I"],
+                  ["export", t("toolbar.exportVideo"), "⌘E"],
                 ].map(([action, label, shortcut]) => (
                   <button
                     key={action}
@@ -1125,49 +1129,47 @@ export default function App() {
                   </button>
                 ))}
                 <hr />
-                <button onClick={() => { setFileMenu(false); setModal("package"); }}>收集项目素材…</button>
+                <button onClick={() => { setFileMenu(false); setModal("package"); }}>{t("toolbar.collectAssets")}</button>
                 <button onClick={() => void safe(() => importDraft("file"))}>
-                  导入剪映草稿文件<span>实验性</span>
+                  {t("toolbar.importCapcutFile")}<span>{t("toolbar.experimental")}</span>
                 </button>
-                <button
-                  onClick={() => void safe(() => importDraft("directory"))}
-                >
-                  导入剪映项目文件夹<span>实验性</span>
+                <button onClick={() => void safe(() => importDraft("directory"))}>
+                  {t("toolbar.importCapcutFolder")}<span>{t("toolbar.experimental")}</span>
                 </button>
               </div>
             )}
           </div>
-          <button onClick={() => setModal("shortcuts")}>快捷键</button>
+          <button onClick={() => setModal("shortcuts")}>{t("toolbar.shortcuts")}</button>
         </div>
         <div className="project-title">
           <input
-            aria-label="项目名称"
+            aria-label={t("toolbar.projectName.aria")}
             value={s.project.name}
             onFocus={() => s.beginTransaction()}
             onBlur={() => s.endTransaction()}
             onChange={(e) => s.updateProject({ name: e.target.value })}
           />
           <span
-            title={s.dirty ? "有未保存修改" : "已保存"}
+            title={s.dirty ? t("toolbar.dirty") : t("toolbar.saved")}
             className={`save-dot ${s.dirty ? "dirty" : ""}`}
           />
         </div>
         <div className="titlebar-actions">
-          <button aria-label="剪辑助手" className={assistantOpen ? "active" : ""} onClick={() => setAssistantOpen(!assistantOpen)}><MessageSquare size={15} />助手</button>
+          <button aria-label={t("toolbar.assistant.aria")} className={assistantOpen ? "active" : ""} onClick={() => setAssistantOpen(!assistantOpen)}><MessageSquare size={15} />{t("toolbar.assistant")}</button>
           <span className="offline-pill">
             <CloudOff size={12} />
-            离线创作
+            {t("toolbar.offline")}
           </span>
           <button
-            title="保存项目 ⌘S"
-            aria-label="保存项目"
+            title={t("toolbar.saveProject.title")}
+            aria-label={t("toolbar.saveProject.aria")}
             onClick={() => void safe(() => save())}
           >
             <Save size={16} />
           </button>
           <button
-            title="设置"
-            aria-label="设置"
+            title={t("toolbar.settings")}
+            aria-label={t("toolbar.settings.aria")}
             onClick={() => setModal("settings")}
           >
             <Settings2 size={16} />
@@ -1180,7 +1182,7 @@ export default function App() {
             }}
           >
             <Upload size={15} />
-            导出
+            {t("toolbar.export")}
           </button>
         </div>
       </header>
@@ -1365,8 +1367,11 @@ export default function App() {
       <footer className="app-status">
         <span>
           <span className="status-dot" />{" "}
-          {window.editorAPI ? "桌面版" : "浏览器预览"} ·{" "}
-          {s.project.assets.length} 个素材 · {s.project.clips.length} 个片段
+              {t("toolbar.statusBar.summary", {
+                platform: window.editorAPI ? t("toolbar.statusBar.desktop") : t("toolbar.statusBar.browser"),
+                assets: s.project.assets.length,
+                clips: s.project.clips.length,
+              })}
         </span>
         <div>
           {active?.assetId &&
@@ -1384,8 +1389,8 @@ export default function App() {
               重新链接丢失素材
             </button>
           )}
-          <span>{s.dirty ? "未保存 · 自动恢复已开启" : "项目就绪"}</span>
-          <button title="最近项目" onClick={() => setModal("settings")}>
+          <span>{s.dirty ? t("toolbar.status.dirty") : t("toolbar.status.ready")}</span>
+          <button title={t("toolbar.recentProjects")} onClick={() => setModal("settings")}>
             <FolderOpen size={12} />
           </button>
         </div>
@@ -1458,21 +1463,21 @@ export default function App() {
         </ModalShell>
       )}
       {modal === "shortcuts" && (
-        <ModalShell title="键盘快捷键" onClose={() => setModal(null)}>
+        <ModalShell title={t("shortcuts.title")} onClose={() => setModal(null)}>
           <div className="shortcut-list">
             {shortcuts.map(([action, keys]) => (
               <div key={action}>
-                <span>{action}</span>
+                <span>{t(action)}</span>
                 <kbd>{keys}</kbd>
               </div>
             ))}
           </div>
           <footer>
             <span className="muted small">
-              Windows / Linux 使用 Ctrl 替代 ⌘
+              {t("shortcuts.windowsHint")}
             </span>
             <button className="primary" onClick={() => setModal(null)}>
-              知道了
+              {t("dialog.ok")}
             </button>
           </footer>
         </ModalShell>
@@ -1502,23 +1507,33 @@ export default function App() {
         </ModalShell>
       )}
       {modal === "settings" && (
-        <ModalShell title="设置与最近项目" onClose={() => setModal(null)}>
+        <ModalShell title={t("settings.title")} onClose={() => setModal(null)}>
           <div className="modal-body">
-            <h3>本地渲染引擎</h3>
+          <h3>{t("settings.language")}</h3>
+              <p className="muted small">{t("settings.language.description")}</p>
+              <select
+                aria-label={t("settings.language")}
+                value={language}
+                onChange={(e) => setLanguage(e.target.value as Language)}
+                style={{ marginTop: "0.5rem", marginBottom: "1rem" }}
+              >
+                <option value="zh-CN">{t("settings.language.zh-CN")}</option>
+                <option value="en">{t("settings.language.en")}</option>
+                <option value="tr">{t("settings.language.tr")}</option>
+              </select>
             <div className={`engine-status ${system.ffmpeg ? "ready" : ""}`}>
               {system.ffmpeg ? <CheckCircle2 size={18} /> : <Info size={18} />}
               <div>
                 <strong>
-                  {system.ffmpeg ? "FFmpeg 已就绪" : "未找到 FFmpeg / FFprobe"}
+                  {system.ffmpeg ? t("settings.engine.ready") : t("settings.engine.missing")}
                 </strong>
                 <span>
-                  {system.ffmpegVersion ??
-                    "请检查应用是否完整，或在此选择自定义 FFmpeg / FFprobe。"}
+                  {system.ffmpegVersion ?? t("settings.engine.hint")}
                 </span>
               </div>
             </div>
             <p className="muted small">
-              {system.ffmpegPath ?? "macOS 安装包默认使用内置引擎，无需另外安装。"}
+              {system.ffmpegPath ?? t("settings.engine.bundledHint")}
             </p>
             <div className="button-row">
               <button
@@ -1529,7 +1544,7 @@ export default function App() {
                   })
                 }
               >
-                选择 FFmpeg
+                {t("settings.engine.chooseFfmpeg")}
               </button>
               <button
                 onClick={() =>
@@ -1539,12 +1554,12 @@ export default function App() {
                   })
                 }
               >
-                选择 FFprobe
+                {t("settings.engine.chooseFfprobe")}
               </button>
             </div>
-            <h3>最近项目</h3>
+            <h3>{t("settings.recentProjects")}</h3>
             {recent.length === 0 ? (
-              <p className="muted small">保存或打开项目后会出现在这里。</p>
+              <p className="muted small">{t("settings.recentProjects.empty")}</p>
             ) : (
               <div className="recent-list">
                 {recent.map((p) => (
@@ -1574,15 +1589,15 @@ export default function App() {
             <div className="future-feature">
               <CloudOff size={16} />
               <div>
-                <strong>云端与 API AI</strong>
-                <p>尚未接入；此版本仅执行本地编辑。</p>
+                <strong>{t("settings.futureFeatures.title")}</strong>
+                <p>{t("settings.futureFeatures.description")}</p>
               </div>
             </div>
           </div>
           <footer>
-            <button onClick={() => setModal("about")}>关于</button>
+            <button onClick={() => setModal("about")}>{t("settings.about")}</button>
             <button className="primary" onClick={() => setModal(null)}>
-              完成
+              {t("settings.done")}
             </button>
           </footer>
         </ModalShell>
