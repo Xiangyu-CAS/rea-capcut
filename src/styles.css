@@ -268,7 +268,9 @@ h3:first-child {
   top: 34px;
   left: 0;
   z-index: 30;
-  width: 238px;
+  width: max-content;
+  min-width: 238px;
+  max-width: 350px;
   background: #202020;
   border: 1px solid #3c404b;
   border-radius: 8px;
@@ -277,10 +279,17 @@ h3:first-child {
 }
 .file-menu button {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  text-align: left;
+  white-space: nowrap;
+  gap: 16px;
   width: 100%;
-  font-size: 11px;
-  padding: 8px 10px;
+}
+.file-menu button span {
+  font-size: 0.8em;
+  color: var(--muted);
+  flex-shrink: 0;
 }
 .file-menu kbd,
 .file-menu span {
