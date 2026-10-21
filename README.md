@@ -1,146 +1,148 @@
 <p align="center">
-  <img src="public/icons/reacut.png" width="96" height="96" alt="ReaCut 图标" />
+  <img src="public/icons/reacut.png" width="96" height="96" alt="ReaCut icon" />
 </p>
-<h1 align="center">ReaCut · 映刻</h1>
-<p align="center"><strong>借助 <a href="https://github.com/morluto/rea">REA</a> 研究剪映 / CapCut，独立重实现的开源视频编辑器。</strong><br />macOS 优先；仅开展授权范围内的研究，不复制剪映专有代码或素材。</p>
-<p align="center">完整视频编辑器的实现工作量很大，项目仍处于早期阶段。<br /><strong>欢迎贡献者一起完善功能、交互、跨平台支持、测试和文档。</strong> <a href="#参与贡献">参与贡献 →</a></p>
+<h1 align="center">ReaCut</h1>
+<p align="center"><strong>An independently implemented, open-source video editor informed by <a href="https://github.com/morluto/rea">REA</a>-assisted research into Jianying / CapCut.</strong><br />macOS first. Research is limited to authorized scope, without copying proprietary Jianying / CapCut code or assets.</p>
+<p align="center">Building a complete video editor is a substantial undertaking, and this project is still in its early stages.<br /><strong>Contributors are welcome to help with features, usability, cross-platform support, tests and documentation.</strong> <a href="#contributing">Get involved →</a></p>
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/source_license-MIT-45d6c0" alt="Source license: MIT" /></a>
   <img src="https://img.shields.io/badge/status-early_development-orange" alt="Status: early development" />
   <img src="https://img.shields.io/badge/verified-macOS_arm64-333333" alt="Verified platform: macOS arm64" />
 </p>
 <p align="center">
-  简体中文 · <a href="README.en.md">English</a><br />
-  <a href="#快速开始">快速开始</a> · <a href="docs/USER_GUIDE.md">使用指南</a> · <a href="docs/WEEKLY_TODO.md">本周功能计划</a> · <a href="CHANGELOG.md">更新记录</a> · <a href="#参与贡献">参与贡献</a>
+  <strong>English</strong> / <a href="README.zh-CN.md">简体中文</a><br />
+  <a href="#getting-started">Getting started</a> · <a href="docs/USER_GUIDE.md">User guide</a> · <a href="docs/WEEKLY_TODO.md">Weekly feature plan (in Chinese)</a> · <a href="CHANGELOG.md">Changelog</a> · <a href="#contributing">Contributing</a>
 </p>
 
-![ReaCut 的素材库、播放器、属性面板与多轨时间线](docs/screenshots/ui-parity-editor.png)
+![ReaCut media library, player, inspector and multitrack timeline](docs/screenshots/ui-parity-editor.png)
 
-ReaCut 将素材管理、多轨剪辑、字幕和视频导出放在一个熟悉的桌面工作区中。核心编辑流程在本地运行，无需账号或云服务。
+ReaCut brings media management, multitrack editing, subtitles and video export into a familiar desktop workspace. Core editing runs locally, without an account or cloud service.
 
-项目使用 [REA](https://github.com/morluto/rea) 辅助研究剪映的界面行为和本地项目格式，再以 Electron、React、TypeScript 和 FFmpeg 独立实现编辑器。REA 是开发研究工具，运行 ReaCut 不需要安装 REA、Ghidra 或剪映。
+The project uses [REA](https://github.com/morluto/rea) to study Jianying's interface behavior and local project formats, then independently implements an editor with Electron, React, TypeScript and FFmpeg. REA supports development research; REA, Ghidra and Jianying are not runtime dependencies.
 
-> **当前源码：v0.5.1，早期开发中。** 包含插件按需启动修复及未发布的时间线编辑升级；此版本安装包尚未发布。macOS Apple Silicon 已验证；Windows / Linux 已提供构建配置，尚待实机验证。已发布的安装包见 [v0.5.0 预览版 Release](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.5.0)，也可按下方步骤从源码运行。下一阶段计划见 [本周功能计划](docs/WEEKLY_TODO.md)。
+> **Current source: v0.5.1, early development.** Includes the lazy plugin startup fix and unreleased timeline editing improvements; packages for this version have not been published yet. macOS Apple Silicon is verified. Windows / Linux build configurations are available but await testing on those platforms. Published packages are available in the [v0.5.0 preview release](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.5.0), or follow the source instructions below. See the [weekly feature plan (in Chinese)](docs/WEEKLY_TODO.md) for upcoming work.
 
-## 核心功能
+## Features
 
-| 能力 | 可以做什么 |
+| Area | What you can do |
 | --- | --- |
-| **素材与源预览** | 导入视频、音频和图片，查看缩略图与波形；用 I/O 标记入出点，将选段加入时间线。 |
-| **多轨剪辑** | 插入 / 覆盖 / 叠加入轨，画声关联移动和裁剪；拖拽、分割、复制、多选、吸附、锁轨及撤销重做。见 [操作说明](docs/TIMELINE_EDITING.md)。 |
-| **画面与声音** | 变换、裁剪、基础调色、色度抠像、矩形 / 椭圆蒙版、关键帧、音量、淡入淡出和常规变速。 |
-| **文字与字幕** | SRT / 基础 WebVTT 导入、逐句编辑、批量替换、时间偏移、统一样式和 SRT 导出。 |
-| **本地项目** | `.reacut` 保存、自动恢复、素材重新链接；收集项目素材为可搬移的文件夹。 |
-| **视频导出** | 导出整条时间线、选中区间或自定义区间，支持 H.264 / AAC 编码的 MP4 与 MOV。 |
-| **文字与效果库** | 16 款可编辑文字模板、16 款调色 / 动效预设、8 款转场，支持动态预览与一次撤销。 |
-| **离线素材** | 内置 64 款原创贴纸、背景、标题底板与合成音效，以及 Noto Sans SC 中文字体。 |
-| **Codex 插件** | 在 Codex 右侧操作完整编辑器；读取项目、导入素材、批量编辑与撤销。 |
-| **可选剪辑助手** | 连接已安装并登录的 Codex CLI / Claude Code，审阅编辑提案后应用，支持一次撤销。 |
+| **Media and source preview** | Import video, audio and images, view thumbnails and waveforms, and mark source in/out points with I/O to add a selected range to the timeline. |
+| **Multitrack editing** | Insert, overwrite or overlay source ranges; select, move and trim linked video/audio clips; drag, split, duplicate, select multiple clips, snap, lock tracks, undo and redo. See [workflow and limits (in Chinese)](docs/TIMELINE_EDITING.md). |
+| **Picture and sound** | Transform, crop, apply basic color adjustments, chroma key, rectangle / ellipse masks, keyframes, volume, fades and constant speed changes. |
+| **Text and subtitles** | Import SRT / basic WebVTT, edit individual cues, batch-replace text, shift timing, apply consistent styles and export SRT. |
+| **Local projects** | Save `.reacut` projects, automatically recover edits, relink media and collect project media into a portable folder. |
+| **Video export** | Render the full timeline, a selection or a custom range to MP4 / MOV with H.264 and AAC. |
+| **Text & effect libraries** | 16 editable text templates, 16 color / motion presets, and 8 transitions with animated previews and one-step undo. |
+| **Offline assets** | Use 64 original stickers, backgrounds, title plates and synthesized sounds, plus the bundled Noto Sans SC font. |
+| **Codex plugin** | Use the full editor in the Codex side panel; read projects, import media, apply batch edits and undo them. |
+| **Optional editing assistant** | Connect an installed, authenticated Codex CLI / Claude Code; review edit proposals before applying them and undo in one step. |
 
-完整支持范围与限制见 [功能矩阵](docs/FEATURE_MATRIX.md)。
+See the [feature matrix](docs/FEATURE_MATRIX.md) for detailed support and limitations.
 
-## 快速开始
+## Getting started
 
-### 方式一：独立 DMG 桌面版
+### Option 1: standalone DMG
 
-下载 [ReaCut 0.5.0 DMG（macOS Apple Silicon）](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.5.0/ReaCut-0.5.0-arm64.dmg)，打开后将应用拖入“应用程序”，直接启动即可剪辑。安装包自带 FFmpeg / FFprobe，不需要另外安装。当前为预览版，采用 ad-hoc 签名，尚未完成 Apple 公证。
+Download the [ReaCut 0.5.0 DMG for macOS Apple Silicon](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.5.0/ReaCut-0.5.0-arm64.dmg), open it, drag the app into Applications, and launch it. FFmpeg and FFprobe are bundled. This preview is ad-hoc signed and is not Apple-notarized.
 
-### 方式二：作为 Codex 插件在右侧打开
+### Option 2: inside the Codex side panel
 
-先安装 **ReaCut 0.5.0+** 和 Codex 桌面端，确保终端有 `codex` CLI 与 Python 3。下载 [Codex 插件包](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.5.0/ReaCut-plugin-0.5.0.zip)，在解压目录或仓库目录运行：
+Install **ReaCut 0.5.0+**, Codex desktop, its `codex` CLI, and Python 3. Download the [Codex plugin ZIP](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.5.0/ReaCut-plugin-0.5.0.zip), then run from its extracted directory or this repository:
 
 ```sh
 sh scripts/install-plugin.sh
 ```
 
-重连或新开 Codex 聊天，输入 **“用 ReaCut 在右侧打开视频编辑器”**。可直接在侧栏点击、拖动、输入、保存和导出，也可让 Codex 根据当前项目进行可撤销的批量剪辑。
+Reconnect or open a new Codex chat and ask: **“Open ReaCut in the side panel.”** Click, drag, type, save and export directly in the side panel, or ask Codex to make reversible batch edits to the current project. If the app is outside Applications, pass `--app /absolute/path/ReaCut.app`.
 
-插件复用本机编辑器；实时画面约 6 fps，文件选择使用系统对话框。应用不在“应用程序”目录时使用 `--app /absolute/path/ReaCut.app`。完整安装、操作方式与限制见 [Codex 插件说明](docs/CODEX_PLUGIN.md)。
+The plugin runs the local editor in a separate session. Its interactive stream is about 6 fps; file selection uses native dialogs, and audio plays locally. Codex receives requested project summaries, text, and explicit screenshots. See the [plugin guide](docs/CODEX_PLUGIN.md) for setup, data boundaries, and limitations.
 
-### 从源码运行
+### Run from source
 
-将仓库克隆或下载到本机后，在项目目录执行。需要：
+Clone or download this repository, then run the following commands in its directory. Requirements:
 
-- **Node.js 26**，或 Node.js **24.11+ 的 24.x 版本**，以及 npm。
-- **FFmpeg 与 FFprobe**；FFmpeg 需包含 `libx264` 和 AAC 编码支持。
+- **Node.js 26**, or **Node.js 24.x starting at 24.11**, and npm.
+- **FFmpeg and FFprobe**, with `libx264` and AAC encoding enabled in FFmpeg.
 
 ```sh
 npm ci
 npm run dev
 ```
 
-这会启动 Electron 桌面编辑器和本地 Vite 开发服务。媒体工具可放在 `PATH` 中，也可在应用设置中指定路径；配置方式见 [媒体工具说明](docs/MEDIA_TOOLS.md)。
+This launches the Electron editor and the local Vite development server. Put the media tools on `PATH` or select their paths in application settings; see [media tools](docs/MEDIA_TOOLS.md).
 
-想先试用一个完整工程：
+To try a complete example project:
 
 ```sh
 npm run demo
 ```
 
-然后在 ReaCut 中打开 `.demo/demo.reacut`。它包含程序生成的原创画面、音乐、字幕与关键帧，详见 [演示工程](docs/DEMO.md)。
+Open `.demo/demo.reacut` in ReaCut. It includes programmatically generated original footage, music, subtitles and keyframes. See the [demo guide](docs/DEMO.md).
 
-### 构建 macOS 安装包
+### Build a macOS installer
 
-在原生 macOS 主机上安装 Xcode 命令行工具，然后执行：
+Install Xcode command line tools on a native macOS host, then run:
 
 ```sh
 npm run dist:mac:installer
 ```
 
-DMG 和 ZIP 输出到 `release/`。首次构建会下载并编译内置 FFmpeg / FFprobe；安装包用户无需再安装媒体工具。打开 DMG 后，将 ReaCut 拖入“应用程序”。
+DMG and ZIP files are written to `release/`. The first build downloads and compiles bundled FFmpeg / FFprobe; installer users do not need to install media tools separately. Open the DMG and drag ReaCut into Applications.
 
-当前安装包采用本地 ad-hoc 签名，尚未完成 Apple 公证。平台验证与构建细节见 [验证记录](docs/VALIDATION.md) 和 [媒体工具说明](docs/MEDIA_TOOLS.md)。
+Current builds use local ad-hoc signing and are not Apple-notarized. See [validation](docs/VALIDATION.md) and [media tools](docs/MEDIA_TOOLS.md) for platform coverage and build details.
 
-## 项目与数据
+## Projects and data
 
-- **本地编辑**：媒体处理、预览、项目保存和导出均在本机完成；普通项目引用本地素材，跨机器使用时可收集项目素材或重新链接。
-- **Codex 插件**：媒体处理在本机运行；Codex 可接收工具读取的项目摘要、文字和显式截图。侧栏实时帧仅供界面使用。
-- **可选助手**：仅在用户发送消息时，向所选 CLI 服务发送文字和有限时间线摘要，不附带媒体文件。详情见 [助手说明](docs/ASSISTANT.md)。
-- **实验性剪映导入**：支持已验证格式中的基础片段转换；复杂文字样式、特效与关键帧可能丢失，不支持写回剪映格式。版本范围见 [互通说明](docs/CAPCUT_INTEROP.md)。
+- **Local editing:** media processing, preview, project storage and export run on your machine. Ordinary projects reference local media; collect project media or relink files when moving between machines.
+- **Codex plugin:** media processing runs locally. Codex can receive project summaries, text and explicitly requested screenshots read through its tools. The live side-panel frames are only used by the interface. See the [plugin guide](docs/CODEX_PLUGIN.md).
+- **Optional assistant:** when you send a message, text and a limited timeline summary are sent to the selected CLI service. Media files are not attached. See the [assistant guide](docs/ASSISTANT.md).
+- **Experimental Jianying import:** converts basic clips from verified formats. Complex text styles, effects and keyframes may be lost; writing back to Jianying format is unsupported. See [interoperability](docs/CAPCUT_INTEROP.md) for version coverage.
 
-云同步、SaaS、直接 API AI、自动语音字幕与 AI 人像抠像尚未实现。ReaCut 是独立项目，与剪映 / CapCut 无隶属关系。
+Cloud sync, SaaS, direct AI API integration, speech-to-subtitle transcription and AI portrait cutout are not implemented. ReaCut is an independent project and is not affiliated with Jianying / CapCut.
 
-## 开发
+## Development
 
 ```sh
-npm run check          # 类型检查、单元测试与生产构建
-npm run test:desktop   # 构建并运行桌面基础工作流测试
-npm run check:desktop  # 完整桌面回归
+npm run check          # Type checks, unit tests and production build
+npm run test:desktop   # Build and test the basic desktop workflow
+npm run check:desktop  # Full desktop regression suite
 ```
 
-更多专项测试、运行条件和已执行的验收结果见 [验证记录](docs/VALIDATION.md)。
+See [validation](docs/VALIDATION.md) for specialized tests, prerequisites and recorded results.
 
 ```text
-src/components/   编辑器界面
-src/editor/       状态管理、撤销重做与预览
-src/core/         项目模型、时间线、字幕与画面处理
-electron/         本地文件桥接、媒体处理与导出
-scripts/          素材、图标与安装包构建工具
-tests/            核心逻辑、媒体与桌面工作流测试
-docs/             用户文档、架构与研究记录
+src/components/   Editor interface
+src/editor/       State, undo/redo and preview
+src/core/         Project model, timeline, subtitles and visual processing
+electron/         Local file bridge, media processing and export
+scripts/          Asset, icon and package build tools
+tests/            Core logic, media and desktop workflow tests
+docs/             User guides, architecture and research notes
 ```
 
-## 参与贡献
+## Contributing
 
-欢迎提交问题反馈、改进文档或发起 Pull Request。当前尤其欢迎 Windows / Linux 实机验证、大型项目性能优化，以及剪辑交互和无障碍改进。
+Bug reports, documentation improvements and pull requests are welcome. Useful areas include Windows / Linux testing, large-project performance, editing interactions and accessibility.
 
-1. 报告问题时附上系统、ReaCut 版本、复现步骤与预期行为；媒体问题尽量提供可公开的最小样例。
-2. 较大的功能调整先通过 Issue 讨论范围，再提交聚焦的改动。
-3. 代码改动运行 `npm run check`；涉及桌面交互或导出时，补充对应的工作流验证，并在 PR 中说明结果。
+1. Include your OS, ReaCut version, reproduction steps and expected behavior in bug reports. For media issues, use a minimal sample that can be shared publicly.
+2. Discuss substantial feature changes in an issue before starting a large implementation.
+3. Run `npm run check` for code changes. For desktop interactions or export changes, run the relevant workflow checks and describe the results in your PR.
 
-请使用自有或可分发的素材，不提交私人项目、缓存、凭据或 `.research/` 原始数据。
+Use media you own or can redistribute. Keep private projects, caches, credentials and raw `.research/` data out of contributions.
 
-## 文档
+## Documentation
 
-| 面向 | 文档 |
+Most detailed guides are currently in Chinese.
+
+| Audience | Guides |
 | --- | --- |
-| 使用与试用 | [使用指南](docs/USER_GUIDE.md) · [演示工程](docs/DEMO.md) · [剪辑助手](docs/ASSISTANT.md) |
-| 能力与进展 | [功能矩阵](docs/FEATURE_MATRIX.md) · [更新记录](CHANGELOG.md) · [验证记录](docs/VALIDATION.md) |
-| 开发与构建 | [架构](docs/ARCHITECTURE.md) · [媒体工具](docs/MEDIA_TOOLS.md) · [离线素材](docs/ORIGINAL_ASSETS.md) |
-| REA 研究与互通 | [REA 研究记录](docs/research/REA_FINDINGS.md) · [界面布局对照](docs/UI_PARITY.md) · [草稿互通](docs/CAPCUT_INTEROP.md) |
+| Users | [User guide](docs/USER_GUIDE.md) · [Demo project](docs/DEMO.md) · [Editing assistant](docs/ASSISTANT.md) |
+| Capabilities and progress | [Feature matrix](docs/FEATURE_MATRIX.md) · [Changelog](CHANGELOG.md) · [Validation](docs/VALIDATION.md) |
+| Developers | [Architecture](docs/ARCHITECTURE.md) · [Media tools](docs/MEDIA_TOOLS.md) · [Offline assets](docs/ORIGINAL_ASSETS.md) |
+| REA research and interoperability | [REA findings](docs/research/REA_FINDINGS.md) · [Interface comparison](docs/UI_PARITY.md) · [Draft interoperability](docs/CAPCUT_INTEROP.md) |
 
-## 许可证与致谢
+## License and acknowledgments
 
-ReaCut 自行编写的源码采用 [MIT License](LICENSE)。第三方组件保留各自许可：内置 FFmpeg / x264 使用 GPL，Noto Sans SC 使用 SIL OFL 1.1；对应声明、许可与媒体工具源码随包提供，见 [第三方声明](THIRD_PARTY_NOTICES.md)。
+ReaCut's own source code is licensed under the [MIT License](LICENSE). Third-party components retain their respective licenses: bundled FFmpeg / x264 use GPL, and Noto Sans SC uses SIL OFL 1.1. Notices, licenses and corresponding media-tool sources accompany the package; see [third-party notices](THIRD_PARTY_NOTICES.md).
 
-感谢 [REA](https://github.com/morluto/rea) 及 Electron、React、FFmpeg、Zustand、Lucide、Noto 等开源项目。
+Thanks to [REA](https://github.com/morluto/rea) and the Electron, React, FFmpeg, Zustand, Lucide and Noto communities.
