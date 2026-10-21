@@ -1,7 +1,14 @@
 import { contextBridge, ipcRenderer, webUtils } from "electron";
-import type { EditorAPI, ExportProgress } from "../src/core/types";
+import type { DerivativeProgress, EditorAPI, ExportProgress } from "../src/core/types";
 import type { AssistantEvent } from "../src/core/assistantTypes";
 const api: EditorAPI = {
+  deriveMedia: (jobId, project, clipId, request) => ipcRenderer.invoke("derive-media", jobId, project, clipId, request),
+  cancelDerivative: jobId => ipcRenderer.invoke("cancel-derivative", jobId),
+  onDerivativeProgress: callback => {
+    const listener = (_: unknown, event: DerivativeProgress) => callback(event);
+    ipcRenderer.on("derivative-progress", listener);
+    return () => ipcRenderer.removeListener("derivative-progress", listener);
+  },
   packageProject: project => ipcRenderer.invoke("package-project", project),
   cancelPackage: jobId => ipcRenderer.invoke("cancel-package", jobId),
   onPackageProgress: callback => {

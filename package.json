@@ -45,7 +45,8 @@
     "plugin:pack": "node scripts/package-plugin.mjs",
     "test:plugin": "tsx tests/plugin-electron.ts",
     "test:plugin:launcher": "python3 tests/plugin-launcher.py",
-    "test:editing": "npm run build && tsx tests/timeline-edits-electron.ts"
+    "test:editing": "npm run build && tsx tests/timeline-edits-electron.ts",
+    "test:derivatives": "npm run build && tsx tests/derivatives-electron.ts"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.11",

@@ -43,6 +43,14 @@ macOS 安装包将独立构建的 FFmpeg/FFprobe 放在 `Contents/Resources/medi
 
 source-space 裁剪、RGB 色度抠像和矩形/椭圆蒙版采用可选项目字段与共享 source-space helper，包含整像素裁剪和 alpha 量化约定。真实桌面 UI、项目持久化及 FFmpeg 输出像素已验证，覆盖与容差见验证记录。它们不是从剪映专有算法复制的实现。
 
+## 本地衍生媒体
+
+`derivativeEdits.ts` 在 renderer 与主进程共享编辑前置校验和原子应用规则。`derivatives.ts` 只读取已授权源素材，生成持久化 MP4 / PNG；核心模型仍使用普通素材和片段字段，保存、预览、导出及收集素材无需另一个渲染分支。
+
+倒放先按项目帧率和当前速度生成规范化媒体，再根据像素量分块执行 reverse/areverse。NUT 中间格式与显式分段时长保留精确时间戳；分段编码保持压缩磁盘中间文件，完成后清理。取消信号贯通 FFprobe、FFmpeg 和素材导入，退出时等待任务清理。完整衍生文件按源 stat 与参数寻址，不自动删除，保证撤销、重做和保存工程的引用稳定。
+
+renderer 只在项目对象仍等于捕获快照时应用结果，否则拒绝覆盖新修改。定格提取源帧，变换按播放头求值，复用全轨插入规则；倒放保持关联成员的静音和动画参数。具体产品限制见 [倒放与定格](REVERSE_FREEZE.md)。
+
 ## 文件桥接与导出
 
 renderer 没有 Node.js 权限。preload 只暴露编辑所需方法；主进程校验调用来自主窗口及主 frame。`reacut-media` scheme 提供已授权本地媒体，支持 range 请求。生产 HTML 使用 CSP；外部窗口和应用页面导航被限制。

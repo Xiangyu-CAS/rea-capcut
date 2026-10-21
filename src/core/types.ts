@@ -143,6 +143,13 @@ export interface ExportProgress {
   message?: string;
   path?: string;
 }
+export interface DerivativeRequest {
+  mode: "reverse" | "freeze";
+  audio: "reverse" | "mute";
+  time: number;
+  duration: number;
+}
+export interface DerivativeProgress { jobId: string; progress: number; message: string }
 export interface AppSettings {
   ffmpegPath?: string;
   ffprobePath?: string;
@@ -168,6 +175,9 @@ export interface CapcutImportSelection {
   warnings: string[];
 }
 export interface EditorAPI {
+  deriveMedia: (jobId: string, project: Project, clipId: string, request: DerivativeRequest) => Promise<MediaAsset>;
+  cancelDerivative: (jobId: string) => Promise<void>;
+  onDerivativeProgress: (callback: (event: DerivativeProgress) => void) => () => void;
   packageProject: (project: Project) => Promise<{ jobId: string } | null>;
   cancelPackage: (jobId: string) => Promise<void>;
   onPackageProgress: (callback: (event: ExportProgress) => void) => () => void;

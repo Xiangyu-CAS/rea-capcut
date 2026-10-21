@@ -20,7 +20,7 @@ ReaCut brings media management, multitrack editing, subtitles and video export i
 
 The project uses [REA](https://github.com/morluto/rea) to study Jianying's interface behavior and local project formats, then independently implements an editor with Electron, React, TypeScript and FFmpeg. REA supports development research; REA, Ghidra and Jianying are not runtime dependencies.
 
-> **Current source: v0.5.1, early development.** Includes the lazy plugin startup fix and unreleased timeline editing improvements; packages for this version have not been published yet. macOS Apple Silicon is verified. Windows / Linux build configurations are available but await testing on those platforms. Published packages are available in the [v0.5.0 preview release](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.5.0), or follow the source instructions below. See the [weekly feature plan (in Chinese)](docs/WEEKLY_TODO.md) for upcoming work.
+> **Current source: v0.5.1, early development.** Includes the lazy plugin startup fix and unreleased timeline editing, reverse and freeze-frame improvements; packages for this version have not been published yet. macOS Apple Silicon is verified. Windows / Linux build configurations are available but await testing on those platforms. Published packages are available in the [v0.5.0 preview release](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.5.0), or follow the source instructions below. See the [weekly feature plan (in Chinese)](docs/WEEKLY_TODO.md) for upcoming work.
 
 ## Features
 
@@ -28,6 +28,7 @@ The project uses [REA](https://github.com/morluto/rea) to study Jianying's inter
 | --- | --- |
 | **Media and source preview** | Import video, audio and images, view thumbnails and waveforms, and mark source in/out points with I/O to add a selected range to the timeline. |
 | **Multitrack editing** | Insert, overwrite or overlay source ranges; select, move and trim linked video/audio clips; drag, split, duplicate, select multiple clips, snap, lock tracks, undo and redo. See [workflow and limits (in Chinese)](docs/TIMELINE_EDITING.md). |
+| **Reverse and freeze** | Locally reverse a selected video range with reversed or removed audio; insert an adjustable freeze frame at the playhead. [Workflow and limits](docs/REVERSE_FREEZE.md). |
 | **Picture and sound** | Transform, crop, apply basic color adjustments, chroma key, rectangle / ellipse masks, keyframes, volume, fades and constant speed changes. |
 | **Text and subtitles** | Import SRT / basic WebVTT, edit individual cues, batch-replace text, shift timing, apply consistent styles and export SRT. |
 | **Local projects** | Save `.reacut` projects, automatically recover edits, relink media and collect project media into a portable folder. |

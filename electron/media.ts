@@ -41,9 +41,12 @@ export async function runMediaTool(
   args: string[],
   timeout = 60_000,
   limit = 16 * 1024 * 1024,
+  options: { signal?: AbortSignal; onOutput?: (text: string) => void } = {},
 ): Promise<Buffer> {
+  options.signal?.throwIfAborted();
   if (mediaShuttingDown) throw new Error("应用正在关闭。");
   const executable = await findMediaTool(name);
+  options.signal?.throwIfAborted();
   if (mediaShuttingDown) throw new Error("应用正在关闭。");
   // Local playlists and containers must never expand an import into HTTP/TCP/UDP requests.
   const localArgs =
@@ -59,6 +62,7 @@ export async function runMediaTool(
       shell: false,
       windowsHide: true,
     });
+    const abort = () => { failure = new Error("已取消处理"); child.kill("SIGKILL"); };
     let finish!: () => void;
     mediaTasks.set(
       child,
@@ -70,11 +74,14 @@ export async function runMediaTool(
     let bytes = 0;
     let diagnostic = "";
     let failure: Error | undefined;
+    options.signal?.addEventListener("abort", abort, { once: true });
+    if (options.signal?.aborted) abort();
     const timer = setTimeout(() => {
       failure = new Error(`${name} 超时，请检查媒体是否损坏。`);
       child.kill("SIGKILL");
     }, timeout);
     child.stdout.on("data", (data: Buffer) => {
+      options.onOutput?.(data.toString());
       bytes += data.length;
       if (bytes > limit) {
         failure = new Error(`${name} 输出超过安全限制。`);
@@ -90,6 +97,7 @@ export async function runMediaTool(
     });
     child.once("close", (code) => {
       clearTimeout(timer);
+      options.signal?.removeEventListener("abort", abort);
       mediaTasks.delete(child);
       finish();
       if (failure || code !== 0)
@@ -163,7 +171,7 @@ export interface ProbeResult {
   streams: ProbeStream[];
   format: { duration?: string; format_name?: string };
 }
-export async function probeFile(file: string): Promise<ProbeResult> {
+export async function probeFile(file: string, signal?: AbortSignal): Promise<ProbeResult> {
   return JSON.parse(
     (
       await runMediaTool("ffprobe", [
@@ -174,7 +182,7 @@ export async function probeFile(file: string): Promise<ProbeResult> {
         "-of",
         "json",
         file,
-      ])
+      ], 60_000, 16 * 1024 * 1024, { signal })
     ).toString(),
   );
 }
@@ -243,6 +251,7 @@ async function previewProxy(
   probe: ProbeResult,
   cacheDir: string,
   hash: string,
+  signal?: AbortSignal,
 ): Promise<string | undefined> {
   if (!needsPreviewProxy(file, asset, probe)) return;
   const extension =
@@ -303,7 +312,7 @@ async function previewProxy(
         temporary,
       );
     }
-    await runMediaTool("ffmpeg", args, 15 * 60_000);
+    await runMediaTool("ffmpeg", args, 15 * 60_000, 16 * 1024 * 1024, { signal });
     await rename(temporary, destination);
     return mediaURL(destination);
   } finally {
@@ -315,14 +324,16 @@ async function previewProxy(
 export async function importAssets(
   paths: string[],
   cacheDir: string,
+  signal?: AbortSignal,
 ): Promise<MediaAsset[]> {
   await mkdir(cacheDir, { recursive: true });
   const assets: MediaAsset[] = [];
   for (const supplied of paths) {
+    signal?.throwIfAborted();
     const file = path.resolve(supplied);
     const metadata = await stat(file);
     if (!metadata.isFile()) throw new Error(`无法导入目录：${file}`);
-    const probe = await probeFile(file);
+    const probe = await probeFile(file, signal);
     const video = probe.streams.find((s) => s.codec_type === "video");
     const audio = probe.streams.find((s) => s.codec_type === "audio");
     if (!video && !audio)
@@ -373,8 +384,9 @@ export async function importAssets(
       .digest("hex")
       .slice(0, 24);
     try {
-      asset.previewUrl = await previewProxy(file, asset, probe, cacheDir, hash);
+      asset.previewUrl = await previewProxy(file, asset, probe, cacheDir, hash, signal);
     } catch (error) {
+      signal?.throwIfAborted();
       asset.previewError = `无法生成本地预览代理：${error instanceof Error ? error.message : String(error)}`;
     }
     if (video) {
@@ -397,7 +409,7 @@ export async function importAssets(
             "-q:v",
             "3",
             thumbnail,
-          ]);
+          ], 60_000, 16 * 1024 * 1024, { signal });
         } catch {
           /* Media stays usable even if a decoder cannot produce its thumbnail. */
         }
@@ -435,6 +447,8 @@ export async function importAssets(
             "pipe:1",
           ],
           60_000,
+          16 * 1024 * 1024,
+          { signal },
         );
         const samples = Math.floor(pcm.length / 4);
         const bins = Math.min(160, samples);
@@ -453,6 +467,7 @@ export async function importAssets(
         /* optional waveform */
       }
     }
+    signal?.throwIfAborted();
     assets.push(asset);
   }
   return assets;

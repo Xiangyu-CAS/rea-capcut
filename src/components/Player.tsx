@@ -242,11 +242,13 @@ export default function Player({
             continue;
           }
           if (state.playing && !source?.gain) initializeAudio();
-          const target = clip.sourceIn + local * clip.speed;
+          // Chromium seeks at microsecond precision. Nudge exact frame boundaries
+          // inside the intended frame instead of rounding down to its predecessor.
+          const target = clip.sourceIn + local * clip.speed + 0.000001;
           if (
             Number.isFinite(media.duration) &&
             Math.abs(media.currentTime - target) >
-              (state.playing ? 0.15 : 1 / p.fps + 0.001)
+              (state.playing ? 0.15 : 0.00001)
           ) {
             try {
               media.currentTime = Math.min(target, media.duration);

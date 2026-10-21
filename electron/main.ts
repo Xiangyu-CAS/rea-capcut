@@ -1,3 +1,4 @@
+import { deriveMedia, cancelDerivative, cancelDerivatives } from "./derivatives";
 import {
   app,
   BrowserWindow,
@@ -356,6 +357,17 @@ function registerIPC() {
     assets.forEach(authorizeAsset);
     return assets;
   });
+  handle("derive-media", async (jobId: string, input: unknown, clipId: string, request: import("../src/core/types").DerivativeRequest) => {
+    const project = validateProject(input), owner = window!.webContents;
+    const source = project.assets.find(a => a.id === project.clips.find(c => c.id === clipId)?.assetId);
+    if (!source || !allowedMedia.has(path.resolve(source.path))) throw new Error("素材未经导入授权");
+    const asset = await deriveMedia(jobId, project, clipId, request, userFile("derived-media"), event => {
+      if (!owner.isDestroyed()) owner.send("derivative-progress", event);
+    });
+    authorizeAsset(asset);
+    return asset;
+  });
+  handle("cancel-derivative", (jobId: string) => cancelDerivative(jobId));
   handle("relink-asset", async (asset: MediaAsset) => {
     const result = await dialog.showOpenDialog(window!, {
       title: `重新链接 ${asset.name}`,
@@ -749,6 +761,7 @@ function createWindow() {
   });
   window.on("closed", () => {
     void cancelPortablePackages();
+    void cancelDerivatives();
     assistantCancelPending = true;
     assistantRunning?.cancel();
     capcutSelections.clear();
@@ -909,6 +922,7 @@ app.on("before-quit", (event) => {
   void Promise.all([
     (async () => { assistantCancelPending = true; await assistantStartDone; const running = assistantRunning; running?.cancel(); await running?.done; await assistantHistoryWrites.catch(() => {}); })(),
     cancelAllExports(),
+    cancelDerivatives(),
     cancelPortablePackages(),
     shutdownMediaTasks(),
     writeQueue.catch(() => {}),

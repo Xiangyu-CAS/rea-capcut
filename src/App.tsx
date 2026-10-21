@@ -1,3 +1,4 @@
+import DerivativeDialog from "./components/DerivativeDialog";
 import { version as appVersion } from "../package.json";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -65,7 +66,7 @@ import Player from "./components/Player";
 import Inspector from "./components/Inspector";
 import { useTranslation, useLanguageStore, type Language, type TranslationKey } from "./i18n";
 import "./styles.css";
-type Modal = "package" | "export" | "settings" | "shortcuts" | "about" | "capcut" | null;
+type Modal = "reverse" | "freeze" | "package" | "export" | "settings" | "shortcuts" | "about" | "capcut" | null;
 type PendingCapcutImport = {
   selection: CapcutImportSelection;
   capturedProject: Project;
@@ -779,7 +780,7 @@ export default function App() {
       if (target.closest("input,textarea,select,[contenteditable=true]"))
         return;
       if (modal || recover) {
-        if (e.key === "Escape" && modal !== "export" && modal !== "package") {
+        if (e.key === "Escape" && modal !== "export" && modal !== "package" && modal !== "reverse" && modal !== "freeze") {
           setModal(null);
         }
         return;
@@ -1338,6 +1339,10 @@ export default function App() {
               })}
         </span>
         <div>
+          {active && s.project.assets.find(a => a.id === active.assetId)?.kind === "video" && <>
+            <button disabled={activeTrack?.locked} onClick={() => { s.setPlaying(false); setModal("reverse"); }}>倒放</button>
+            <button disabled={activeTrack?.locked} onClick={() => { s.setPlaying(false); setModal("freeze"); }}>定格</button>
+          </>}
           {active?.linkId && <button onClick={() => { s.unlinkSelected(); }} disabled={s.project.clips.some(c => c.linkId === active.linkId && s.project.tracks.find(t => t.id === c.trackId)?.locked)}>解除画声关联</button>}
           {active?.assetId &&
             s.project.assets.find((a) => a.id === active.assetId)?.kind === "video" &&
@@ -1370,6 +1375,7 @@ export default function App() {
           </button>
         </div>
       )}
+      {(modal === "reverse" || modal === "freeze") && <DerivativeDialog mode={modal} onClose={() => setModal(null)} />}
       {modal === "package" && <PackageDialog project={clone(s.project)} onClose={() => setModal(null)} />}
       {modal === "export" && (
         <ExportDialog
