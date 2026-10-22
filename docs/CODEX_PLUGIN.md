@@ -4,9 +4,9 @@ ReaCut 提供两种入口：独立 DMG 桌面应用，以及 Codex 桌面端右�
 
 ## 安装
 
-1. 从 [v0.5.0 Release](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.5.0) 下载 DMG 与插件 ZIP。打开 ReaCut DMG，将应用拖入“应用程序”，至少启动一次确认系统允许运行。
+1. 从 [v0.6.0 Release](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.6.0) 下载 DMG 与插件 ZIP。打开 ReaCut DMG，将应用拖入“应用程序”，至少启动一次确认系统允许运行。
 2. 安装 Codex 桌面端及其 CLI，确保终端可以运行 `codex`，并有 Python 3。
-3. 在 ReaCut 源码目录，或解压后的 `ReaCut-plugin-0.5.0.zip` 目录执行：
+3. 在 ReaCut 源码目录，或解压后的 `ReaCut-plugin-0.6.0.zip` 目录执行：
 
 ```sh
 sh scripts/install-plugin.sh
@@ -66,7 +66,7 @@ npm run dist:mac:installer
 npm run plugin:pack
 ```
 
-DMG / 应用由 Electron Builder 生成；插件 ZIP 输出到 `release/ReaCut-plugin-0.5.0.zip`。ZIP 包含 portable `plugin.json` / `mcp.json`、Codex 兼容 manifest、skill、Python 启动器与安装脚本。编辑器和自包含 MCP App UI 随 DMG 分发，因此插件包不再复制视频引擎。
+DMG / 应用由 Electron Builder 生成；插件 ZIP 输出到 `release/ReaCut-plugin-0.6.0.zip`。ZIP 包含 portable `plugin.json` / `mcp.json`、Codex 兼容 manifest、skill、Python 启动器与安装脚本。编辑器和自包含 MCP App UI 随 DMG 分发，因此插件包不再复制视频引擎。
 
 开发协议验收使用隔离数据目录。安装包验收可通过 `REACUT_TEST_APP=/absolute/path/ReaCut.app/Contents/MacOS/ReaCut npm run test:plugin` 指定实际程序。
 

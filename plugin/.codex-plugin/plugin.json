@@ -1,6 +1,6 @@
 {
   "name": "reacut",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Local video editing inside the Codex side panel. Requires ReaCut 0.5.0+.",
   "author": {
     "name": "ReaCut contributors"
