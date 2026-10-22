@@ -1,3 +1,4 @@
+import type { SpeechInfo, SpeechProgress, SpeechRequest, SpeechResult } from "./speech";
 import type { AssistantEvent, AssistantMessage, AssistantProvider, AssistantProviderInfo, AssistantRequest } from "./assistantTypes";
 export type MediaKind = "video" | "audio" | "image";
 export type TrackKind = MediaKind | "text";
@@ -175,6 +176,11 @@ export interface CapcutImportSelection {
   warnings: string[];
 }
 export interface EditorAPI {
+  getSpeechInfo: () => Promise<SpeechInfo>;
+  chooseSpeechDependency: (kind: "python" | "model") => Promise<SpeechInfo>;
+  generateSpeech: (jobId: string, project: Project, request: SpeechRequest) => Promise<SpeechResult>;
+  cancelSpeech: (jobId: string) => Promise<void>;
+  onSpeechProgress: (callback: (event: SpeechProgress) => void) => () => void;
   deriveMedia: (jobId: string, project: Project, clipId: string, request: DerivativeRequest) => Promise<MediaAsset>;
   cancelDerivative: (jobId: string) => Promise<void>;
   onDerivativeProgress: (callback: (event: DerivativeProgress) => void) => () => void;

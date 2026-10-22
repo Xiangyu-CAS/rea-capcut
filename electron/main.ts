@@ -1,3 +1,5 @@
+import { speechInfo, generateSpeech, cancelSpeech, cancelAllSpeech, cleanSpeechTemporaries } from "./speech";
+import { speechSource, type SpeechSettings, type SpeechRequest } from "../src/core/speech";
 import { deriveMedia, cancelDerivative, cancelDerivatives } from "./derivatives";
 import {
   app,
@@ -129,6 +131,7 @@ function validateCapcutToken(token: unknown): asserts token is string {
 }
 const menuAction = (action: string) =>
   window?.webContents.send("menu-action", action);
+let speechSettings: SpeechSettings = {};
 const userFile = (name: string) => path.join(app.getPath("userData"), name);
 const cacheDir = () => userFile("thumbnails");
 let writeQueue = Promise.resolve();
@@ -245,6 +248,33 @@ function handle(name: string, callback: (...args: any[]) => unknown) {
   });
 }
 function registerIPC() {
+  handle("speech-info", () => speechInfo(speechSettings));
+  handle("speech-choose-dependency", async (kind: unknown) => {
+    if (kind !== "python" && kind !== "model") throw new Error("Invalid dependency kind");
+    const result = await dialog.showOpenDialog(window!, {
+      title: kind === "python" ? "Select local Python with mlx-whisper" : "Select local MLX Whisper model folder",
+      properties: kind === "python" ? ["openFile"] : ["openDirectory"],
+    });
+    if (!result.canceled && result.filePaths[0]) {
+      speechSettings = { ...speechSettings, [kind]: result.filePaths[0] };
+      await atomicWrite(userFile("speech-settings.json"), JSON.stringify(speechSettings));
+    }
+    return speechInfo(speechSettings);
+  });
+  handle("speech-generate", async (jobId: string, input: unknown, request: SpeechRequest) => {
+    const project = validateProject(input), owner = window!.webContents;
+    if (request?.mode === "asr") {
+      if (typeof request.source !== "string") throw new Error("Invalid speech source");
+      const { asset } = speechSource(project, request.source);
+      if (!allowedMedia.has(path.resolve(asset.path))) throw new Error("Source is not authorized for import");
+    }
+    const result = await generateSpeech(jobId, project, request, speechSettings, userFile("speech-media"), event => {
+      if (!owner.isDestroyed()) owner.send("speech-progress", event);
+    });
+    if (result.mode === "tts") authorizeAsset(result.asset);
+    return result;
+  });
+  handle("speech-cancel", (jobId: string) => cancelSpeech(jobId));
   handle("import-builtin-asset", async (id: unknown) => {
     const definition = BUILTIN_ASSETS.find(asset => asset.id === id);
     if (!definition) throw new Error("未找到内置素材");
@@ -762,6 +792,7 @@ function createWindow() {
   window.on("closed", () => {
     void cancelPortablePackages();
     void cancelDerivatives();
+    void cancelAllSpeech();
     assistantCancelPending = true;
     assistantRunning?.cancel();
     capcutSelections.clear();
@@ -800,6 +831,11 @@ void app.whenReady().then(async () => {
   } catch {
     /* system defaults */
   }
+  try {
+    const input = JSON.parse(await readFile(userFile("speech-settings.json"), "utf8"));
+    for (const key of ["python", "model"] as const) if (typeof input[key] === "string" && path.isAbsolute(input[key])) speechSettings[key] = input[key];
+  } catch { /* Optional local dependencies are never installed automatically. */ }
+  await cleanSpeechTemporaries(userFile("speech-media"));
   protocol.handle("reacut-media", serveMedia);
   registerIPC();
   const template: Electron.MenuItemConstructorOptions[] = [
@@ -923,6 +959,7 @@ app.on("before-quit", (event) => {
     (async () => { assistantCancelPending = true; await assistantStartDone; const running = assistantRunning; running?.cancel(); await running?.done; await assistantHistoryWrites.catch(() => {}); })(),
     cancelAllExports(),
     cancelDerivatives(),
+    cancelAllSpeech(),
     cancelPortablePackages(),
     shutdownMediaTasks(),
     writeQueue.catch(() => {}),

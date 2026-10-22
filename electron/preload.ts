@@ -2,6 +2,15 @@ import { contextBridge, ipcRenderer, webUtils } from "electron";
 import type { DerivativeProgress, EditorAPI, ExportProgress } from "../src/core/types";
 import type { AssistantEvent } from "../src/core/assistantTypes";
 const api: EditorAPI = {
+  getSpeechInfo: () => ipcRenderer.invoke("speech-info"),
+  chooseSpeechDependency: kind => ipcRenderer.invoke("speech-choose-dependency", kind),
+  generateSpeech: (jobId, project, request) => ipcRenderer.invoke("speech-generate", jobId, project, request),
+  cancelSpeech: jobId => ipcRenderer.invoke("speech-cancel", jobId),
+  onSpeechProgress: callback => {
+    const listener = (_: unknown, event: import("../src/core/speech").SpeechProgress) => callback(event);
+    ipcRenderer.on("speech-progress", listener);
+    return () => ipcRenderer.removeListener("speech-progress", listener);
+  },
   deriveMedia: (jobId, project, clipId, request) => ipcRenderer.invoke("derive-media", jobId, project, clipId, request),
   cancelDerivative: jobId => ipcRenderer.invoke("cancel-derivative", jobId),
   onDerivativeProgress: callback => {

@@ -59,3 +59,7 @@ ReaCut invokes these tools as separate local processes. The independently writte
 REA is a development research tool from [morluto/rea](https://github.com/morluto/rea). Its tools are not imported, copied into the runtime, or required to run ReaCut. The public research report distinguishes observed behavior from inference and original design. Raw local evidence remains excluded from the repository.
 
 No Jianying / CapCut proprietary application code, libraries, fonts, templates, icons, paid materials or other assets are included. The bundled Noto Sans SC is an openly licensed third-party font; optional installed system fonts are used at runtime and are not redistributed. Generated test media are produced by this repository's fixture generator; users retain responsibility for the media they import.
+
+## Optional local speech (not bundled)
+
+The source integration can use an existing Apple MLX `mlx-whisper` installation (MIT) and locally converted OpenAI Whisper weights (original model/code MIT). No model or Python package is bundled or downloaded by ReaCut. macOS text to speech invokes the system `say` executable; Apple voice libraries are not copied or distributed. See [local speech setup and provenance](docs/LOCAL_SPEECH.md).
