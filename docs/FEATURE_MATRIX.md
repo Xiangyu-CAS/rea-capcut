@@ -24,7 +24,7 @@
 | 锁轨、静音、隐藏 | supported | 核心语义与导出测试；隐藏画面不自动静音 |
 | 多选、复制粘贴、撤销重做 | supported | store 历史隔离、原子编辑和连续属性 transaction 测试 |
 | 位置、缩放、旋转、翻转、透明度 | supported | 实际合成、图像象限、旋转与动画导出测试 |
-| 线性 / smoothstep 关键帧 | supported | 边界、重复时间戳、精确截断窗口与实际导出测试 |
+| 可视化关键帧曲线 | supported（源码新增） | 拖点/精确输入/复制粘贴/单次撤销；线性、缓入、缓出、smoothstep；裁剪相位、逐帧预览与导出，见 [操作与边界](KEYFRAME_CURVES.md)。未进入 v0.6.0 DMG |
 | 画面 / 音频淡入淡出 | supported | split/trim 包络保留、变速、负偏移窗口及像素/RMS 导出测试 |
 | 亮度、对比度、饱和度、色温 | supported | 共享 RGB 数学模型、真实 FFmpeg 像素与 alpha 测试；非专业颜色管理 |
 | 模糊、本地调色预设 | limited | 实际参数映射；显示尺寸与模糊内核可使预览和输出略异 |
@@ -52,7 +52,7 @@
 | Codex 插件 | limited | 本地 stdio MCP、fullscreen App 画面桥接、鼠标/键盘操作和版本校验编辑；协议、真实编辑器交互及导出已验，Codex 宿主打开留待用户重连后验收；见 CODEX_PLUGIN.md |
 | CLI 剪辑助手 | limited | Codex / Claude Code，项目对话、取消、受限编辑建议与一次撤销；真实 Codex 合成问答通过，Claude 本机需重新登录；见 ASSISTANT.md |
 | 原创离线素材 | supported | 64 款原创 PNG / WAV，SVG 源与 MIT 许可；分类、搜索、试听、添加 |
-| HDR、专业颜色管理、曲线变速、倒放 | unused | 本期无完整实现 |
+| HDR、专业颜色管理、曲线变速 | unused | 本期无完整实现 |
 | 商业素材、贴纸、付费模板、专业转场库 | unused | 不复制或分发剪映资源 |
 | macOS .app / DMG / ZIP 打包 | supported | 最终镜像/ZIP/ad-hoc 签名校验、DMG复制app与原包ASAR一致、独立cwd字体/预览/九秒真实混音导出通过 |
 | 本地 ad-hoc 签名 | supported | macOS identity `-`，严格签名验证通过；不是 Developer ID 签名 |

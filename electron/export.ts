@@ -1,3 +1,4 @@
+import { EASINGS, easingExpression } from "../src/core/easing";
 import { spawn, type ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import {
@@ -69,20 +70,7 @@ export function keyframeExpression(
     const left = unique[i];
     const right = unique[i + 1];
     let progress = `((${clock}-${number(left.time)})/${number(right.time - left.time)})`;
-    if (right.easing === "easeInOut") {
-      const start = right.easingWindow?.start ?? 0;
-      const end = right.easingWindow?.end ?? 1;
-      const delta = end - start;
-      // Cancel the common delta analytically to preserve tiny sliced windows near 0/1.
-      const coefficients = [
-        6 * start * (1 - start),
-        3 * delta * (1 - 2 * start),
-        -2 * delta * delta,
-      ];
-      const precision = (value: number) =>
-        Number(value.toPrecision(15)).toString();
-      progress = `(${progress}*(${precision(coefficients[0])}+${precision(coefficients[1])}*${progress}+${precision(coefficients[2])}*${progress}*${progress})/${precision(coefficients.reduce((sum, value) => sum + value, 0))})`;
-    }
+    progress = easingExpression(right, progress);
     const interpolation = `(${number(left.value)}+(${number(right.value - left.value)})*${progress})`;
     expression = `if(lt(${clock},${number(right.time)}),${interpolation},${expression})`;
   }
@@ -275,12 +263,13 @@ function validate(project: Project, options: ExportOptions): number {
         !["x", "y", "scale", "rotation", "opacity", "volume"].includes(
           key.property,
         ) ||
-        !["linear", "easeInOut"].includes(key.easing)
+        !EASINGS.includes(key.easing)
       )
         throw new Error("未知关键帧属性或插值方式。");
       if (
         key.easingWindow &&
-        (!Number.isFinite(key.easingWindow.start) ||
+        (key.easing === "linear" ||
+          !Number.isFinite(key.easingWindow.start) ||
           !Number.isFinite(key.easingWindow.end) ||
           key.easingWindow.start < 0 ||
           key.easingWindow.end > 1 ||
@@ -541,6 +530,30 @@ export async function createExportArguments(
         }
         const a = clip.adjustments;
         filters.push(...colorAdjustmentFilters(a));
+        // Apply per-pixel alpha on fixed source dimensions. geq/alphamerge
+        // cannot reliably reconfigure on every frame of animated scaling.
+        const opacity = keyframeExpression(
+          clip,
+          "opacity",
+          clip.transform.opacity,
+          "T",
+        );
+        if (clip.keyframes.some((k) => k.property === "opacity")) {
+          graph.push(
+            `[${visualSource}]${[...filters, "split=2"].join(",")}[opacityrgb${layer}][opacitysource${layer}]`,
+          );
+          filters.length = 0;
+          graph.push(
+            `[opacitysource${layer}]alphaextract,geq=lum='floor(lum(X,Y)*(${opacity})+0.5)'[opacityalpha${layer}]`,
+          );
+          graph.push(
+            `[opacityrgb${layer}][opacityalpha${layer}]alphamerge=shortest=1[opaque${layer}]`,
+          );
+          visualSource = `opaque${layer}`;
+        } else if (clip.transform.opacity !== 1)
+          filters.push(
+            `colorchannelmixer=aa=${number(clip.transform.opacity)}`,
+          );
         const contain = text
           ? rx
           : Math.min(options.width / width, options.height / height);
@@ -571,28 +584,6 @@ export async function createExportArguments(
         if (rotation !== "0")
           filters.push(
             `rotate=angle='(${rotation})*PI/180':ow='hypot(iw,ih)':oh='hypot(iw,ih)':c=black@0`,
-          );
-        const opacity = keyframeExpression(
-          clip,
-          "opacity",
-          clip.transform.opacity,
-          "T",
-        );
-        if (clip.keyframes.some((k) => k.property === "opacity")) {
-          graph.push(
-            `[${visualSource}]${filters.join(",")},split=2[opacityrgb${layer}][opacitysource${layer}]`,
-          );
-          filters.length = 0;
-          graph.push(
-            `[opacitysource${layer}]alphaextract,geq=lum='floor(lum(X,Y)*(${opacity})+0.5)'[opacityalpha${layer}]`,
-          );
-          graph.push(
-            `[opacityrgb${layer}][opacityalpha${layer}]alphamerge=shortest=1[opaque${layer}]`,
-          );
-          visualSource = `opaque${layer}`;
-        } else if (clip.transform.opacity !== 1)
-          filters.push(
-            `colorchannelmixer=aa=${number(clip.transform.opacity)}`,
           );
         const fade = fadeWindow(clip, "video");
         const fadeOffset =

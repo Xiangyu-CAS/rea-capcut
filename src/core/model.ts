@@ -1,3 +1,4 @@
+import { EASINGS, easingProgress } from "./easing";
 import type {
   Clip,
   MediaAsset,
@@ -324,7 +325,7 @@ function sliceKeyframes(clip: Clip, from: number, to: number): Keyframe[] {
           const left = keys[rightIndex - 1],
             right = keys[rightIndex];
           key.easing = right.easing;
-          if (right.easing === "easeInOut") {
+          if (right.easing !== "linear") {
             const window = right.easingWindow ?? { start: 0, end: 1 },
               span = right.time - left.time;
             const start =
@@ -365,14 +366,7 @@ export function evaluateKeyframes(clip: Clip, time: number): Clip {
         if (time >= keys[i].time && time <= keys[i + 1].time) {
           let ratio =
             (time - keys[i].time) / (keys[i + 1].time - keys[i].time || 1);
-          if (keys[i + 1].easing === "easeInOut") {
-            const window = keys[i + 1].easingWindow ?? { start: 0, end: 1 };
-            const delta = window.end - window.start;
-            const a = 6 * window.start * (1 - window.start),
-              b = 3 * delta * (1 - 2 * window.start),
-              c = -2 * delta * delta;
-            ratio = (ratio * (a + b * ratio + c * ratio * ratio)) / (a + b + c);
-          }
+          ratio = easingProgress(keys[i + 1], ratio);
           value = keys[i].value + (keys[i + 1].value - keys[i].value) * ratio;
           break;
         }
@@ -628,7 +622,7 @@ export function validateProject(input: unknown): Project {
         num(w.end, "插值窗口终点", 0, 1);
         if (
           (w.start as number) >= (w.end as number) ||
-          k.easing !== "easeInOut"
+          k.easing === "linear"
         )
           fail("关键帧插值窗口");
       }
@@ -638,7 +632,7 @@ export function validateProject(input: unknown): Project {
         ["x", "y", "scale", "rotation", "opacity", "volume"],
         "关键帧属性",
       );
-      choice(k.easing, ["linear", "easeInOut"], "关键帧插值");
+      choice(k.easing, [...EASINGS], "关键帧插值");
       const low =
         k.property === "scale"
           ? 0.000001

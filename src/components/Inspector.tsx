@@ -1,3 +1,4 @@
+import KeyframeCurveEditor from "./KeyframeCurveEditor";
 import { useEffect, useState } from "react";
 import {
   AlignCenter,
@@ -817,7 +818,15 @@ export default function Inspector({
           )}
           {tab === "动画" && (
             <>
-              <h3>关键帧</h3>
+              <KeyframeCurveEditor
+                key={clip.id}
+                project={project}
+                clip={clip}
+                playhead={playhead}
+                visual={visual}
+                onUpdate={onUpdate}
+              />
+              <h3>关键帧列表</h3>
               <p className="field-hint">
                 把播放头移动到目标时间，点击属性旁的 ◇
                 添加关键帧；该属性后续调整会写入当前时间。
@@ -911,6 +920,8 @@ export default function Inspector({
                       }
                     >
                       <option value="linear">线性</option>
+                      <option value="easeIn">缓入</option>
+                      <option value="easeOut">缓出</option>
                       <option value="easeInOut">缓入缓出</option>
                     </select>
                     <button

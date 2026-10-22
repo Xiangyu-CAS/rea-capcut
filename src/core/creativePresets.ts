@@ -418,7 +418,7 @@ function incomingKeys(
   const rightIndex = curve.findIndex((k) => k.time > duration);
   const right = curve[rightIndex],
     left = curve[rightIndex - 1];
-  // Restrict the first surviving smoothstep segment to its remaining interval.
+  // Restrict the first surviving non-linear segment to its remaining interval.
   // Merely keeping its destination key would restart easing and change later motion.
   const remaining = clip.keyframes
     .filter((k) => k.property !== property || k.time > duration)
@@ -427,7 +427,7 @@ function incomingKeys(
         k.id !== right?.id ||
         !left ||
         left.time >= duration ||
-        right.easing !== "easeInOut"
+        right.easing === "linear"
       )
         return k;
       const window = right.easingWindow ?? { start: 0, end: 1 };

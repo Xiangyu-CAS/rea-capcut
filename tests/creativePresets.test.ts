@@ -43,28 +43,31 @@ function pair() {
   return p;
 }
 describe("original editing recipes", () => {
-  it("preserves the remaining smoothstep curve after an incoming transition", () => {
-    const p = pair(),
-      next = p.clips[1];
-    next.keyframes = [
-      { id: "begin", time: 0, property: "x", value: 10, easing: "linear" },
-      {
-        id: "finish",
-        time: 2,
-        property: "x",
-        value: 210,
-        easing: "easeInOut",
-        easingWindow: { start: 0.15, end: 0.9 },
-      },
-    ];
-    const changed = applyTransition(p, p.clips[0].id, "slide-left", 0.5).project
-      .clips[1];
-    for (const time of [0.5, 0.7, 1, 1.5, 1.9, 2])
-      expect(evaluateKeyframes(changed, time).transform.x).toBeCloseTo(
-        evaluateKeyframes(next, time).transform.x,
-        9,
-      );
-  });
+  it.each(["easeIn", "easeOut", "easeInOut"] as const)(
+    "preserves the remaining %s curve after an incoming transition",
+    (easing) => {
+      const p = pair(),
+        next = p.clips[1];
+      next.keyframes = [
+        { id: "begin", time: 0, property: "x", value: 10, easing: "linear" },
+        {
+          id: "finish",
+          time: 2,
+          property: "x",
+          value: 210,
+          easing,
+          easingWindow: { start: 0.15, end: 0.9 },
+        },
+      ];
+      const changed = applyTransition(p, p.clips[0].id, "slide-left", 0.5)
+        .project.clips[1];
+      for (const time of [0.5, 0.7, 1, 1.5, 1.9, 2])
+        expect(evaluateKeyframes(changed, time).transform.x).toBeCloseTo(
+          evaluateKeyframes(next, time).transform.x,
+          9,
+        );
+    },
+  );
   it("adds editable text with responsive layout and a single undo, respecting locked tracks", () => {
     for (const [width, height] of [
       [1920, 1080],

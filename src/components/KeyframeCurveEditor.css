@@ -1,0 +1,90 @@
+.keyframe-curve {
+  margin: 0 0 18px;
+  min-width: 0;
+}
+.keyframe-curve header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.keyframe-curve header h3 {
+  margin: 10px 0;
+}
+.keyframe-curve svg {
+  width: 100%;
+  background: #191b20;
+  border: 1px solid #383b43;
+  border-radius: 6px;
+  touch-action: none;
+  overflow: visible;
+}
+.keyframe-curve svg text {
+  fill: #9ea4af;
+  font-size: 9px;
+  pointer-events: none;
+}
+.curve-grid {
+  stroke: #333741;
+  stroke-width: 0.6;
+}
+.curve-line {
+  fill: none;
+  stroke: #35d5c7;
+  stroke-width: 2;
+  pointer-events: none;
+}
+.curve-playhead {
+  stroke: #f0c66d;
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  pointer-events: none;
+}
+.curve-point {
+  fill: #252b33;
+  stroke: #35d5c7;
+  stroke-width: 2;
+  cursor: grab;
+}
+.curve-point.selected {
+  fill: #35d5c7;
+  stroke: white;
+}
+.curve-point:focus {
+  outline: none;
+  stroke: #ffc967;
+  stroke-width: 3;
+}
+.curve-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 10px 0;
+}
+.curve-actions button {
+  padding: 5px 8px;
+  font-size: 11px;
+  background: #303238;
+  border-radius: 4px;
+}
+.curve-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.curve-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 11px;
+  color: #aeb3bc;
+  min-width: 0;
+}
+.curve-fields label:last-of-type {
+  grid-column: 1 / -1;
+}
+.curve-fields input,
+.curve-fields select {
+  width: 100%;
+  min-width: 0;
+}

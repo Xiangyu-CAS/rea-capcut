@@ -41,6 +41,7 @@ jobs:
           npx tsx tests/source-preview-electron.ts
           npx tsx tests/timeline-edits-electron.ts
           npx tsx tests/derivatives-electron.ts
+          npx tsx tests/keyframe-curves-electron.ts
           npx tsx tests/workspace-electron.ts
           npx tsx tests/large-subtitles-electron.ts
       - name: Upload desktop evidence

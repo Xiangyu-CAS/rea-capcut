@@ -51,7 +51,7 @@ export interface Keyframe {
   time: number;
   property: "x" | "y" | "scale" | "rotation" | "opacity" | "volume";
   value: number;
-  easing: "linear" | "easeInOut";
+  easing: "linear" | "easeIn" | "easeOut" | "easeInOut";
   easingWindow?: { start: number; end: number };
 }
 export interface FadeWindow {
