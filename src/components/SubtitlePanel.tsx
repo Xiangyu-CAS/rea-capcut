@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/useTranslation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, FolderOpen, LockKeyhole, Search, Subtitles } from "lucide-react";
 import { useEditorStore } from "../editor/store";
@@ -6,12 +7,13 @@ import { applySubtitleEdit, prepareSubtitleEdit, type SubtitleEdit, type Subtitl
 import type { Clip, Project } from "../core/types";
 import "./SubtitlePanel.css";
 
-interface Props { onImport: () => void | Promise<void>; onExport: () => void | Promise<void> }
+interface Props { onSpeech: (mode: "asr" | "tts") => void; onImport: () => void | Promise<void>; onExport: () => void | Promise<void> }
 interface CueDraft { project: Project; id: string; text: string; start: string; end: string }
 const seconds = (value: number) => Number(value.toFixed(6)).toString();
 const timeLabel = (value: number) => `${Math.floor(value / 60).toString().padStart(2, "0")}:${(value % 60).toFixed(2).padStart(5, "0")}`;
 
-export default function SubtitlePanel({ onImport, onExport }: Props) {
+export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
+  const { t } = useTranslation();
   const project = useEditorStore(s => s.project);
   const [trackId, setTrackId] = useState("");
   const [query, setQuery] = useState("");
@@ -104,6 +106,8 @@ export default function SubtitlePanel({ onImport, onExport }: Props) {
   return <section className="subtitle-panel" aria-label="字幕编辑器">
     <div className="subtitle-heading"><h3>字幕编辑</h3><span>{clips.length} 条</span></div>
     <div className="subtitle-file-actions">
+      <button className="small-button" disabled={!window.editorAPI} onClick={() => onSpeech("asr")}>{t("speech.asr")}</button>
+      <button className="small-button" disabled={!window.editorAPI} onClick={() => onSpeech("tts")}>{t("speech.tts")}</button>
       <button className="small-button" onClick={() => void fileAction(onImport)}><FolderOpen size={14} />导入字幕文件</button>
       <button className="small-button" onClick={() => void fileAction(onExport)} disabled={!project.clips.some(c => c.text)} title="导出项目中全部文字片段为 SRT"><Download size={14} />导出全部 SRT</button>
     </div>

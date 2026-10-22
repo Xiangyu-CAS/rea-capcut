@@ -79,3 +79,9 @@ renderer 没有 Node.js 权限。preload 只暴露编辑所需方法；主进程
 `plugin/` 包含标准与兼容 manifest、操作 skill 和 Python 启动器。0.5.1 的启动器在本地处理 MCP 初始化、工具/资源发现与固定 UI 资源读取，不启动 Electron；工具定义由 `electron/pluginProtocol.ts` 生成到 `plugin/protocol.json`，只有实际工具调用才创建一个应用子进程。子进程退出后不自动重启或重放编辑。macOS 包使用 `LSUIElement` 避免 JavaScript 执行前的 Dock 闪现，普通桌面启动显式恢复 regular 激活策略。启动已安装应用的 `--reacut-plugin` 模式后，`electron/pluginHost.ts` 提供 stdio MCP；不启动网络服务。MCP App UI 自包含在 `dist/plugin.html`，通过 SDK 的 app-only 工具拉取当前编辑器 JPEG 并发送受限输入。隐藏窗口仍保留原来的 renderer 隔离、CSP、文件授权和 FFmpeg 引擎，必要时可显示为桌面窗口。
 
 `src/editor/pluginBridge.ts` 提供状态摘要与白名单编辑，复用 `previewAssistantEdits`，提交时校验当前 revision 和编辑事务。批量修改原子提交，支持一次撤销。每个插件连接使用独立恢复目录，防止不同聊天覆盖彼此的自动保存；正常断连先刷新自动保存再退出。模型工具不会默认返回媒体帧，显式截图与 app-only 帧分开。详情见 [插件说明](CODEX_PLUGIN.md)。
+
+## 本地语音（未发布源码）
+
+`electron/speech.ts` 管理可取消的本地 MLX Python / macOS say 子进程；仅接收已导入授权的源文件，FFmpeg 只解码本地协议。Python 使用已有本地权重，显式离线并禁用 socket 连接。词级时间戳分段，开头近静音偏移补回源时间，再由 `core/speech.ts` 按片段入点、速度和位置映射为普通文字片段。
+
+TTS 先写临时文本和 AIFF，转为 WAV 后原子移动到 `speech-media/`，由现有媒体导入/授权路径加入项目。UI 在任务期间捕获项目快照，仅在仍匹配时一次提交；保存恢复、播放、导出与收集素材复用普通模型。取消和退出清理临时任务；启动清理崩溃残留，完整 WAV 保留。依赖选择保存在用户目录，缺失时提示，不自动安装或下载。详情见 [本地语音](LOCAL_SPEECH.md)。

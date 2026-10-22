@@ -1,5 +1,16 @@
 # 本机验证记录
 
+## 本地语音（2026-10-22，未发布源码）
+
+- 基于 main `427742e` 的独立功能分支；验收使用源码构建，没有替换已安装的 v0.5.0，不代表已发布版本包含这些功能。
+- Typecheck、30 个测试文件 / **343 项单测**、源码生产构建通过。原有字幕、音频、存储三套桌面回归通过。
+- 复用已有 mlx-whisper 0.4.3 和 459.01 MiB small 权重；无模型下载/安装。Tingting 中文与 Samantha 英文真实合成后，经实际模型识别出正确主要内容和带时间戳短字幕。另验证静音拒绝、运行中取消及清理。
+- Electron 七组真实流程：依赖缺失提示与本地选择保存、取消、双语配音/识别/撤销重做、阻止对话框底层快捷键/原生菜单、视频导入/静音偏移/字幕编辑/SRT、实际重启与遗留临时文件清理、UI 导出。
+- 最终 **24 秒、320×180 H.264/AAC** 成片解码有效；播放 RMS 分别 0.1495 / 0.1352 / 重启后 0.1543，导出英文音段 RMS 0.1556；独立字幕区检出 539 个亮像素。16 秒入轨且含一秒静音的视频，首字幕为 16.9333 秒。无 renderer errors，无 renderer HTTP 请求；Python worker 禁止网络连接。
+- 本轮仅 macOS Apple Silicon 源码构建；未做安装包或 Windows/Linux 验收。既有 Windows 基线问题未修改。提交前复核 main 的 [CI 39584437334](https://github.com/Xiangyu-CAS/rea-capcut/actions/runs/39584437334)：macOS/Linux/package 成功，Windows 4 文件 15 项失败（assistantBackend、export.shutdown、mediaTools、portableProject）。
+
+[详细证据](validation/local-speech-2026-10-22.json) · [操作与边界](LOCAL_SPEECH.md) · [真实界面](screenshots/local-speech-editor.png)
+
 ## 本地倒放与定格（2026-10-21，未发布源码）
 
 - 同步远端已合入的多语言基础设施及英文默认 README 后，按 `package-lock.json` 安装依赖。`npm run check` 通过：类型检查、28 个测试文件 / **335 项测试**、生产构建，Electron 44.7.0。

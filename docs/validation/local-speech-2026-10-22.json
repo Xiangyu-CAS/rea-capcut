@@ -1,0 +1,134 @@
+{
+  "at": "2026-10-22T03:58:35.807Z",
+  "sourceBuild": true,
+  "checks": [
+    "Missing dependency disables ASR; native Python/model selection persists without a download",
+    "Cancelling a real TTS task leaves the project unchanged",
+    "Chinese Tingting and English Samantha generate persistent WAVs, play through real Web Audio, and transcribe with source-aligned editable timestamps; undo/redo is atomic",
+    "Speech dialog blocks underlying timeline shortcuts and native menu project replacement",
+    "Native local video import, one-second silence timestamps, subtitle editing, canvas rendering and SRT export pass",
+    "Actual restart restores generated media, captions and dependency settings; abandoned temporary text/audio are cleaned",
+    "UI export decodes to H.264/AAC video with visible captions and non-silent TTS audio; no renderer errors or HTTP requests"
+  ],
+  "playbackRMS": [
+    0.14948511041200402,
+    0.1352256705495176,
+    0.15430781739724442
+  ],
+  "exportRMS": 0.15563658439784517,
+  "subtitlePixels": 539,
+  "duration": 24,
+  "model": "mlx-community/whisper-small-mlx",
+  "modelBytes": 481307592,
+  "videoCaptionTimes": [
+    {
+      "start": 16.933333333333334,
+      "duration": 2.4333333333333336
+    },
+    {
+      "start": 19.733333333333334,
+      "duration": 1.966666666666665
+    },
+    {
+      "start": 21.7,
+      "duration": 1.2333333333333343
+    }
+  ],
+  "errors": [],
+  "network": [],
+  "modelSnapshot": "45f3915923c7a79a5a5b5a7d909d39aeb0e5630e",
+  "weightsSHA256": "55b6674c9b339702d486e2b1573839a66f8ec8f821ed2886993ef717a86b09f5",
+  "baseCommit": "427742ee9022e68c44d9c9398331530b89678a53",
+  "tests": {
+    "typecheck": "pass",
+    "unitFiles": 30,
+    "unitPassed": 343,
+    "build": "pass",
+    "existingDesktopRegressions": [
+      "subtitles",
+      "audio",
+      "storage"
+    ]
+  },
+  "realSpeech": [
+    {
+      "language": "zh",
+      "text": "你好，欢迎使用本地视频编辑器。今天我们测试自动字幕和语音合成。",
+      "recognized": "你好,歡迎使用本地視頻編輯器,今天我們測試自動字幕和語音合成。",
+      "cues": [
+        {
+          "start": 0,
+          "end": 5,
+          "text": "你好,歡迎使用本地視頻編輯器,今天我們測試自"
+        },
+        {
+          "start": 5,
+          "end": 6.62,
+          "text": "動字幕和語音合成。"
+        }
+      ],
+      "duration": 6.844646,
+      "rms": 0.12333384691623776,
+      "elapsedMs": 3134
+    },
+    {
+      "language": "en",
+      "text": "Hello, welcome to the local video editor. Today we are testing automatic subtitles and speech synthesis.",
+      "recognized": "Hello, welcome to the local video editor.Today we are testing automatic subtitlesand speech synthesis.",
+      "cues": [
+        {
+          "start": 0,
+          "end": 2.36,
+          "text": "Hello, welcome to the local video editor."
+        },
+        {
+          "start": 2.7,
+          "end": 4.7,
+          "text": "Today we are testing automatic subtitles"
+        },
+        {
+          "start": 4.7,
+          "end": 5.9,
+          "text": "and speech synthesis."
+        }
+      ],
+      "duration": 6.277208,
+      "rms": 0.1586373813874299,
+      "elapsedMs": 3326
+    }
+  ],
+  "asrCancellation": true,
+  "silenceRejected": true,
+  "limitations": [
+    "macOS Apple Silicon source build only",
+    "No package build or published application verification",
+    "Chinese script may be traditional",
+    "ASR accuracy/timestamps require review",
+    "No automatic dependency/model installation",
+    "Windows/Linux not run; existing documented Windows baseline failures unchanged"
+  ],
+  "delivery": {
+    "sourceDemoOpened": true,
+    "clips": 11,
+    "assets": 3,
+    "dependenciesReady": true,
+    "portableHashesMatch": true
+  },
+  "explicitModelDirectoryVerified": true,
+  "baselineCI": {
+    "sha": "427742ee9022e68c44d9c9398331530b89678a53",
+    "run": "https://github.com/Xiangyu-CAS/rea-capcut/actions/runs/39584437334",
+    "macOS": "success",
+    "linux": "success",
+    "package": "success",
+    "windows": {
+      "failed": 15,
+      "files": [
+        "assistantBackend.test.ts",
+        "export.shutdown.test.ts",
+        "mediaTools.test.ts",
+        "portableProject.test.ts"
+      ]
+    }
+  }
+}

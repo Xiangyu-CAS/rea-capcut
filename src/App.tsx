@@ -1,3 +1,4 @@
+import SpeechDialog from "./components/SpeechDialog";
 import DerivativeDialog from "./components/DerivativeDialog";
 import { version as appVersion } from "../package.json";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -473,6 +474,7 @@ async function browserAssets(files: File[]): Promise<MediaAsset[]> {
 }
 export default function App() {
   const s = useEditorStore();
+  const [speechMode, setSpeechMode] = useState<"asr" | "tts" | null>(null);
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [sourceAssetId, setSourceAssetId] = useState<string | null>(null);
   const sourceAsset = s.project.assets.find(asset => asset.id === sourceAssetId);
@@ -699,7 +701,7 @@ export default function App() {
   };
   const handleAction = async (action: string) => {
     // Native menu accelerators bypass DOM key handlers; keep modal workflows intact.
-    if ((modal || recover) && action !== "save-and-close") return;
+    if ((modal || speechMode || recover) && action !== "save-and-close") return;
     setFileMenu(false);
     switch (action) {
       case "new":
@@ -779,7 +781,7 @@ export default function App() {
       const target = e.target as HTMLElement;
       if (target.closest("input,textarea,select,[contenteditable=true]"))
         return;
-      if (modal || recover) {
+      if (modal || speechMode || recover) {
         if (e.key === "Escape" && modal !== "export" && modal !== "package" && modal !== "reverse" && modal !== "freeze") {
           setModal(null);
         }
@@ -879,7 +881,7 @@ export default function App() {
     };
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
-  }, [modal, recover, safe]);
+  }, [modal, speechMode, recover, safe]);
   const addStyledText = (preset: TextPreset) => {
     const result = addTextPreset(s.project, preset, s.playhead);
     s.commit(result.project);
@@ -1209,7 +1211,7 @@ export default function App() {
               />
             )}
             {tab === "文本" && <TextLibrary onAdd={addStyledText} onBlank={s.addText} />}
-            {tab === "字幕" && <SubtitlePanel onImport={() => safe(readSubtitles)} onExport={() => safe(exportSubtitles)} />}
+            {tab === "字幕" && <SubtitlePanel onSpeech={setSpeechMode} onImport={() => safe(readSubtitles)} onExport={() => safe(exportSubtitles)} />}
             {tab === "特效" && (
               <EffectsPanel
                 clip={active}
@@ -1375,6 +1377,7 @@ export default function App() {
           </button>
         </div>
       )}
+      {speechMode && <SpeechDialog mode={speechMode} onClose={() => setSpeechMode(null)} />}
       {(modal === "reverse" || modal === "freeze") && <DerivativeDialog mode={modal} onClose={() => setModal(null)} />}
       {modal === "package" && <PackageDialog project={clone(s.project)} onClose={() => setModal(null)} />}
       {modal === "export" && (
