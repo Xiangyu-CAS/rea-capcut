@@ -16,9 +16,14 @@ const model=process.env.REACUT_SPEECH_MODEL??real.model;
 const python=process.env.REACUT_SPEECH_PYTHON;assert(python,'Set REACUT_SPEECH_PYTHON to an installed MLX Python.');
 const env=Object.fromEntries(Object.entries(process.env).filter((x):x is [string,string]=>x[1]!==undefined));env.REACUT_USER_DATA=path.join(out,'user-data');delete env.ELECTRON_RUN_AS_NODE;delete env.VITE_DEV_SERVER_URL;delete env.REACUT_SPEECH_PYTHON;delete env.REACUT_SPEECH_MODEL;
 let app!:ElectronApplication,page!:Page;const errors:string[]=[],checks:string[]=[],network:string[]=[],levels:number[]=[];
+const bundle=process.env.REACUT_TEST_APP?path.resolve(process.env.REACUT_TEST_APP):undefined;
+let native:{packaged:boolean;version:string;path:string}|undefined;
+if(bundle){delete env.REACUT_FFMPEG;delete env.REACUT_FFPROBE;env.PATH=path.join(out,'empty-path');await mkdir(env.PATH);}
 let launches=0;
 async function launch(){
- app=await electron.launch({args:[path.resolve('dist-electron/main.cjs'),saved],env});page=await app.firstWindow();page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(/^https?:/.test(r.url()))network.push(r.url());});
+ app=await electron.launch({...(bundle?{executablePath:path.join(bundle,'Contents/MacOS/ReaCut'),args:[saved]}:{args:[path.resolve('dist-electron/main.cjs'),saved]}),env});
+ native=await app.evaluate(({app})=>({packaged:app.isPackaged,version:app.getVersion(),path:app.getAppPath()}));if(bundle){assert(native.packaged);assert(native.path.startsWith(bundle));assert.equal(native.version,JSON.parse(await readFile('package.json','utf8')).version);}
+ page=await app.firstWindow();page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(/^https?:/.test(r.url()))network.push(r.url());});
  await app.evaluate(({dialog,BrowserWindow},files)=>{
   BrowserWindow.getAllWindows()[0].setSize(1470,900);
   (dialog as any).showOpenDialog=async(...args:any[])=>({canceled:false,filePaths:[args.at(-1).title.includes('Python')?files.python:args.at(-1).title.includes('model folder')?files.model:args.at(-1).title==='打开 ReaCut 项目'?files.saved:files.source]});
@@ -67,5 +72,5 @@ try{
  const probe=await probeFile(exported);assert(probe.streams.some(s=>s.codec_type==='audio'));assert.equal(Number(probe.format.duration),24);
  const frame=await runMediaTool('ffmpeg',['-v','error','-ss',String(videoCaptions[0].start+.3),'-i',exported,'-frames:v','1','-pix_fmt','rgb24','-f','rawvideo','pipe:1']);assert(frame[2]>80&&frame[0]<40,'video background should decode blue');let bright=0;for(let i=320*126*3;i<frame.length;i+=3)if(frame[i]>180&&frame[i+1]>180&&frame[i+2]>180)bright++;assert(bright>20);
  const pcm=await runMediaTool('ffmpeg',['-v','error','-ss','8','-i',exported,'-t','3','-ac','1','-ar','16000','-f','f32le','pipe:1']);let energy=0;for(let i=0;i<pcm.length;i+=4)energy+=pcm.readFloatLE(i)**2;const exportRMS=Math.sqrt(energy/(pcm.length/4));assert(exportRMS>.01);assert.deepEqual(errors,[]);assert.deepEqual(network,[]);checks.push('UI export decodes to H.264/AAC video with visible captions and non-silent TTS audio; no renderer errors or HTTP requests');
- await writeFile(path.join(out,'evidence.json'),JSON.stringify({at:new Date().toISOString(),sourceBuild:true,checks,playbackRMS:levels,exportRMS,subtitlePixels:bright,duration:Number(probe.format.duration),model:real.model,modelBytes:real.modelBytes,videoCaptionTimes:videoCaptions.map(c=>({start:c.start,duration:c.duration})),errors,network},null,2));console.log(checks);
+ await writeFile(path.join(out,'evidence.json'),JSON.stringify({at:new Date().toISOString(),sourceBuild:!bundle,native,checks,playbackRMS:levels,exportRMS,subtitlePixels:bright,duration:Number(probe.format.duration),model:real.model,modelBytes:real.modelBytes,videoCaptionTimes:videoCaptions.map(c=>({start:c.start,duration:c.duration})),errors,network},null,2));console.log(checks);
 }catch(e){await page?.screenshot({path:path.join(out,'failure.png')}).catch(()=>{});console.log(await page?.locator('body').innerText().catch(()=>''));throw e;}finally{await app?.close().catch(()=>{});}

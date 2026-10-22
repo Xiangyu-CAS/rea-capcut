@@ -1,0 +1,130 @@
+{
+  "version": "0.6.0",
+  "platform": "darwin-arm64",
+  "featureMerge": "a38d3d709723e6ef4b9ae1a5435ed683d8948c0c",
+  "verification": "Read-only mount of release DMG, copy actual app into isolated directory; no installed application overwritten",
+  "signature": {
+    "kind": "ad-hoc",
+    "deepStrictVerify": true,
+    "notarized": false
+  },
+  "dmgIntegrity": true,
+  "assets": [
+    {
+      "name": "ReaCut-0.6.0-arm64.dmg",
+      "bytes": 194307406,
+      "sha256": "3dcd77b35741085e3404341455a99f1b45986b1df15b8db29661e7794c485258"
+    },
+    {
+      "name": "ReaCut-0.6.0-arm64-mac.zip",
+      "bytes": 194217139,
+      "sha256": "0bd372988b0cc6915573d74dc4b74d485e93f054bdd1cba88c23ad5f3def3e6d"
+    },
+    {
+      "name": "ReaCut-plugin-0.6.0.zip",
+      "bytes": 96815,
+      "sha256": "fef634b60399e4421b4f90416cf291899c540c0e4968b1c2f2652598c538d34b"
+    }
+  ],
+  "appAsarSHA256": "506267d95ef4acf98188a4a754c8786cbd8c7ec14f80c34d8c99590c50ee350f",
+  "runtimeCodeMatchesBuiltSource": true,
+  "packageAudit": {
+    "entries": 4156,
+    "forbiddenArtifacts": [],
+    "licenseRecords": 122,
+    "unresolved": 0,
+    "correspondingMediaSourcesVerified": [
+      {
+        "file": "ffmpeg-9.0.2.tar.xz",
+        "sha256": "8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e"
+      },
+      {
+        "file": "x264-b35605ac.tar.gz",
+        "sha256": "cd71a7515b0e9a012e1ac9b1f8415bebcaf6fc97d4db32286642ac4c0fbe24f9"
+      },
+      {
+        "file": "pkgconf-3.0.8.tar.xz",
+        "sha256": "943f0bc88bcaeceb630b00262e2a8ad5ea4fac3fba72a4267d8b9ec6b35d1194"
+      }
+    ]
+  },
+  "speech": {
+    "at": "2026-10-22T06:17:20.691Z",
+    "sourceBuild": false,
+    "native": {
+      "packaged": true,
+      "version": "0.6.0"
+    },
+    "checks": [
+      "Missing dependency disables ASR; native Python/model selection persists without a download",
+      "Cancelling a real TTS task leaves the project unchanged",
+      "Chinese Tingting and English Samantha generate persistent WAVs, play through real Web Audio, and transcribe with source-aligned editable timestamps; undo/redo is atomic",
+      "Speech dialog blocks underlying timeline shortcuts and native menu project replacement",
+      "Native local video import, one-second silence timestamps, subtitle editing, canvas rendering and SRT export pass",
+      "Actual restart restores generated media, captions and dependency settings; abandoned temporary text/audio are cleaned",
+      "UI export decodes to H.264/AAC video with visible captions and non-silent TTS audio; no renderer errors or HTTP requests"
+    ],
+    "playbackRMS": [
+      0.14948511041200402,
+      0.1352256705495176,
+      0.13937721814290138
+    ],
+    "exportRMS": 0.15563658439784517,
+    "subtitlePixels": 539,
+    "duration": 24,
+    "modelBytes": 481307592,
+    "videoCaptionTimes": [
+      {
+        "start": 16.933333333333334,
+        "duration": 2.4333333333333336
+      },
+      {
+        "start": 19.733333333333334,
+        "duration": 1.966666666666665
+      },
+      {
+        "start": 21.7,
+        "duration": 1.2333333333333343
+      }
+    ],
+    "errors": [],
+    "network": []
+  },
+  "packageRegression": {
+    "packaged": true,
+    "emptyPATH": true,
+    "checks": [
+      "packaged .app launched outside repository cwd",
+      "bundled FFmpeg and FFprobe selected with empty PATH and no overrides",
+      "native canvas and bundled font",
+      "isolated sandbox bridge",
+      "startup .reacut argument",
+      "real landscape preview and thumbnails",
+      "UI export with Chinese titles and mixed audio"
+    ],
+    "fonts": {
+      "browserFaces": 1,
+      "browserLoaded": true,
+      "nativeIncludesNoto": true,
+      "bundledBytes": 17772300
+    },
+    "width": 1280,
+    "height": 720,
+    "duration": "9.000000",
+    "errors": []
+  },
+  "localCheck": {
+    "typecheck": true,
+    "tests": 343,
+    "files": 30,
+    "build": true
+  },
+  "ci": {
+    "featureHead": "054085ff854da5d7f4855cc2446a77cb8f840581",
+    "run": 39719906045,
+    "macOS": "passed",
+    "linux": "passed",
+    "package": "passed",
+    "windows": "15 failures, exact names match main baseline; new speech tests passed"
+  }
+}

@@ -3,6 +3,11 @@
 </p>
 <h1 align="center">ReaCut</h1>
 <p align="center"><strong>An independently implemented, open-source video editor informed by <a href="https://github.com/morluto/rea">REA</a>-assisted research into Jianying / CapCut.</strong><br />macOS first. Research is limited to authorized scope, without copying proprietary Jianying / CapCut code or assets.</p>
+<p align="center">
+  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.6.0/ReaCut-0.6.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="Download for macOS — v0.6.0 · Apple Silicon" /></a><br />
+  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">All releases / ZIP / checksums</a> · <a href="#getting-started">Installation guide</a><br />
+  <sub>Apple Silicon (M-series) only · Preview · Ad-hoc signed, not notarized. ASR requires separate local Python/MLX and model setup.</sub>
+</p>
 <p align="center">Building a complete video editor is a substantial undertaking, and this project is still in its early stages.<br /><strong>Contributors are welcome to help with features, usability, cross-platform support, tests and documentation.</strong> <a href="#contributing">Get involved →</a></p>
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/source_license-MIT-45d6c0" alt="Source license: MIT" /></a>
@@ -20,7 +25,7 @@ ReaCut brings media management, multitrack editing, subtitles and video export i
 
 The project uses [REA](https://github.com/morluto/rea) to study Jianying's interface behavior and local project formats, then independently implements an editor with Electron, React, TypeScript and FFmpeg. REA supports development research; REA, Ghidra and Jianying are not runtime dependencies.
 
-> **Current source: v0.5.1, early development.** Includes the lazy plugin startup fix and unreleased timeline editing, reverse and freeze-frame improvements; packages for this version have not been published yet. macOS Apple Silicon is verified. Windows / Linux build configurations are available but await testing on those platforms. Published packages are available in the [v0.5.0 preview release](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.5.0), or follow the source instructions below. See the [weekly feature plan (in Chinese)](docs/WEEKLY_TODO.md) for upcoming work.
+> **v0.6.0 preview** includes local speech, timeline editing, reverse/freeze frames and the lazy plugin startup fix. The Apple Silicon DMG is verified separately from source builds; see [release validation](docs/RELEASE_0.6.0.md). Windows/Linux binaries are not provided, and the existing Windows test failures remain.
 
 ## Features
 
@@ -31,7 +36,7 @@ The project uses [REA](https://github.com/morluto/rea) to study Jianying's inter
 | **Reverse and freeze** | Locally reverse a selected video range with reversed or removed audio; insert an adjustable freeze frame at the playhead. [Workflow and limits](docs/REVERSE_FREEZE.md). |
 | **Picture and sound** | Transform, crop, apply basic color adjustments, chroma key, rectangle / ellipse masks, keyframes, volume, fades and constant speed changes. |
 | **Text and subtitles** | Import SRT / basic WebVTT, edit individual cues, batch-replace text, shift timing, apply consistent styles and export SRT. |
-| **Local speech (unreleased source)** | Offline transcription on Apple Silicon with separately installed MLX Whisper/model; macOS system TTS. [Setup, downloads and platform limits](docs/LOCAL_SPEECH.md). |
+| **Local speech** | Offline transcription on Apple Silicon with separately installed MLX Whisper/model; macOS system TTS. [Setup, downloads and platform limits](docs/LOCAL_SPEECH.md). |
 | **Local projects** | Save `.reacut` projects, automatically recover edits, relink media and collect project media into a portable folder. |
 | **Video export** | Render the full timeline, a selection or a custom range to MP4 / MOV with H.264 and AAC. |
 | **Text & effect libraries** | 16 editable text templates, 16 color / motion presets, and 8 transitions with animated previews and one-step undo. |
@@ -45,11 +50,11 @@ See the [feature matrix](docs/FEATURE_MATRIX.md) for detailed support and limita
 
 ### Option 1: standalone DMG
 
-Download the [ReaCut 0.5.0 DMG for macOS Apple Silicon](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.5.0/ReaCut-0.5.0-arm64.dmg), open it, drag the app into Applications, and launch it. FFmpeg and FFprobe are bundled. This preview is ad-hoc signed and is not Apple-notarized.
+Download the [ReaCut 0.6.0 DMG for macOS Apple Silicon](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.6.0/ReaCut-0.6.0-arm64.dmg), open it, drag the app into Applications, and launch it. FFmpeg and FFprobe are bundled. This preview is ad-hoc signed and is not Apple-notarized.
 
 ### Option 2: inside the Codex side panel
 
-Install **ReaCut 0.5.0+**, Codex desktop, its `codex` CLI, and Python 3. Download the [Codex plugin ZIP](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.5.0/ReaCut-plugin-0.5.0.zip), then run from its extracted directory or this repository:
+Install **ReaCut 0.5.0+**, Codex desktop, its `codex` CLI, and Python 3. Download the [Codex plugin ZIP](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.6.0/ReaCut-plugin-0.6.0.zip), then run from its extracted directory or this repository:
 
 ```sh
 sh scripts/install-plugin.sh
