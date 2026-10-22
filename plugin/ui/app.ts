@@ -1,5 +1,5 @@
 import { App } from '@modelcontextprotocol/ext-apps';
-const app = new App({ name: 'ReaCut', version: '0.5.0' }, { availableDisplayModes: ['fullscreen'] }, { autoResize: false });
+const app = new App({ name: 'ReaCut', version: '0.6.0' }, { availableDisplayModes: ['fullscreen'] }, { autoResize: false });
 const screen = document.querySelector<HTMLImageElement>('#screen')!;
 const status = document.querySelector<HTMLElement>('#status')!;
 const stage = document.querySelector<HTMLElement>('#stage')!;
