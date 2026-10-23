@@ -39,3 +39,9 @@
 .subtitle-error { color: #f19999; }
 .subtitle-notice { color: #72d6be; }
 .subtitle-panel button:disabled, .subtitle-panel input:disabled, .subtitle-panel textarea:disabled { opacity: .45; cursor: not-allowed; }
+
+.subtitle-batch-tabs { flex-wrap: wrap; }
+.subtitle-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+.subtitle-options label { display: flex; flex-direction: column; gap: 5px; font-size: 11px; min-width: 0; }
+.subtitle-options input:not([type=checkbox]), .subtitle-options select { width: 100%; min-width: 0; }
+.subtitle-options .subtitle-hint { grid-column: 1 / -1; }

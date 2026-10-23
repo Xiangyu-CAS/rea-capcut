@@ -32,9 +32,9 @@
 
 ### 10 月 23 日：字幕与文字动画工作流
 
-- [ ] 增加字幕按播放头拆分、相邻字幕合并，并明确文本拼接和时间范围规则。
-- [ ] 支持批量应用可编辑字幕样式，以及统一的文字入场、停留、出场动画设置。
-- [ ] 复用现有 SRT/WebVTT 导入和字幕列表，完善“导入字幕→修整→统一样式→导出”流程。
+- [x] 增加字幕按播放头拆分、相邻字幕合并，并明确文本拼接和时间范围规则。
+- [x] 支持批量应用可编辑字幕样式，以及统一的文字入场、停留、出场动画设置。
+- [x] 复用现有 SRT/WebVTT 导入和字幕列表，完善“导入字幕→修整→统一样式→导出”流程。
 - 验收：用含中英文、长句和重叠时间的合成字幕完成全流程；撤销和项目重开正确，成片动画与预览一致。字幕文件导出明确其不携带动画的格式限制。
 - 本周不引入云端语音识别；已有 16 款文字模板不作为新增字幕能力重复计数。
 
@@ -80,7 +80,7 @@
 | 2026-10-20 | 已完成：源 I/O 插入/覆盖/叠加及目标轨；分离后画声关联选择、移动、裁剪、分割、解除关联；锁轨原子保护 | 310 项测试、构建、真实桌面保存重启和五秒画面/音调导出验证；[截图与操作](TIMELINE_EDITING.md)、[解码证据](validation/timeline-editing-2026-10-20.json) | 本日功能提交见 [文件历史](https://github.com/Xiangyu-CAS/rea-capcut/commits/main/docs/TIMELINE_EDITING.md)；本机 `.test-output/timeline-edits-electron/rough-cut.mp4` | 源码已交付，未替换 DMG/已安装插件；暂无任意片段重新关联，新增模式从源预览操作；Windows CI 仍有既有失败，详见 VALIDATION.md。10/21 按计划继续倒放与定格。 |
 | 2026-10-21 | 已完成：选段倒放（原声倒放/移除）、关联画声替换、可调时长静帧全轨插入；进度/取消、持久化衍生素材及复用 | 335 项测试、构建；真实桌面五组流程、保存重启、十个预览点及 108 帧导出逐帧匹配；[操作与截图](REVERSE_FREEZE.md)、[证据](validation/reverse-freeze-2026-10-21.json) | 本日提交见 [文件历史](https://github.com/Xiangyu-CAS/rea-capcut/commits/main/docs/REVERSE_FREEZE.md)；本机 `.test-output/derivatives-electron/reverse-freeze.mp4` | 源码交付，未替换 DMG/插件；倒放限 60 分钟、项目帧对齐时长、SDR 8-bit 和 4096×2160 像素量，完整文件不自动清理；Windows 既有 CI 问题仍保留。10/22 继续关键帧曲线。 |
 | 2026-10-22 | 已完成：可视化关键帧拖动/精确输入/选择删除/跨片段复制粘贴；新增缓入、缓出，共享插值并保持裁剪/分割/转场相位 | 360 项测试、构建；真实桌面五组流程、保存重启及 60 帧预览/导出逐帧比对；[操作与截图](KEYFRAME_CURVES.md)、[证据](validation/keyframe-curves-2026-10-22.json) | 本日提交见 [文件历史](https://github.com/Xiangyu-CAS/rea-capcut/commits/main/docs/KEYFRAME_CURVES.md)；本机 `.test-output/keyframe-curves-electron/curves.mp4` | 今日源码尚未进入 v0.6.0 DMG；不含任意贝塞尔手柄/变速曲线；旧应用不能打开含新缓动的工程。同步了远端本地语音与发布改动，未重复计为今天成果；10/23 继续字幕编辑与动画。 |
-| 2026-10-23 | 待执行 | — | — | — |
+| 2026-10-23 | 已完成：播放头/文本光标拆分、连续字幕合并；直接批量样式；入场/停留/出场动画（渐显隐/上滑/缩放与可调呼吸），生成可编辑关键帧 | 391 项测试、构建；真实桌面四组、保存重启、8 秒/240 帧导出与 12 点预览对照；[操作与截图](SUBTITLE_WORKFLOW.md)、[证据](validation/subtitle-workflow-2026-10-23.json) | 本日提交见 [文件历史](https://github.com/Xiangyu-CAS/rea-capcut/commits/main/docs/SUBTITLE_WORKFLOW.md)；本机 `.test-output/subtitle-workflow-electron/captions.mp4` | 源码交付，未替换 v0.6.0 DMG/插件；SRT 仅含文本与时间，动画表单不反推手动曲线；Windows 既有 CI 问题仍保留。10/24 按计划继续响度与自动压低音乐。 |
 | 2026-10-24 | 待执行 | — | — | — |
 | 2026-10-25 | 待执行 | — | — | — |
 | 2026-10-26 | 待执行 | — | — | — |

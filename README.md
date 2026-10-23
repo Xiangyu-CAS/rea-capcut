@@ -36,7 +36,7 @@ The project uses [REA](https://github.com/morluto/rea) to study Jianying's inter
 | **Reverse and freeze** | Locally reverse a selected video range with reversed or removed audio; insert an adjustable freeze frame at the playhead. [Workflow and limits](docs/REVERSE_FREEZE.md). |
 | **Keyframe curves (source only)** | Drag and precisely edit points, copy/paste curves, and choose linear, ease-in, ease-out or smooth easing for motion, opacity and volume. [Workflow and validation](docs/KEYFRAME_CURVES.md); not yet in the v0.6.0 DMG. |
 | **Picture and sound** | Transform, crop, apply basic color adjustments, chroma key, rectangle / ellipse masks, keyframes, volume, fades and constant speed changes. |
-| **Text and subtitles** | Import SRT / basic WebVTT, edit individual cues, batch-replace text, shift timing, apply consistent styles and export SRT. |
+| **Text and subtitles** | Import SRT / basic WebVTT, edit cues, batch-replace text, shift timing and export SRT. New in source: caret/playhead split, consecutive merge, editable batch styles and entrance/hold/exit animation. [Workflow and validation](docs/SUBTITLE_WORKFLOW.md); not yet in the v0.6.0 DMG. |
 | **Local speech** | Offline transcription on Apple Silicon with separately installed MLX Whisper/model; macOS system TTS. [Setup, downloads and platform limits](docs/LOCAL_SPEECH.md). |
 | **Local projects** | Save `.reacut` projects, automatically recover edits, relink media and collect project media into a portable folder. |
 | **Video export** | Render the full timeline, a selection or a custom range to MP4 / MOV with H.264 and AAC. |

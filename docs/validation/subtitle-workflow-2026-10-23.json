@@ -1,0 +1,346 @@
+{
+  "at": "2026-10-23T10:29:28.150Z",
+  "checks": [
+    "SRT imports Chinese/English, long and overlapping cues; caret/playhead split and adjacent merge persist; undo/redo and stale locked merge recheck are atomic",
+    "direct editable batch style and entrance/hold/exit settings preserve text/title and commit one undo; animations become ordinary saved keyframes",
+    "SRT retains cue text/timing and overlaps without animation; actual process restart restores styles/curves",
+    "real eight-second 240-frame export; twelve preview/export samples verify entry motion, breathing hold and exit scale/opacity"
+  ],
+  "frames": [
+    0,
+    1,
+    4,
+    8,
+    14,
+    15,
+    30,
+    60,
+    75,
+    80,
+    85,
+    89
+  ],
+  "expected": [
+    {
+      "x": 0,
+      "y": 16,
+      "scale": 1,
+      "rotation": 0,
+      "opacity": 0,
+      "flipX": false,
+      "flipY": false
+    },
+    {
+      "x": 0,
+      "y": 13.937777777777779,
+      "scale": 1,
+      "rotation": 0,
+      "opacity": 0.1288888888888889,
+      "flipX": false,
+      "flipY": false
+    },
+    {
+      "x": 0,
+      "y": 8.604444444444443,
+      "scale": 1,
+      "rotation": 0,
+      "opacity": 0.46222222222222226,
+      "flipX": false,
+      "flipY": false
+    },
+    {
+      "x": 0,
+      "y": 3.484444444444444,
+      "scale": 1,
+      "rotation": 0,
+      "opacity": 0.7822222222222223,
+      "flipX": false,
+      "flipY": false
+    },
+    {
+      "x": 0,
+      "y": 0.07111111111111157,
+      "scale": 1,
+      "rotation": 0,
+      "opacity": 0.9955555555555555,
+      "flipX": false,
+      "flipY": false
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "scale": 1,
+      "rotation": 0,
+      "opacity": 1,
+      "flipX": false,
+      "flipY": false
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "scale": 1.04,
+      "rotation": 0,
+      "opacity": 1,
+      "flipX": false,
+      "flipY": false
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "scale": 1.04,
+      "rotation": 0,
+      "opacity": 1,
+      "flipX": false,
+      "flipY": false
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "scale": 1,
+      "rotation": 0,
+      "opacity": 1,
+      "flipX": false,
+      "flipY": false
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "scale": 0.9777777777777779,
+      "rotation": 0,
+      "opacity": 0.8888888888888891,
+      "flipX": false,
+      "flipY": false
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "scale": 0.9111111111111111,
+      "rotation": 0,
+      "opacity": 0.5555555555555551,
+      "flipX": false,
+      "flipY": false
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "scale": 0.8257777777777777,
+      "rotation": 0,
+      "opacity": 0.1288888888888885,
+      "flipX": false,
+      "flipY": false
+    }
+  ],
+  "preview": [
+    {
+      "peak": 0,
+      "energy": 0,
+      "y": null,
+      "width": 0
+    },
+    {
+      "peak": 33,
+      "energy": 960679,
+      "y": 104.34673608195152,
+      "width": 238.44421699078814
+    },
+    {
+      "peak": 118,
+      "energy": 3419132,
+      "y": 99.07042655154514,
+      "width": 238.44421699078814
+    },
+    {
+      "peak": 199,
+      "energy": 5759190,
+      "y": 93.96274792332643,
+      "width": 238.77175025588537
+    },
+    {
+      "peak": 254,
+      "energy": 7353388,
+      "y": 90.52127573075225,
+      "width": 238.44421699078814
+    },
+    {
+      "peak": 255,
+      "energy": 7408744,
+      "y": 90.46354932514868,
+      "width": 238.44421699078814
+    },
+    {
+      "peak": 255,
+      "energy": 8013409,
+      "y": 90.51022147280065,
+      "width": 248.2702149437052
+    },
+    {
+      "peak": 255,
+      "energy": 8013409,
+      "y": 90.51022147280065,
+      "width": 248.2702149437052
+    },
+    {
+      "peak": 255,
+      "energy": 7408744,
+      "y": 90.46354932514868,
+      "width": 238.44421699078814
+    },
+    {
+      "peak": 227,
+      "energy": 6287447,
+      "y": 90.4616375758773,
+      "width": 233.20368474923234
+    },
+    {
+      "peak": 142,
+      "energy": 3411008,
+      "y": 90.40934283589011,
+      "width": 217.482088024565
+    },
+    {
+      "peak": 33,
+      "energy": 652241,
+      "y": 90.30251952635325,
+      "width": 196.8474923234391
+    }
+  ],
+  "exported": [
+    {
+      "peak": 0,
+      "energy": 0,
+      "y": null,
+      "width": 0
+    },
+    {
+      "peak": 37,
+      "energy": 76613,
+      "y": 104.62672498767866,
+      "width": 236
+    },
+    {
+      "peak": 129,
+      "energy": 275748,
+      "y": 99.30545620994812,
+      "width": 236
+    },
+    {
+      "peak": 216,
+      "energy": 470508,
+      "y": 94.72262944368615,
+      "width": 236
+    },
+    {
+      "peak": 255,
+      "energy": 589135,
+      "y": 91.43941824108077,
+      "width": 236
+    },
+    {
+      "peak": 255,
+      "energy": 589134,
+      "y": 91.43985392094328,
+      "width": 236
+    },
+    {
+      "peak": 255,
+      "energy": 650780,
+      "y": 91.74211026755738,
+      "width": 246
+    },
+    {
+      "peak": 255,
+      "energy": 645717,
+      "y": 91.6479843694258,
+      "width": 247
+    },
+    {
+      "peak": 255,
+      "energy": 589360,
+      "y": 91.3519547199876,
+      "width": 236
+    },
+    {
+      "peak": 242,
+      "energy": 492156,
+      "y": 91.44251990469527,
+      "width": 232
+    },
+    {
+      "peak": 152,
+      "energy": 253034,
+      "y": 91.00933399425745,
+      "width": 216
+    },
+    {
+      "peak": 32,
+      "energy": 43616,
+      "y": 90.57182085648905,
+      "width": 194
+    }
+  ],
+  "measuredOpacity": [
+    [
+      0,
+      0.12966646359870063,
+      0.46149312623379146,
+      0.7773395697137137,
+      0.9925144792684363,
+      0.9999860871197266,
+      1,
+      1,
+      0.9999860871197266,
+      0.8876533182699312,
+      0.5546122032620924,
+      0.1291014384511602
+    ],
+    [
+      0,
+      0.12733123451857772,
+      0.45829471833799446,
+      0.7819869276867759,
+      0.9791456652017579,
+      0.9791440031961647,
+      1,
+      0.9922201051046436,
+      0.9795196164602478,
+      0.8555688017354379,
+      0.5066040717825107,
+      0.1063045692590393
+    ]
+  ],
+  "errors": [],
+  "environment": {
+    "platform": "macOS Apple Silicon",
+    "artifact": "source build, Electron 44.7.0",
+    "packagedAppTested": false,
+    "codexHostTested": false
+  },
+  "validation": {
+    "testFiles": 34,
+    "testsPassed": 391,
+    "typecheck": "passed",
+    "build": "passed",
+    "newCoreCases": 23,
+    "newMediaCases": 8,
+    "framesPerMediaCase": 60,
+    "desktopGroups": 4,
+    "existingDesktopGroups": {
+      "subtitles": 8,
+      "largeSubtitles": 3,
+      "basicEditing": 14
+    },
+    "export": {
+      "width": 320,
+      "height": 180,
+      "fps": 30,
+      "seconds": 8,
+      "decodedFrames": 240
+    },
+    "sampleLimits": {
+      "centerProjectPixels": 3,
+      "widthProjectPixels": 6,
+      "opacityAbsolute": 0.06
+    },
+    "opacityMethod": "Integrated glyph color energy, normalized to each renderer reference and corrected for scale squared; peak values are diagnostic only."
+  }
+}

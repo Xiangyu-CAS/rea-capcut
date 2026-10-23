@@ -37,6 +37,7 @@ jobs:
         run: |
           npx tsx tests/assistant-assets-electron.ts
           npx tsx tests/subtitle-electron.ts
+          npx tsx tests/subtitle-workflow-electron.ts
           npx tsx tests/portable-range-electron.ts
           npx tsx tests/source-preview-electron.ts
           npx tsx tests/timeline-edits-electron.ts

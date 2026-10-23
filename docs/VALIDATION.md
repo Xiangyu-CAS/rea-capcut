@@ -1,5 +1,15 @@
 # 本机验证记录
 
+## 字幕拆分、合并与三阶段动画（2026-10-23，未发布源码）
+
+- `npm run check`：类型检查、34 个文件 / **391 项测试**、生产构建通过。新增 23 项字幕语义与 8 项真实 FFmpeg 动画用例（每例 60 帧）。
+- Electron 四组新增工作流通过：中英文/长句/重叠 SRT 导入、光标与播放头拆分、连续合并、锁轨/过时计划重新检查、直接批量样式、三阶段动画、单次撤销/重做、SRT 输出及实际进程重启。
+- 实际 UI 导出 8 秒、320×180、30 fps 的 240 帧成片；动画字幕 12 个采样点与播放器对比，中心误差 <3 项目像素、宽度差 <6 像素。按字形亮度和缩放面积测量的预览/导出透明度各自与模型差 <0.06。`renderer errors` 为空。
+- 既有字幕桌面 8 组、大字幕项目 3 组、基础编辑 14 组通过。大字幕项目为 300 句/15 分钟自造数据；不代表任意规模性能保证。
+- macOS Apple Silicon 源码验证；未构建/替换 DMG、插件包或 Release，未做 Codex 宿主和 Windows/Linux 实机验收。提交前读取前一提交的 [CI 39763595409](https://github.com/Xiangyu-CAS/rea-capcut/actions/runs/39763595409)：macOS/Linux/package 成功，Windows `npm run check` 仍失败，不将其计为本次跨平台通过。
+
+[操作与边界](SUBTITLE_WORKFLOW.md) · [截图](screenshots/subtitle-workflow-editor.png) · [采样数据](validation/subtitle-workflow-2026-10-23.json)。运行 `npm run test:subtitle-workflow` 生成本地 `.test-output/subtitle-workflow-electron/captions.mp4` 及保存工程。
+
 ## 关键帧曲线（2026-10-22，未发布源码）
 
 - 同步 `origin/main` 的 `e2b8b58`（含独立本地语音与 v0.6.0 发布改动）后开发；今天新增的曲线不在已发布 v0.6.0 DMG 内。

@@ -70,7 +70,7 @@ renderer 没有 Node.js 权限。preload 只暴露编辑所需方法；主进程
 ## v0.4 本地工作流
 
 - SourcePreview 使用独立 HTML 媒体元素、焦点内快捷键和源入出点；卸载暂停并释放源。App 在时间线操作时返回项目播放器，store 校验选段后一次性创建片段/轨道，保留 sourceIn。
-- subtitleEdits 是纯计划/应用层，字幕面板提交整项目原子修改；提案绑定创建时状态，避免覆盖随后编辑。
+- subtitleEdits 是纯计划/应用层，字幕面板提交整项目原子修改；提案绑定创建时状态并保留操作类型，重新检查不会把合并降为其他操作。subtitleWorkflow 负责字素边界拆分、连续条目合并、直接样式和三阶段动画。拆分复用 splitClip 的曲线切片，合并拉伸首条动画；动画写成普通 Y/scale/opacity 关键帧，预览、导出、裁剪及保存沿用现有模型，不新增项目持久化字段。批量任一错误拒绝整个计划。
 - portableProject 定义版本化 reacut-portable 封装。仅接受受限 media/UUID.ext 相对路径，解析时校验 realpath 边界；绝对媒体路径仍经现有授权协议提供给 renderer。流式复制到临时文件夹，失败/取消清理，完成后 rename；保存保留相对引用。首次 SHA-256 清单是历史记录。
 - exportRange 校验时间边界和一帧下限；合成保留原时间轴，最终 trim/atrim 并重置时间戳，保持动画和淡化相位。完全在区间外的素材不进入渲染输入。
 
