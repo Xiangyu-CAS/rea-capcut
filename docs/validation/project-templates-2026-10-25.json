@@ -1,0 +1,130 @@
+{
+  "at": "2026-10-25T11:49:38.395Z",
+  "checks": [
+    "new independent project preserves structure; one undo/redo restores all media and text replacements",
+    "short video rejects the entire replacement batch, reports required source duration",
+    "all three original examples instantiate, batch replace, save, preview and export 12 seconds / 360 frames each; portrait fit and video audio verified",
+    "UI saves name/cover/placeholders, cancels blocked export cleanly, exports and imports a moved media bundle into an independent local copy; original unchanged",
+    "template save IPC rejects a media path never authorized through import without adding a library entry",
+    "real process restart preserves the local template library, independent project, replacement text and decoded media after original/external sources disappear"
+  ],
+  "renders": [
+    {
+      "example": "promo",
+      "seconds": 12,
+      "frames": 360,
+      "width": 640,
+      "height": 360,
+      "preview": [
+        [
+          208,
+          32,
+          32
+        ],
+        [
+          16,
+          16,
+          21
+        ]
+      ],
+      "exported": [
+        [
+          208,
+          32,
+          33
+        ],
+        [
+          16,
+          15,
+          20
+        ]
+      ]
+    },
+    {
+      "example": "talk",
+      "seconds": 12,
+      "frames": 360,
+      "width": 640,
+      "height": 360,
+      "preview": [
+        [
+          33,
+          64,
+          208
+        ],
+        [
+          33,
+          64,
+          208
+        ]
+      ],
+      "exported": [
+        [
+          33,
+          64,
+          208
+        ],
+        [
+          33,
+          64,
+          208
+        ]
+      ]
+    },
+    {
+      "example": "gallery",
+      "seconds": 12,
+      "frames": 360,
+      "width": 640,
+      "height": 360,
+      "preview": [
+        [
+          208,
+          32,
+          32
+        ],
+        [
+          16,
+          16,
+          21
+        ]
+      ],
+      "exported": [
+        [
+          208,
+          32,
+          33
+        ],
+        [
+          16,
+          15,
+          20
+        ]
+      ]
+    }
+  ],
+  "errors": [],
+  "environment": {
+    "platform": "macOS Apple Silicon",
+    "artifact": "source build",
+    "packagedAppTested": false,
+    "codexHostTested": false
+  },
+  "validation": {
+    "testsPassed": 411,
+    "testFiles": 36,
+    "typecheck": "passed",
+    "build": "passed",
+    "newCoreAndStorageTests": 17,
+    "newRealExportTests": 3,
+    "newDesktopGroups": 6,
+    "regressions": {
+      "portableRange": 6,
+      "storage": 7,
+      "basicEditing": 14
+    },
+    "syntheticMediaOnly": true,
+    "comparison": "Two normalized picture locations at one second per example; RGB channel difference <14/255. Separate text-render checks in the media tests.",
+    "audio": "Synthetic sine replacement in talk example exported with RMS >0.05"
+  }
+}

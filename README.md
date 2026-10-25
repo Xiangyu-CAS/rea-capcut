@@ -39,6 +39,7 @@ The project uses [REA](https://github.com/morluto/rea) to study Jianying's inter
 | **Text and subtitles** | Import SRT / basic WebVTT, edit cues, batch-replace text, shift timing and export SRT. New in source: caret/playhead split, consecutive merge, editable batch styles and entrance/hold/exit animation. [Workflow and validation](docs/SUBTITLE_WORKFLOW.md); not yet in the v0.6.0 DMG. |
 | **Local speech** | Offline transcription on Apple Silicon with separately installed MLX Whisper/model; macOS system TTS. [Setup, downloads and platform limits](docs/LOCAL_SPEECH.md). |
 | **Local projects** | Save `.reacut` projects, automatically recover edits, relink media and collect project media into a portable folder. |
+| **Project templates (source only)** | Save reusable templates with covers and named media/text slots; batch replace into an independent project, import/export media bundles, and start from three original examples. [Workflow and validation](docs/PROJECT_TEMPLATES.md); not yet in the v0.6.0 DMG. |
 | **Video export** | Render the full timeline, a selection or a custom range to MP4 / MOV with H.264 and AAC. |
 | **Text & effect libraries** | 16 editable text templates, 16 color / motion presets, and 8 transitions with animated previews and one-step undo. |
 | **Offline assets** | Use 64 original stickers, backgrounds, title plates and synthesized sounds, plus the bundled Noto Sans SC font. |

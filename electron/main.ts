@@ -1,3 +1,6 @@
+import { listTemplates, libraryTemplate, readTemplate, writeTemplate } from "./projectTemplates";
+import { validateTemplate } from "../src/core/projectTemplates";
+import { TEMPLATE_EXAMPLES, buildTemplateExample } from "../src/core/templateExamples";
 import { speechInfo, generateSpeech, cancelSpeech, cancelAllSpeech, cleanSpeechTemporaries } from "./speech";
 import { speechSource, type SpeechSettings, type SpeechRequest } from "../src/core/speech";
 import { deriveMedia, cancelDerivative, cancelDerivatives } from "./derivatives";
@@ -247,7 +250,65 @@ function handle(name: string, callback: (...args: any[]) => unknown) {
     return callback(...args);
   });
 }
+async function importBuiltinAsset(id: unknown) {
+    const definition = BUILTIN_ASSETS.find(asset => asset.id === id);
+    if (!definition) throw new Error("未找到内置素材");
+    const source = app.isPackaged
+      ? path.join(app.getAppPath().replace(/\.asar$/, ".asar.unpacked"), "dist/builtin-assets", definition.fileName)
+      : path.join(__dirname, "../public/builtin-assets", definition.fileName);
+    const bytes = await readFile(source);
+    const directory = userFile("builtin-assets");
+    await mkdir(directory, { recursive: true });
+    const target = path.join(directory, `${definition.id}-${createHash("sha256").update(bytes).digest("hex").slice(0, 16)}${path.extname(definition.fileName)}`);
+    try { await access(target); } catch { await copyFile(source, target); }
+    const [asset] = await importAssets([target], cacheDir());
+    asset.name = definition.name; authorizeAsset(asset); return asset;
+}
+
+const templateTasks = new Map<string, { controller: AbortController; done: Promise<unknown> }>();
+async function cancelTemplates(jobId?: string) {
+  const tasks = jobId ? [templateTasks.get(jobId)].filter((t): t is NonNullable<typeof t> => !!t) : [...templateTasks.values()];
+  tasks.forEach(t => t.controller.abort()); await Promise.allSettled(tasks.map(t => t.done));
+}
+async function templateTask<T>(jobId: string, work: (signal: AbortSignal, progress: (p:number,message:string)=>void)=>Promise<T>):Promise<T> {
+  if (typeof jobId !== "string" || !/^[a-f\d-]{36}$/i.test(jobId) || templateTasks.size) throw new Error("已有模板任务正在处理");
+  const controller = new AbortController(), owner = window!.webContents;
+  const done = Promise.resolve().then(()=>work(controller.signal,(progress,message)=>{ if(!owner.isDestroyed()) owner.send("template-progress",{jobId,progress,message}); }));
+  templateTasks.set(jobId,{controller,done});
+  try { return await done; } finally { templateTasks.delete(jobId); }
+}
 function registerIPC() {
+  handle("template-list", () => listTemplates(userFile("project-templates")));
+  handle("template-load", async (id: string, builtin: boolean) => {
+    if (builtin) {
+      const def=TEMPLATE_EXAMPLES.find(d=>d.id===id); if(!def) throw new Error("未知原创模板");
+      const assets=[]; for(const mediaId of def.media) assets.push(await importBuiltinAsset(mediaId));
+      return buildTemplateExample(id,assets);
+    }
+    const t=await libraryTemplate(userFile("project-templates"),id);
+    t.project=await hydrateProject(t.project);return t;
+  });
+  handle("template-save", (jobId: string, input: unknown) => templateTask(jobId, async (signal,progress) => {
+    const t=validateTemplate(input);
+    for(const a of t.project.assets) if(!allowedMedia.has(path.resolve(a.path))) throw new Error("模板引用了未经导入的素材");
+    const root=userFile("project-templates");await mkdir(root,{recursive:true});
+    await writeTemplate(t,root,signal,progress);
+  }));
+  handle("template-import", (jobId: string) => templateTask(jobId, async (signal,progress) => {
+    const selected=await dialog.showOpenDialog(window!,{title:"导入模板包",properties:["openFile"],filters:[{name:"ReaCut 模板",extensions:["reacut-template"]}]});
+    if(selected.canceled || !selected.filePaths[0]) return false;
+    if(signal.aborted) throw new Error("已取消模板导入");
+    const t=await readTemplate(selected.filePaths[0]);
+    const root=userFile("project-templates");await mkdir(root,{recursive:true});
+    await writeTemplate(t,root,signal,progress);return true;
+  }));
+  handle("template-export", (jobId: string, id: string) => templateTask(jobId, async (signal,progress) => {
+    const t=await libraryTemplate(userFile("project-templates"),id);
+    const selected=await dialog.showOpenDialog(window!,{title:"选择模板包保存位置",properties:["openDirectory","createDirectory"]});
+    if(selected.canceled || !selected.filePaths[0]) return null;
+    const result=await writeTemplate(t,selected.filePaths[0],signal,progress);outputPaths.add(result);return result;
+  }));
+  handle("template-cancel", (jobId: string) => cancelTemplates(jobId));
   handle("speech-info", () => speechInfo(speechSettings));
   handle("speech-choose-dependency", async (kind: unknown) => {
     if (kind !== "python" && kind !== "model") throw new Error("Invalid dependency kind");
@@ -275,20 +336,7 @@ function registerIPC() {
     return result;
   });
   handle("speech-cancel", (jobId: string) => cancelSpeech(jobId));
-  handle("import-builtin-asset", async (id: unknown) => {
-    const definition = BUILTIN_ASSETS.find(asset => asset.id === id);
-    if (!definition) throw new Error("未找到内置素材");
-    const source = app.isPackaged
-      ? path.join(app.getAppPath().replace(/\.asar$/, ".asar.unpacked"), "dist/builtin-assets", definition.fileName)
-      : path.join(__dirname, "../public/builtin-assets", definition.fileName);
-    const bytes = await readFile(source);
-    const directory = userFile("builtin-assets");
-    await mkdir(directory, { recursive: true });
-    const target = path.join(directory, `${definition.id}-${createHash("sha256").update(bytes).digest("hex").slice(0, 16)}${path.extname(definition.fileName)}`);
-    try { await access(target); } catch { await copyFile(source, target); }
-    const [asset] = await importAssets([target], cacheDir());
-    asset.name = definition.name; authorizeAsset(asset); return asset;
-  });
+  handle("import-builtin-asset", importBuiltinAsset);
   handle("assistant-providers", () => discoverAssistantProviders(assistantOverrides));
   handle("assistant-choose-cli", async (provider: AssistantProvider) => {
     if (provider !== "codex" && provider !== "claude") throw new Error("无效助手类型");
@@ -791,6 +839,7 @@ function createWindow() {
   });
   window.on("closed", () => {
     void cancelPortablePackages();
+    void cancelTemplates();
     void cancelDerivatives();
     void cancelAllSpeech();
     assistantCancelPending = true;
@@ -877,6 +926,7 @@ void app.whenReady().then(async () => {
           accelerator: "CmdOrCtrl+Shift+S",
           click: () => menuAction("save-as"),
         },
+        { label: "工程模板…", click: () => menuAction("templates") },
         { type: "separator" },
         {
           label: "导入素材",
@@ -961,6 +1011,7 @@ app.on("before-quit", (event) => {
     cancelDerivatives(),
     cancelAllSpeech(),
     cancelPortablePackages(),
+    cancelTemplates(),
     shutdownMediaTasks(),
     writeQueue.catch(() => {}),
   ]).finally(() => {

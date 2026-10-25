@@ -50,7 +50,9 @@
     "test:speech:real": "tsx tests/speech-real.ts",
     "test:derivatives": "npm run build && tsx tests/derivatives-electron.ts",
     "test:curves": "npm run build && tsx tests/keyframe-curves-electron.ts",
-    "test:subtitle-workflow": "npm run build && tsx tests/subtitle-workflow-electron.ts"
+    "test:subtitle-workflow": "npm run build && tsx tests/subtitle-workflow-electron.ts",
+    "test:templates": "npm run build && tsx tests/templates-electron.ts",
+    "templates:previews": "tsx scripts/generate-template-previews.ts"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.11",

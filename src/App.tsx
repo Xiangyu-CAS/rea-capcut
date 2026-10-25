@@ -1,3 +1,4 @@
+import TemplateDialog from "./components/TemplateDialog";
 import SpeechDialog from "./components/SpeechDialog";
 import DerivativeDialog from "./components/DerivativeDialog";
 import { version as appVersion } from "../package.json";
@@ -67,7 +68,7 @@ import Player from "./components/Player";
 import Inspector from "./components/Inspector";
 import { useTranslation, useLanguageStore, type Language, type TranslationKey } from "./i18n";
 import "./styles.css";
-type Modal = "reverse" | "freeze" | "package" | "export" | "settings" | "shortcuts" | "about" | "capcut" | null;
+type Modal = "templates" | "reverse" | "freeze" | "package" | "export" | "settings" | "shortcuts" | "about" | "capcut" | null;
 type PendingCapcutImport = {
   selection: CapcutImportSelection;
   capturedProject: Project;
@@ -704,6 +705,9 @@ export default function App() {
     if ((modal || speechMode || recover) && action !== "save-and-close") return;
     setFileMenu(false);
     switch (action) {
+      case "templates":
+        s.setPlaying(false); setModal("templates");
+        break;
       case "new":
         newProject();
         break;
@@ -782,7 +786,7 @@ export default function App() {
       if (target.closest("input,textarea,select,[contenteditable=true]"))
         return;
       if (modal || speechMode || recover) {
-        if (e.key === "Escape" && modal !== "export" && modal !== "package" && modal !== "reverse" && modal !== "freeze") {
+        if (e.key === "Escape" && modal !== "templates" && modal !== "export" && modal !== "package" && modal !== "reverse" && modal !== "freeze") {
           setModal(null);
         }
         return;
@@ -1095,6 +1099,7 @@ export default function App() {
                   </button>
                 ))}
                 <hr />
+                <button onClick={() => void safe(() => handleAction("templates"))} disabled={!window.editorAPI}>工程模板…</button>
                 <button onClick={() => { setFileMenu(false); setModal("package"); }}>{t("toolbar.collectAssets")}</button>
                 <button onClick={() => void safe(() => importDraft("file"))}>
                   {t("toolbar.importCapcutFile")}<span>{t("toolbar.experimental")}</span>
@@ -1379,6 +1384,11 @@ export default function App() {
       )}
       {speechMode && <SpeechDialog mode={speechMode} onClose={() => setSpeechMode(null)} />}
       {(modal === "reverse" || modal === "freeze") && <DerivativeDialog mode={modal} onClose={() => setModal(null)} />}
+      {modal === "templates" && <TemplateDialog onClose={() => setModal(null)} onCreate={(base, replaced) => {
+        if (!confirmReplace()) return false;
+        const store=useEditorStore.getState(); store.setProject(base); store.commit(replaced);
+        useEditorStore.setState({dirty:true}); return true;
+      }} />}
       {modal === "package" && <PackageDialog project={clone(s.project)} onClose={() => setModal(null)} />}
       {modal === "export" && (
         <ExportDialog

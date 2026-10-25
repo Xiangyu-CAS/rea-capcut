@@ -1,0 +1,87 @@
+.template-dialog {
+  width: min(960px, 94vw);
+}
+.template-dialog fieldset {
+  border: 0;
+  padding: 0;
+  margin: 14px 0;
+  min-width: 0;
+}
+.template-dialog label {
+  display: block;
+  margin: 10px 0;
+}
+.template-dialog input:not([type="checkbox"]),
+.template-dialog textarea {
+  width: 100%;
+  margin-top: 6px;
+}
+.template-toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.template-toolbar .active {
+  color: var(--accent, #25d5c9);
+}
+.template-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.template-cards button {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  padding: 10px;
+  min-width: 0;
+}
+.template-cards img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: contain;
+  background: #101015;
+  border-radius: 5px;
+}
+.template-cards small {
+  color: #aaa;
+  line-height: 1.5;
+}
+.template-cover {
+  width: min(320px, 100%);
+  margin-top: 12px;
+}
+.template-slot {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.template-slot span {
+  white-space: nowrap;
+}
+.template-replacements {
+  border-top: 1px solid #444 !important;
+  padding-top: 14px !important;
+}
+.template-replacement div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+}
+.template-replacement textarea {
+  min-height: 60px;
+}
+@media (max-width: 720px) {
+  .template-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.template-replacement {
+  margin: 16px 0;
+}

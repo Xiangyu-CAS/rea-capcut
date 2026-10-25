@@ -1,5 +1,15 @@
 # 本机验证记录
 
+## 可复用工程模板（2026-10-25，未发布源码）
+
+- `npm run check`：类型检查、36 个文件 / **411 项测试**及生产构建通过；新增 17 项模板语义/文件边界测试、三套示例的实际 FFmpeg 导出。模板包补充原创资源许可后，17 项文件/语义测试、构建和新增桌面流程再次通过。
+- Electron 六组工作流：三套示例新建/替换/保存与实际导出、一次撤销重做、短源拒绝、实际封面及命名占位、本机库、导出取消、模板包搬移导入、原模板校验不变、未授权媒体路径拒绝及进程重启。移走原素材和导入包后仍可预览；renderer errors 为空。
+- 三支成片各 **12 秒、640×360、30 fps、360 帧**。取 1 秒画面两点比较播放器和导出 RGB，实测最大差 1/255（测试上限 14/255）；另核对竖图留边及合成视频声音 RMS >0.05。该采样证明当前替换流程，不宣称任意素材逐像素一致。
+- 既有素材包/区间 6 组、存储恢复 7 组、基础编辑 14 组桌面回归通过。均使用隔离用户目录和自造媒体，未替换安装应用、DMG、插件或 Release。
+- 提交前读取前一提交的 [CI 39940085629](https://github.com/Xiangyu-CAS/rea-capcut/actions/runs/39940085629)：macOS/Linux/package 成功，Windows 的 `npm run check` 仍失败。本轮 macOS 本机成功不代表跨平台 CI 全绿，Codex 宿主和最终包留待集成验收。
+
+[操作与边界](PROJECT_TEMPLATES.md) · [截图](screenshots/project-template-library.png) · [证据](validation/project-templates-2026-10-25.json)。复现：`npm run test:templates`；三支视频位于本机 `.test-output/templates-electron/`。
+
 ## 字幕拆分、合并与三阶段动画（2026-10-23，未发布源码）
 
 - `npm run check`：类型检查、34 个文件 / **391 项测试**、生产构建通过。新增 23 项字幕语义与 8 项真实 FFmpeg 动画用例（每例 60 帧）。

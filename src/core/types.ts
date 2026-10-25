@@ -1,3 +1,4 @@
+import type { ProjectTemplate, TemplateSummary } from "./projectTemplates";
 import type { SpeechInfo, SpeechProgress, SpeechRequest, SpeechResult } from "./speech";
 import type { AssistantEvent, AssistantMessage, AssistantProvider, AssistantProviderInfo, AssistantRequest } from "./assistantTypes";
 export type MediaKind = "video" | "audio" | "image";
@@ -176,6 +177,13 @@ export interface CapcutImportSelection {
   warnings: string[];
 }
 export interface EditorAPI {
+  listTemplates: () => Promise<TemplateSummary[]>;
+  loadTemplate: (id: string, builtin?: boolean) => Promise<ProjectTemplate>;
+  saveTemplate: (jobId: string, template: ProjectTemplate) => Promise<void>;
+  importTemplate: (jobId: string) => Promise<boolean>;
+  exportTemplate: (jobId: string, id: string) => Promise<string | null>;
+  cancelTemplate: (jobId: string) => Promise<void>;
+  onTemplateProgress: (callback: (event: DerivativeProgress) => void) => () => void;
   getSpeechInfo: () => Promise<SpeechInfo>;
   chooseSpeechDependency: (kind: "python" | "model") => Promise<SpeechInfo>;
   generateSpeech: (jobId: string, project: Project, request: SpeechRequest) => Promise<SpeechResult>;
