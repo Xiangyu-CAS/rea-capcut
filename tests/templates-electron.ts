@@ -158,7 +158,11 @@ async function save() {
     .catch(() => 0);
   await page.getByRole("button", { name: "保存项目", exact: true }).click();
   await expect
-    .poll(() => stat(projectFile).then((s) => s.mtimeMs))
+    .poll(() => stat(projectFile).then((s) => s.mtimeMs).catch((error: NodeJS.ErrnoException) => {
+      // Atomic save may not have created the new destination on the first poll.
+      if (error.code === "ENOENT") return 0;
+      throw error;
+    }))
     .toBeGreaterThan(previous);
   await expect
     .poll(async () => {
