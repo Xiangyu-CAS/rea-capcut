@@ -1,3 +1,4 @@
+import UpdateDialog from "./components/UpdateDialog";
 import TemplateDialog from "./components/TemplateDialog";
 import SpeechDialog from "./components/SpeechDialog";
 import DerivativeDialog from "./components/DerivativeDialog";
@@ -69,7 +70,7 @@ import { useUITranslation, translateUI, useTranslation, useLanguageStore, type L
 import { createEditorProject } from "./editor/localizedDefaults";
 import { localizeMessage } from "./i18n/messages";
 import "./styles.css";
-type Modal = "templates" | "reverse" | "freeze" | "package" | "export" | "settings" | "shortcuts" | "about" | "capcut" | null;
+type Modal = "updates" | "templates" | "reverse" | "freeze" | "package" | "export" | "settings" | "shortcuts" | "about" | "capcut" | null;
 type PendingCapcutImport = {
   selection: CapcutImportSelection;
   capturedProject: Project;
@@ -695,6 +696,9 @@ export default function App() {
     if ((modal || speechMode || recover) && action !== "save-and-close") return;
     setFileMenu(false);
     switch (action) {
+      case "check-for-updates":
+        setModal("updates");
+        break;
       case "settings":
         setModal("settings");
         break;
@@ -1478,9 +1482,13 @@ export default function App() {
           </footer>
         </ModalShell>
       )}
+      {modal === "updates" && <UpdateDialog autoCheck onClose={() => setModal(null)} />}
       {modal === "settings" && (
         <ModalShell title={t("settings.title")} onClose={() => setModal(null)}>
           <div className="modal-body">
+          <h3>{ui("应用更新", "Application updates")}</h3>
+          <p className="muted small">{ui("预览通道 · 仅点击后连接 GitHub，不自动安装。", "Preview channel · Connects to GitHub only on request. No automatic installation.")}</p>
+          <button onClick={() => setModal("updates")}>{ui("检查更新", "Check for Updates")}</button>
           <h3>{ui("语言 / Language", t("settings.language"))}</h3>
               <p className="muted small">{t("settings.language.description")}</p>
               <select

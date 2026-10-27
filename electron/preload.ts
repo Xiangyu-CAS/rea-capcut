@@ -2,6 +2,8 @@ import { contextBridge, ipcRenderer, webUtils } from "electron";
 import type { DerivativeProgress, EditorAPI, ExportProgress } from "../src/core/types";
 import type { AssistantEvent } from "../src/core/assistantTypes";
 const api: EditorAPI = {
+  checkForUpdates: () => ipcRenderer.invoke("check-for-updates"),
+  openUpdateTarget: target => ipcRenderer.invoke("open-update-target", target),
   setUILanguage: language => ipcRenderer.invoke("set-ui-language", language),
   listTemplates: () => ipcRenderer.invoke("template-list"),
   loadTemplate: (id, builtin) => ipcRenderer.invoke("template-load", id, builtin),

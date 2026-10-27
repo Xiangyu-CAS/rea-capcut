@@ -1,3 +1,4 @@
+import { createUpdateService } from "./updateCheck";
 import { listTemplates, libraryTemplate, readTemplate, writeTemplate } from "./projectTemplates";
 import { validateTemplate } from "../src/core/projectTemplates";
 import { TEMPLATE_EXAMPLES, buildTemplateExample } from "../src/core/templateExamples";
@@ -282,7 +283,18 @@ async function templateTask<T>(jobId: string, work: (signal: AbortSignal, progre
   templateTasks.set(jobId,{controller,done});
   try { return await done; } finally { templateTasks.delete(jobId); }
 }
+const updates = createUpdateService({
+  version: app.getVersion(), platform: process.platform, arch: process.arch,
+  fetch: (...args) => globalThis.fetch(...args), openExternal: url => shell.openExternal(url),
+});
+
 function registerIPC() {
+  // Only the verified main frame may request fixed public release metadata.
+  handle("check-for-updates", () => updates.check());
+  handle("open-update-target", (target: unknown) => {
+    if (target !== "release" && target !== "download") throw new Error("Invalid update target");
+    return updates.open(target);
+  });
   handle("set-ui-language", (language: unknown) => {
     if (language !== "zh-CN" && language !== "en" && language !== "tr") throw new Error("Invalid UI language");
     uiLanguage = language;
@@ -959,6 +971,7 @@ function updateApplicationMenu() {
       label: nativeUI("帮助", "Help"),
       submenu: [
         { label: nativeUI("设置 / Settings…", "Settings…"), accelerator: "CmdOrCtrl+,", click: () => menuAction("settings") },
+        { label: nativeUI("检查更新…", "Check for Updates…"), click: () => menuAction("check-for-updates") },
         { label: nativeUI("快捷键", "Shortcuts"), click: () => menuAction("shortcuts") },
         { label: nativeUI("关于 ReaCut", "About ReaCut"), click: () => menuAction("about") },
       ],
