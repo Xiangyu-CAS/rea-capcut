@@ -10,7 +10,7 @@ The one-version workflow runs only for release-preparation changes pushed to mai
 
 ## Publication gates
 
-1. Native arm64 host, consistent application/plugin versions, typecheck, complete unit suite, production build and plugin launcher tests.
+1. Native arm64 host, consistent application/plugin versions, typecheck, complete unit suite against the pinned media tools shipped in this release, production build and plugin launcher tests. The first attempt stopped before publication because macOS 15 Homebrew supplied FFmpeg 9.0.1; the release recipe pins 9.0.2. No failing test is skipped to resolve that toolchain mismatch.
 2. Dependency license inventory, native macOS DMG/ZIP and optional plugin ZIP. The media tools are built from pinned, checksum-verified FFmpeg/x264/pkgconf sources, with corresponding sources and licenses included.
 3. `hdiutil verify`, read-only mounting, copying the application to an isolated test directory, strict signature verification, arm64 executable and native version 0.7.0 checks.
 4. The **application extracted from the DMG** runs `tests/package-electron.ts`: synthetic project loading, bundled media tools under empty PATH, fonts/canvas, renderer security isolation, preview and video export. `tests/i18n-electron.ts` checks English/Chinese native menus, a canceled native picker, invalid locale rejection and English preference across an actual process restart.
@@ -23,7 +23,9 @@ Validation artifacts include the packaged test evidence and English desktop scre
 ```sh
 npm ci
 node node_modules/electron/install.js
-npm run check
+npm run media:build
+export PATH="$PWD/media-tools/darwin-arm64:$PATH"
+REACUT_FFMPEG="$PWD/media-tools/darwin-arm64/ffmpeg" REACUT_FFPROBE="$PWD/media-tools/darwin-arm64/ffprobe" npm run check
 python3 tests/plugin-launcher.py
 npm run licenses
 npm run dist:mac:installer

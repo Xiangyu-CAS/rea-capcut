@@ -55,8 +55,15 @@ jobs:
           grep -q 'HTTP 404' /tmp/tag-error
       - run: npm ci
       - run: node node_modules/electron/install.js
-      - run: brew install ffmpeg
-      - run: npm run check
+      - name: Build the exact media tools shipped in this release
+        run: |
+          npm run media:build
+          echo "$GITHUB_WORKSPACE/media-tools/darwin-arm64" >> "$GITHUB_PATH"
+      - name: Check against pinned release media tools
+        env:
+          REACUT_FFMPEG: ${{ github.workspace }}/media-tools/darwin-arm64/ffmpeg
+          REACUT_FFPROBE: ${{ github.workspace }}/media-tools/darwin-arm64/ffprobe
+        run: npm run check
       - run: python3 tests/plugin-launcher.py
       - run: npm run licenses
       - run: npm run dist:mac:installer
