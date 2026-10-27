@@ -17,9 +17,10 @@ open && React.createElement(UpdateDialog,{autoCheck:true,onClose:()=>setOpen(fal
 createRoot(document.getElementById('root')).render(React.createElement(Harness));`;
 const server = await createServer({ configFile: false, plugins: [react(), {
   name: 'update-test-harness',
+  resolveId(id) { if (id === '/update-harness.js') return '\0update-test-harness'; },
+  load(id) { if (id === '\0update-test-harness') return harness; },
   configureServer(s) { s.middlewares.use((req, res, next) => {
     if (req.url === '/update-harness') { res.setHeader('Content-Type', 'text/html'); void s.transformIndexHtml('/update-harness', '<html><head></head><body><div id="root"></div><script type="module" src="/update-harness.js"></script></body></html>').then(html => res.end(html)); }
-    else if (req.url === '/update-harness.js') { res.setHeader('Content-Type', 'application/javascript'); res.end(harness); }
     else next();
   }); },
 }], server: { host: '127.0.0.1', port: 0 } });
