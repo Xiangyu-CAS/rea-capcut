@@ -108,12 +108,15 @@ async function checkRequests(app: ElectronApplication, expected = 1) {
       catch { return true; }
     })).toBe(true);
     // A separate renderer with the same preload is not an authorized IPC source.
-    expect(await app.evaluate(async ({ BrowserWindow }) => {
-      const owner = BrowserWindow.getAllWindows()[0];
-      const preferences = (owner.webContents as any).getLastWebPreferences();
-      const outsider = new BrowserWindow({ show: false, webPreferences: { preload: preferences.preload, sandbox: true, contextIsolation: true, nodeIntegration: false } });
+    expect(await app.evaluate(async ({ BrowserWindow, app }) => {
+      // Use the documented preload path, not Electron internal preference fields.
+      const preload = `${app.getAppPath()}/dist-electron/preload.cjs`;
+      const outsider = new BrowserWindow({ show: false, webPreferences: { preload, sandbox: true, contextIsolation: true, nodeIntegration: false } });
+      const preloadErrors: string[] = [];
+      outsider.webContents.on("preload-error", (_event, file, error) => preloadErrors.push(`${file}: ${error.message}`));
       try {
         await outsider.loadURL('data:text/html,<html><body>Foreign test renderer</body></html>');
+        if (preloadErrors.length) throw new Error(preloadErrors.join('\n'));
         return await outsider.webContents.executeJavaScript(`(async () => {
           if (!window.editorAPI) throw new Error('Expected preload bridge');
           try { await window.editorAPI.checkForUpdates(); return false; } catch { return true; }
