@@ -4,7 +4,7 @@
 <h1 align="center">ReaCut</h1>
 <p align="center"><strong>An independently implemented, open-source video editor informed by <a href="https://github.com/morluto/rea">REA</a>-assisted research into Jianying / CapCut.</strong><br />macOS first. Research is limited to authorized scope, without copying proprietary Jianying / CapCut code or assets.</p>
 <p align="center">
-  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.7.0/ReaCut-0.7.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="Download for macOS — v0.7.0 · Apple Silicon" /></a><br />
+  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.7.1/ReaCut-0.7.1-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="Download for macOS — v0.7.1 · Apple Silicon" /></a><br />
   <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">All releases / ZIP / checksums</a> · <a href="#getting-started">Installation guide</a><br />
   <sub>Apple Silicon (M-series) only · Preview · Ad-hoc signed, not notarized. ASR requires separate local Python/MLX and model setup.</sub>
 </p>
@@ -25,7 +25,7 @@ ReaCut brings media management, multitrack editing, subtitles and video export i
 
 The project uses [REA](https://github.com/morluto/rea) to study Jianying's interface behavior and local project formats, then independently implements an editor with Electron, React, TypeScript and FFmpeg. REA supports development research; REA, Ghidra and Jianying are not runtime dependencies.
 
-> **v0.7.0 preview** adds broader English UI coverage, discoverable language settings, keyframe curves, subtitle workflows and reusable project templates, alongside local speech and timeline editing. The Apple Silicon release workflow validates the packaged app separately from source builds; see [release validation](docs/RELEASE_0.7.0.md). Windows/Linux binaries are not provided, and the existing Windows test failures remain.
+> **v0.7.1 preview** adds manual **Check for Updates** in Settings and Help: Preview-channel release notes and architecture-matched DMG links, without background checks or automatic installation. It retains v0.7.0 English coverage and creative workflows. See [release gates and validation](docs/RELEASE_0.7.1.md). Windows/Linux binaries are not provided, and existing Windows test failures remain.
 
 ## Features
 
@@ -52,13 +52,15 @@ See the [feature matrix](docs/FEATURE_MATRIX.md) for detailed support and limita
 
 **Interface language:** open **Settings** (shown as **设置 / Settings** in Chinese), then **Language**, or press **Cmd/Ctrl+,**. The choice is saved locally. Current source detects the system language on first launch, with English as fallback; the broader English interface fix is included in the v0.7.0 preview. [Language coverage and tests](docs/LOCALIZATION.md).
 
+**Manual updates (v0.7.1):** Settings or native Help → **Check for Updates** checks the Preview channel only on request. View release notes and open a matching DMG in your browser; replacement stays manual. No startup polling or project uploads. GitHub receives the ordinary connecting IP address. [Behavior and limits](docs/MANUAL_UPDATES.md).
+
 ### Option 1: standalone DMG
 
-Download the [ReaCut 0.7.0 DMG for macOS Apple Silicon](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.7.0/ReaCut-0.7.0-arm64.dmg), open it, drag the app into Applications, and launch it. FFmpeg and FFprobe are bundled. This preview is ad-hoc signed and is not Apple-notarized.
+Download the [ReaCut 0.7.1 DMG for macOS Apple Silicon](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.7.1/ReaCut-0.7.1-arm64.dmg), open it, drag the app into Applications, and launch it. FFmpeg and FFprobe are bundled. This preview is ad-hoc signed and is not Apple-notarized.
 
 ### Option 2: inside the Codex side panel
 
-Install **ReaCut 0.5.0+**, Codex desktop, its `codex` CLI, and Python 3. Download the [Codex plugin ZIP](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.7.0/ReaCut-plugin-0.7.0.zip), then run from its extracted directory or this repository:
+Install **ReaCut 0.5.0+**, Codex desktop, its `codex` CLI, and Python 3. Download the [Codex plugin ZIP](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.7.1/ReaCut-plugin-0.7.1.zip), then run from its extracted directory or this repository:
 
 ```sh
 sh scripts/install-plugin.sh

@@ -1,6 +1,6 @@
 {
   "name": "reacut",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "private": true,
   "description": "An open source offline desktop video editor informed by REA research",
   "type": "module",

@@ -1,0 +1,54 @@
+name: Manual update validation
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: update-validation-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  updates:
+    runs-on: macos-15
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: node node_modules/electron/install.js
+      # Full pinned-media regressions run independently in ci.yml and again at release.
+      # These updater-only fixtures do not consume media; keep failures fast to diagnose.
+      - name: Typecheck, updater units and build
+        id: check
+        run: |
+          npm run typecheck
+          npx vitest run tests/update-check.test.ts tests/update-dialog.test.ts
+          npm run build
+      - name: Real browser update flows
+        run: |
+          npx playwright install chromium
+          npx tsx tests/update-browser.ts
+      - name: Native update entry and explicit public API check
+        if: ${{ !cancelled() && steps.check.outcome == 'success' }}
+        env:
+          REACUT_TEST_LIVE_UPDATES: '1'
+        run: npx tsx tests/update-electron.ts
+      - name: Retain update validation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: update-validation-${{ github.run_id }}
+          path: |
+            .test-output/update-browser/*.png
+            .test-output/update-electron/*.png
+            .test-output/update-electron/evidence.json

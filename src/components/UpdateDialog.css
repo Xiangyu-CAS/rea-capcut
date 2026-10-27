@@ -1,0 +1,6 @@
+.modal.update-dialog { width: min(640px, calc(100vw - 24px)); }
+.update-dialog .modal-body { overflow-wrap: anywhere; }
+.update-dialog .update-notes pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 200px; overflow: auto; font: inherit; font-size: 12px; line-height: 1.6; padding: 12px; background: var(--bg, #17191e); border-radius: 6px; user-select: text; }
+.update-dialog > footer { flex-wrap: wrap; gap: 8px; }
+.update-dialog > footer button { white-space: normal; }
+.update-dialog .update-success { color: var(--accent, #45d6c0); }

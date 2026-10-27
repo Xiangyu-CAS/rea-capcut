@@ -177,6 +177,8 @@ export interface CapcutImportSelection {
   warnings: string[];
 }
 export interface EditorAPI {
+  checkForUpdates: () => Promise<import("./updateTypes").UpdateCheckResult>;
+  openUpdateTarget: (target: "release" | "download") => Promise<boolean>;
   setUILanguage?: (language: "zh-CN" | "en" | "tr") => Promise<void>;
   listTemplates: () => Promise<TemplateSummary[]>;
   loadTemplate: (id: string, builtin?: boolean) => Promise<ProjectTemplate>;

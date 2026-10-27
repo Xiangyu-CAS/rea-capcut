@@ -5,6 +5,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: build-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 jobs:
   core:
     strategy:
@@ -19,9 +22,14 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci
-      - name: Install FFmpeg (macOS)
+      - name: Build pinned shipped media tools (macOS)
         if: runner.os == 'macOS'
-        run: brew install ffmpeg
+        run: |
+          npm run media:build
+          tools="$GITHUB_WORKSPACE/media-tools/darwin-$(node -p process.arch)"
+          echo "$tools" >> "$GITHUB_PATH"
+          echo "REACUT_FFMPEG=$tools/ffmpeg" >> "$GITHUB_ENV"
+          echo "REACUT_FFPROBE=$tools/ffprobe" >> "$GITHUB_ENV"
       - name: Install FFmpeg (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y ffmpeg

@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "reacut",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Local video editing inside the Codex side panel. Requires ReaCut 0.5.0+.",
   "author": {
     "name": "ReaCut contributors"
