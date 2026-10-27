@@ -7,7 +7,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: update-validation-${{ github.event.pull_request.number || github.ref }}
+  group: update-validation-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 jobs:
   updates:
@@ -32,6 +32,7 @@ jobs:
           npm run media:build
           echo "$GITHUB_WORKSPACE/media-tools/darwin-arm64" >> "$GITHUB_PATH"
       - name: Typecheck, full unit suite and build
+        id: check
         env:
           REACUT_FFMPEG: ${{ github.workspace }}/media-tools/darwin-arm64/ffmpeg
           REACUT_FFPROBE: ${{ github.workspace }}/media-tools/darwin-arm64/ffprobe
@@ -41,6 +42,7 @@ jobs:
           npx playwright install chromium
           npx tsx tests/update-browser.ts
       - name: Native update entry and explicit public API check
+        if: ${{ !cancelled() && steps.check.outcome == 'success' }}
         env:
           REACUT_TEST_LIVE_UPDATES: '1'
         run: npx tsx tests/update-electron.ts

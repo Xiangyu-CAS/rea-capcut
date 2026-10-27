@@ -31,17 +31,18 @@ try {
   browser = await chromium.launch({ executablePath, headless: true });
   const page = await browser.newPage({ locale: 'en-US', viewport: { width: 1060, height: 760 } });
   const errors: string[] = [];
-  page.on('pageerror', error => errors.push(error.message));
-  await page.addInitScript(() => {
-    const w = window as any;
+  page.on('pageerror', error => { errors.push(error.message); console.error('Browser page error:', error.message); });
+  await page.addInitScript({ content: String.raw`
+    const w = window;
     w.calls = 0; w.opens = []; w.delay = false; w.openOK = true;
     w.result = { currentVersion: '0.7.0', channel: 'preview', status: 'available', release: { version: '0.8.0', notes: '<script>window.evil = true</script>\nhttps://evil.invalid\n# Plain text notes', hasDownload: true } };
     w.editorAPI = {
       checkForUpdates: async () => { w.calls++; if (w.delay) await new Promise(resolve => { w.resolveCheck = resolve; }); return w.result; },
-      openUpdateTarget: async (target: string) => { w.opens.push(target); return w.openOK; },
+      openUpdateTarget: async (target) => { w.opens.push(target); return w.openOK; },
     };
-  });
+  ` });
   await page.goto(`${server.resolvedUrls!.local[0]}update-harness`);
+  expect(errors).toEqual([]);
   const open = () => page.getByRole('button', { name: 'Open updates', exact: true }).click();
   const close = () => page.getByRole('button', { name: 'Close update dialog', exact: true }).click();
   expect(await page.evaluate(() => (window as any).calls)).toBe(0);
