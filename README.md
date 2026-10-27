@@ -4,7 +4,7 @@
 <h1 align="center">ReaCut</h1>
 <p align="center"><strong>An independently implemented, open-source video editor informed by <a href="https://github.com/morluto/rea">REA</a>-assisted research into Jianying / CapCut.</strong><br />macOS first. Research is limited to authorized scope, without copying proprietary Jianying / CapCut code or assets.</p>
 <p align="center">
-  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.6.0/ReaCut-0.6.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="Download for macOS — v0.6.0 · Apple Silicon" /></a><br />
+  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.7.0/ReaCut-0.7.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="Download for macOS — v0.7.0 · Apple Silicon" /></a><br />
   <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">All releases / ZIP / checksums</a> · <a href="#getting-started">Installation guide</a><br />
   <sub>Apple Silicon (M-series) only · Preview · Ad-hoc signed, not notarized. ASR requires separate local Python/MLX and model setup.</sub>
 </p>
@@ -25,7 +25,7 @@ ReaCut brings media management, multitrack editing, subtitles and video export i
 
 The project uses [REA](https://github.com/morluto/rea) to study Jianying's interface behavior and local project formats, then independently implements an editor with Electron, React, TypeScript and FFmpeg. REA supports development research; REA, Ghidra and Jianying are not runtime dependencies.
 
-> **v0.6.0 preview** includes local speech, timeline editing, reverse/freeze frames and the lazy plugin startup fix. The Apple Silicon DMG is verified separately from source builds; see [release validation](docs/RELEASE_0.6.0.md). Windows/Linux binaries are not provided, and the existing Windows test failures remain.
+> **v0.7.0 preview** adds broader English UI coverage, discoverable language settings, keyframe curves, subtitle workflows and reusable project templates, alongside local speech and timeline editing. The Apple Silicon release workflow validates the packaged app separately from source builds; see [release validation](docs/RELEASE_0.7.0.md). Windows/Linux binaries are not provided, and the existing Windows test failures remain.
 
 ## Features
 
@@ -34,12 +34,12 @@ The project uses [REA](https://github.com/morluto/rea) to study Jianying's inter
 | **Media and source preview** | Import video, audio and images, view thumbnails and waveforms, and mark source in/out points with I/O to add a selected range to the timeline. |
 | **Multitrack editing** | Insert, overwrite or overlay source ranges; select, move and trim linked video/audio clips; drag, split, duplicate, select multiple clips, snap, lock tracks, undo and redo. See [workflow and limits (in Chinese)](docs/TIMELINE_EDITING.md). |
 | **Reverse and freeze** | Locally reverse a selected video range with reversed or removed audio; insert an adjustable freeze frame at the playhead. [Workflow and limits](docs/REVERSE_FREEZE.md). |
-| **Keyframe curves (source only)** | Drag and precisely edit points, copy/paste curves, and choose linear, ease-in, ease-out or smooth easing for motion, opacity and volume. [Workflow and validation](docs/KEYFRAME_CURVES.md); not yet in the v0.6.0 DMG. |
+| **Keyframe curves** | Drag and precisely edit points, copy/paste curves, and choose linear, ease-in, ease-out or smooth easing for motion, opacity and volume. [Workflow and validation](docs/KEYFRAME_CURVES.md); included in the v0.7.0 preview. |
 | **Picture and sound** | Transform, crop, apply basic color adjustments, chroma key, rectangle / ellipse masks, keyframes, volume, fades and constant speed changes. |
-| **Text and subtitles** | Import SRT / basic WebVTT, edit cues, batch-replace text, shift timing and export SRT. New in source: caret/playhead split, consecutive merge, editable batch styles and entrance/hold/exit animation. [Workflow and validation](docs/SUBTITLE_WORKFLOW.md); not yet in the v0.6.0 DMG. |
+| **Text and subtitles** | Import SRT / basic WebVTT, edit cues, batch-replace text, shift timing and export SRT. New in this preview: caret/playhead split, consecutive merge, editable batch styles and entrance/hold/exit animation. [Workflow and validation](docs/SUBTITLE_WORKFLOW.md); included in the v0.7.0 preview. |
 | **Local speech** | Offline transcription on Apple Silicon with separately installed MLX Whisper/model; macOS system TTS. [Setup, downloads and platform limits](docs/LOCAL_SPEECH.md). |
 | **Local projects** | Save `.reacut` projects, automatically recover edits, relink media and collect project media into a portable folder. |
-| **Project templates (source only)** | Save reusable templates with covers and named media/text slots; batch replace into an independent project, import/export media bundles, and start from three original examples. [Workflow and validation](docs/PROJECT_TEMPLATES.md); not yet in the v0.6.0 DMG. |
+| **Project templates** | Save reusable templates with covers and named media/text slots; batch replace into an independent project, import/export media bundles, and start from three original examples. [Workflow and validation](docs/PROJECT_TEMPLATES.md); included in the v0.7.0 preview. |
 | **Video export** | Render the full timeline, a selection or a custom range to MP4 / MOV with H.264 and AAC. |
 | **Text & effect libraries** | 16 editable text templates, 16 color / motion presets, and 8 transitions with animated previews and one-step undo. |
 | **Offline assets** | Use 64 original stickers, backgrounds, title plates and synthesized sounds, plus the bundled Noto Sans SC font. |
@@ -50,15 +50,15 @@ See the [feature matrix](docs/FEATURE_MATRIX.md) for detailed support and limita
 
 ## Getting started
 
-**Interface language:** open **Settings** (shown as **设置 / Settings** in Chinese), then **Language**, or press **Cmd/Ctrl+,**. The choice is saved locally. Current source detects the system language on first launch, with English as fallback; the broader English interface fix is not yet in the v0.6.0 installer. [Language coverage and tests](docs/LOCALIZATION.md).
+**Interface language:** open **Settings** (shown as **设置 / Settings** in Chinese), then **Language**, or press **Cmd/Ctrl+,**. The choice is saved locally. Current source detects the system language on first launch, with English as fallback; the broader English interface fix is included in the v0.7.0 preview. [Language coverage and tests](docs/LOCALIZATION.md).
 
 ### Option 1: standalone DMG
 
-Download the [ReaCut 0.6.0 DMG for macOS Apple Silicon](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.6.0/ReaCut-0.6.0-arm64.dmg), open it, drag the app into Applications, and launch it. FFmpeg and FFprobe are bundled. This preview is ad-hoc signed and is not Apple-notarized.
+Download the [ReaCut 0.7.0 DMG for macOS Apple Silicon](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.7.0/ReaCut-0.7.0-arm64.dmg), open it, drag the app into Applications, and launch it. FFmpeg and FFprobe are bundled. This preview is ad-hoc signed and is not Apple-notarized.
 
 ### Option 2: inside the Codex side panel
 
-Install **ReaCut 0.5.0+**, Codex desktop, its `codex` CLI, and Python 3. Download the [Codex plugin ZIP](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.6.0/ReaCut-plugin-0.6.0.zip), then run from its extracted directory or this repository:
+Install **ReaCut 0.5.0+**, Codex desktop, its `codex` CLI, and Python 3. Download the [Codex plugin ZIP](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.7.0/ReaCut-plugin-0.7.0.zip), then run from its extracted directory or this repository:
 
 ```sh
 sh scripts/install-plugin.sh

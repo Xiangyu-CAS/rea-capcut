@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="340" height="76" viewBox="0 0 340 76" role="img" aria-label="Download for macOS: v0.6.0 Apple Silicon">
+<svg xmlns="http://www.w3.org/2000/svg" width="340" height="76" viewBox="0 0 340 76" role="img" aria-label="Download for macOS: v0.7.0 Apple Silicon">
 <rect x="1" y="1" width="338" height="74" rx="10" fill="#faf4e9" stroke="#90502e" stroke-width="2"/>
 <path d="M31 20v23m-8-8 8 8 8-8M20 49v7h22v-7" fill="none" stroke="#90502e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="60" y="32" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#392d24">Download for macOS</text>
-<text x="60" y="55" font-family="Arial,sans-serif" font-size="14" fill="#71523e">v0.6.0 · Apple Silicon · DMG</text>
+<text x="60" y="55" font-family="Arial,sans-serif" font-size="14" fill="#71523e">v0.7.0 · Apple Silicon · DMG</text>
 </svg>

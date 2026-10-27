@@ -54,5 +54,6 @@ switching and reload persistence; Electron checks cover native menus/pickers,
 invalid locale rejection and process-restart persistence. Legacy Chinese UI
 workflows select Chinese explicitly, independently of the CI host locale.
 
-The fix for issue #6 is source work, not an update to the v0.6.0 installer.
-No installed application or release attachment is replaced by this change.
+The fix for issue #6 is included in the v0.7.0 preview release. The v0.6.0
+attachments are not replaced. Downloading the new release does not automatically
+update an existing installation; no in-app updater is included.
