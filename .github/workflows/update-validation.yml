@@ -26,17 +26,14 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node node_modules/electron/install.js
-      - name: Use the pinned shipped media toolchain
-        run: |
-          test "$(uname -m)" = arm64
-          npm run media:build
-          echo "$GITHUB_WORKSPACE/media-tools/darwin-arm64" >> "$GITHUB_PATH"
-      - name: Typecheck, full unit suite and build
+      # Full pinned-media regressions run independently in ci.yml and again at release.
+      # These updater-only fixtures do not consume media; keep failures fast to diagnose.
+      - name: Typecheck, updater units and build
         id: check
-        env:
-          REACUT_FFMPEG: ${{ github.workspace }}/media-tools/darwin-arm64/ffmpeg
-          REACUT_FFPROBE: ${{ github.workspace }}/media-tools/darwin-arm64/ffprobe
-        run: npm run check
+        run: |
+          npm run typecheck
+          npx vitest run tests/update-check.test.ts tests/update-dialog.test.ts
+          npm run build
       - name: Real browser update flows
         run: |
           npx playwright install chromium

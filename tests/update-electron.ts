@@ -182,6 +182,9 @@ for (const scenario of ['current', 'no-asset', 'offline', 'rate-limit', 'pending
   } finally { await app.close(); }
 }
 
+await writeFile(path.join(output, 'evidence.json'), JSON.stringify({ version, packaged: Boolean(bundle), results }, null, 2));
+console.log('Native synthetic update scenarios passed:', results.map(result => result.scenario).join(', '));
+
 if (process.env.REACUT_TEST_LIVE_UPDATES === '1') {
   const { app, page, errors } = await launch();
   try {
@@ -192,11 +195,22 @@ if (process.env.REACUT_TEST_LIVE_UPDATES === '1') {
       shell.openExternal = async (url: string) => { state.__updateOpens.push(url); };
       globalThis.fetch = async (url, options) => {
         state.__updateCalls.push({ url: String(url), redirect: options?.redirect, credentials: options?.credentials, headers: options?.headers });
-        return original(url, options);
+        try {
+          const response = await original(url, options);
+          state.__updateHTTP = { status: response.status, url: response.url, remaining: response.headers.get('x-ratelimit-remaining'), retryAfter: response.headers.get('retry-after') };
+          return response;
+        } catch (error) {
+          state.__updateHTTP = { error: error instanceof Error ? error.message : String(error) };
+          throw error;
+        }
       };
     });
     await settingsCheck(page); // Explicit UI click is the sole live request trigger.
     await expect(page.getByRole('button', { name: 'Check again', exact: true })).toBeEnabled({ timeout: 20000 });
+    const diagnostic = { http: await app.evaluate(() => (globalThis as any).__updateHTTP), dialog: await page.getByRole('dialog').innerText() };
+    console.log('Live public update diagnostic:', JSON.stringify(diagnostic));
+    await writeFile(path.join(output, 'live-diagnostic.json'), JSON.stringify(diagnostic, null, 2));
+    await page.screenshot({ path: path.join(output, 'live-public-check.png') });
     await expect(page.getByRole('dialog').getByRole('alert')).toHaveCount(0);
     await expect(page.getByRole('dialog').getByRole('status')).toContainText(/No newer version|New version available/);
     await checkRequests(app);
