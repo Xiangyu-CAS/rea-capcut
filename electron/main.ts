@@ -239,6 +239,11 @@ async function readProject(file: string) {
   if (input?.format === "reacut-portable") portablePaths.add(path.resolve(file));
   return project;
 }
+// Renderer preference is validated and synchronised before user interaction.
+// Native dialogs do not receive arbitrary translated strings over IPC.
+let uiLanguage: "zh-CN" | "en" | "tr" = "en";
+const nativeUI = (chinese: string, english: string) => uiLanguage === "zh-CN" ? chinese : english;
+
 function handle(name: string, callback: (...args: any[]) => unknown) {
   ipcMain.handle(name, (event, ...args) => {
     if (
@@ -278,6 +283,11 @@ async function templateTask<T>(jobId: string, work: (signal: AbortSignal, progre
   try { return await done; } finally { templateTasks.delete(jobId); }
 }
 function registerIPC() {
+  handle("set-ui-language", (language: unknown) => {
+    if (language !== "zh-CN" && language !== "en" && language !== "tr") throw new Error("Invalid UI language");
+    uiLanguage = language;
+    updateApplicationMenu();
+  });
   handle("template-list", () => listTemplates(userFile("project-templates")));
   handle("template-load", async (id: string, builtin: boolean) => {
     if (builtin) {
@@ -295,7 +305,7 @@ function registerIPC() {
     await writeTemplate(t,root,signal,progress);
   }));
   handle("template-import", (jobId: string) => templateTask(jobId, async (signal,progress) => {
-    const selected=await dialog.showOpenDialog(window!,{title:"导入模板包",properties:["openFile"],filters:[{name:"ReaCut 模板",extensions:["reacut-template"]}]});
+    const selected=await dialog.showOpenDialog(window!,{title:nativeUI("导入模板包", "Import template bundle"),properties:["openFile"],filters:[{name:nativeUI("ReaCut 模板", "ReaCut template"),extensions:["reacut-template"]}]});
     if(selected.canceled || !selected.filePaths[0]) return false;
     if(signal.aborted) throw new Error("已取消模板导入");
     const t=await readTemplate(selected.filePaths[0]);
@@ -304,7 +314,7 @@ function registerIPC() {
   }));
   handle("template-export", (jobId: string, id: string) => templateTask(jobId, async (signal,progress) => {
     const t=await libraryTemplate(userFile("project-templates"),id);
-    const selected=await dialog.showOpenDialog(window!,{title:"选择模板包保存位置",properties:["openDirectory","createDirectory"]});
+    const selected=await dialog.showOpenDialog(window!,{title:nativeUI("选择模板包保存位置", "Choose template bundle location"),properties:["openDirectory","createDirectory"]});
     if(selected.canceled || !selected.filePaths[0]) return null;
     const result=await writeTemplate(t,selected.filePaths[0],signal,progress);outputPaths.add(result);return result;
   }));
@@ -340,7 +350,7 @@ function registerIPC() {
   handle("assistant-providers", () => discoverAssistantProviders(assistantOverrides));
   handle("assistant-choose-cli", async (provider: AssistantProvider) => {
     if (provider !== "codex" && provider !== "claude") throw new Error("无效助手类型");
-    const result = await dialog.showOpenDialog(window!, { title: `选择 ${provider === "codex" ? "Codex" : "Claude Code"} CLI`, properties: ["openFile"] });
+    const result = await dialog.showOpenDialog(window!, { title: nativeUI(`选择 ${provider === "codex" ? "Codex" : "Claude Code"} CLI`, `Choose ${provider === "codex" ? "Codex" : "Claude Code"} CLI`), properties: ["openFile"] });
     if (!result.canceled) {
       assistantOverrides[provider] = result.filePaths[0];
       await mkdir(path.dirname(userFile("assistant-clis.json")), { recursive: true });
@@ -392,11 +402,11 @@ function registerIPC() {
     let selected = paths;
     if (!selected) {
       const result = await dialog.showOpenDialog(window!, {
-        title: "导入素材",
+        title: nativeUI("导入素材", "Import media"),
         properties: ["openFile", "multiSelections"],
         filters: [
           {
-            name: "媒体文件",
+            name: nativeUI("媒体文件", "Media files"),
             extensions: [
               "mp4",
               "mov",
@@ -419,7 +429,7 @@ function registerIPC() {
               "heic",
             ],
           },
-          { name: "所有文件", extensions: ["*"] },
+          { name: nativeUI("所有文件", "All files"), extensions: ["*"] },
         ],
       });
       if (result.canceled) return [];
@@ -448,7 +458,7 @@ function registerIPC() {
   handle("cancel-derivative", (jobId: string) => cancelDerivative(jobId));
   handle("relink-asset", async (asset: MediaAsset) => {
     const result = await dialog.showOpenDialog(window!, {
-      title: `重新链接 ${asset.name}`,
+      title: nativeUI(`重新链接 ${asset.name}`, `Relink ${asset.name}`),
       properties: ["openFile"],
     });
     if (result.canceled) return null;
@@ -478,9 +488,9 @@ function registerIPC() {
   });
   handle("open-project", async () => {
     const result = await dialog.showOpenDialog(window!, {
-      title: "打开 ReaCut 项目",
+      title: nativeUI("打开 ReaCut 项目", "Open ReaCut project"),
       properties: ["openFile"],
-      filters: [{ name: "ReaCut 项目", extensions: ["reacut", "json"] }],
+      filters: [{ name: nativeUI("ReaCut 项目", "ReaCut project"), extensions: ["reacut", "json"] }],
     });
     if (result.canceled) return null;
     const file = result.filePaths[0],
@@ -504,9 +514,9 @@ function registerIPC() {
     if (file && !savePaths.has(file)) throw new Error("未经选择的项目保存位置");
     if (!file) {
       const result = await dialog.showSaveDialog(window!, {
-        title: "保存项目",
+        title: nativeUI("保存项目", "Save project"),
         defaultPath: project.name + ".reacut",
-        filters: [{ name: "ReaCut 项目", extensions: ["reacut"] }],
+        filters: [{ name: nativeUI("ReaCut 项目", "ReaCut project"), extensions: ["reacut"] }],
       });
       if (result.canceled || !result.filePath) return null;
       file = result.filePath;
@@ -522,7 +532,7 @@ function registerIPC() {
   handle("package-project", async (input: unknown) => {
     const project = validateProject(input), owner = window!.webContents;
     for (const asset of project.assets) if (!allowedMedia.has(path.resolve(asset.path))) throw new Error("项目引用了未经导入的素材");
-    const selected = await dialog.showOpenDialog(window!, { title: "选择素材包保存位置", properties: ["openDirectory", "createDirectory"] });
+    const selected = await dialog.showOpenDialog(window!, { title: nativeUI("选择素材包保存位置", "Choose collected media location"), properties: ["openDirectory", "createDirectory"] });
     if (selected.canceled || !selected.filePaths[0] || owner.isDestroyed()) return null;
     return startPortablePackage(project, selected.filePaths[0], event => {
       if (event.status === "complete" && event.path) outputPaths.add(event.path);
@@ -548,9 +558,9 @@ function registerIPC() {
   handle("choose-export-path", async (name: string, format: string) => {
     if (!["mp4", "mov"].includes(format)) throw new Error("无效导出格式");
     const result = await dialog.showSaveDialog(window!, {
-      title: "导出视频",
+      title: nativeUI("导出视频", "Export video"),
       defaultPath: name + "." + format,
-      filters: [{ name: format.toUpperCase() + " 视频", extensions: [format] }],
+      filters: [{ name: format.toUpperCase() + nativeUI(" 视频", " video"), extensions: [format] }],
     });
     if (result.canceled || !result.filePath) return null;
     outputPaths.add(result.filePath);
@@ -581,7 +591,7 @@ function registerIPC() {
       throw new Error("无效文件类型");
     const result = await dialog.showOpenDialog(window!, {
       properties: ["openFile"],
-      filters: [{ name: "文本文件", extensions }],
+      filters: [{ name: nativeUI("文本文件", "Text files"), extensions }],
     });
     if (result.canceled) return null;
     const file = result.filePaths[0];
@@ -594,10 +604,10 @@ function registerIPC() {
       throw new Error("请选择草稿文件或项目文件夹");
     const owner = window!;
     const result = await dialog.showOpenDialog(owner, {
-      title: mode === "file" ? "选择剪映草稿文件" : "选择剪映项目文件夹",
+      title: mode === "file" ? nativeUI("选择剪映草稿文件", "Choose CapCut draft file") : nativeUI("选择剪映项目文件夹", "Choose CapCut project folder"),
       properties: [mode === "file" ? "openFile" : "openDirectory"],
       ...(mode === "file"
-        ? { filters: [{ name: "剪映草稿", extensions: ["json"] }] }
+        ? { filters: [{ name: nativeUI("剪映草稿", "CapCut draft"), extensions: ["json"] }] }
         : {}),
     });
     if (result.canceled || !result.filePaths[0]) return null;
@@ -687,7 +697,7 @@ function registerIPC() {
   handle("choose-media-tool", async (name: string) => {
     if (!["ffmpeg", "ffprobe"].includes(name)) throw new Error("无效工具名");
     const result = await dialog.showOpenDialog(window!, {
-      title: `选择 ${name} 可执行文件`,
+      title: nativeUI(`选择 ${name} 可执行文件`, `Choose ${name} executable`),
       properties: ["openFile"],
     });
     if (result.canceled) return null;
@@ -820,9 +830,9 @@ function createWindow() {
     void dialog
       .showMessageBox(window!, {
         type: "question",
-        message: "项目有未保存的修改",
-        detail: "保存项目后再关闭？最近编辑也会自动恢复。",
-        buttons: ["保存并关闭", "取消", "不保存"],
+        message: nativeUI("项目有未保存的修改", "This project has unsaved changes"),
+        detail: nativeUI("保存项目后再关闭？最近编辑也会自动恢复。", "Save the project before closing? Recent edits are also available through automatic recovery."),
+        buttons: [nativeUI("保存并关闭", "Save and close"), nativeUI("取消", "Cancel"), nativeUI("不保存", "Don't save")],
         defaultId: 0,
         cancelId: 1,
       })
@@ -853,6 +863,110 @@ function createWindow() {
     void window.loadURL(process.env.VITE_DEV_SERVER_URL);
   else void window.loadFile(path.join(directory, "../dist/index.html"));
 }
+function updateApplicationMenu() {
+  const template: Electron.MenuItemConstructorOptions[] = [
+    ...(process.platform === "darwin"
+      ? [
+          {
+            label: "ReaCut",
+            submenu: [
+              { label: nativeUI("关于 ReaCut", "About ReaCut"), role: "about" as const },
+              { type: "separator" as const },
+              { label: nativeUI("服务", "Services"), role: "services" as const },
+              { type: "separator" as const },
+              { label: nativeUI("隐藏 ReaCut", "Hide ReaCut"), role: "hide" as const },
+              { label: nativeUI("退出 ReaCut", "Quit ReaCut"), role: "quit" as const },
+            ],
+          },
+        ]
+      : []),
+    {
+      label: nativeUI("文件", "File"),
+      submenu: [
+        {
+          label: nativeUI("新建项目", "New project"),
+          accelerator: "CmdOrCtrl+N",
+          click: () => menuAction("new"),
+        },
+        {
+          label: nativeUI("打开项目", "Open project"),
+          accelerator: "CmdOrCtrl+O",
+          click: () => menuAction("open"),
+        },
+        {
+          label: nativeUI("保存", "Save"),
+          accelerator: "CmdOrCtrl+S",
+          click: () => menuAction("save"),
+        },
+        {
+          label: nativeUI("另存为", "Save as"),
+          accelerator: "CmdOrCtrl+Shift+S",
+          click: () => menuAction("save-as"),
+        },
+        { label: nativeUI("工程模板…", "Project templates\u2026"), click: () => menuAction("templates") },
+        { type: "separator" },
+        {
+          label: nativeUI("导入素材", "Import media"),
+          accelerator: "CmdOrCtrl+I",
+          click: () => menuAction("import"),
+        },
+        {
+          label: nativeUI("导入剪映草稿文件…", "Import CapCut draft file\u2026"),
+          click: () => menuAction("import-capcut-file"),
+        },
+        {
+          label: nativeUI("导入剪映项目文件夹…", "Import CapCut project folder\u2026"),
+          click: () => menuAction("import-capcut-directory"),
+        },
+        {
+          label: nativeUI("导出视频", "Export video"),
+          accelerator: "CmdOrCtrl+E",
+          click: () => menuAction("export"),
+        },
+      ],
+    },
+    {
+      label: nativeUI("编辑", "Edit"),
+      submenu: [
+        {
+          label: nativeUI("撤销", "Undo"),
+          accelerator: "CmdOrCtrl+Z",
+          click: () => menuAction("undo"),
+        },
+        {
+          label: nativeUI("重做", "Redo"),
+          accelerator: "CmdOrCtrl+Shift+Z",
+          click: () => menuAction("redo"),
+        },
+        { type: "separator" },
+        { label: nativeUI("剪切", "Cut"), role: "cut" },
+        { label: nativeUI("复制", "Copy"), role: "copy" },
+        { label: nativeUI("粘贴", "Paste"), role: "paste" },
+        { label: nativeUI("全选", "Select all"), role: "selectAll" },
+      ],
+    },
+    {
+      label: nativeUI("窗口", "Window"),
+      submenu: [
+        { label: nativeUI("最小化", "Minimize"), role: "minimize" },
+        { label: nativeUI("切换全屏", "Toggle full screen"), role: "togglefullscreen" },
+        ...(process.env.VITE_DEV_SERVER_URL
+          ? [{ label: nativeUI("开发者工具", "Developer tools"), role: "toggleDevTools" as const }]
+          : []),
+      ],
+    },
+    {
+      label: nativeUI("帮助", "Help"),
+      submenu: [
+        { label: nativeUI("设置 / Settings…", "Settings…"), accelerator: "CmdOrCtrl+,", click: () => menuAction("settings") },
+        { label: nativeUI("快捷键", "Shortcuts"), click: () => menuAction("shortcuts") },
+        { label: nativeUI("关于 ReaCut", "About ReaCut"), click: () => menuAction("about") },
+      ],
+    },
+  ];
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+}
+
 void app.whenReady().then(async () => {
   try {
     const settings = JSON.parse(await readFile(userFile("assistant-clis.json"), "utf8"));
@@ -887,106 +1001,8 @@ void app.whenReady().then(async () => {
   await cleanSpeechTemporaries(userFile("speech-media"));
   protocol.handle("reacut-media", serveMedia);
   registerIPC();
-  const template: Electron.MenuItemConstructorOptions[] = [
-    ...(process.platform === "darwin"
-      ? [
-          {
-            label: "ReaCut",
-            submenu: [
-              { role: "about" as const },
-              { type: "separator" as const },
-              { role: "services" as const },
-              { type: "separator" as const },
-              { role: "hide" as const },
-              { role: "quit" as const },
-            ],
-          },
-        ]
-      : []),
-    {
-      label: "文件",
-      submenu: [
-        {
-          label: "新建项目",
-          accelerator: "CmdOrCtrl+N",
-          click: () => menuAction("new"),
-        },
-        {
-          label: "打开项目",
-          accelerator: "CmdOrCtrl+O",
-          click: () => menuAction("open"),
-        },
-        {
-          label: "保存",
-          accelerator: "CmdOrCtrl+S",
-          click: () => menuAction("save"),
-        },
-        {
-          label: "另存为",
-          accelerator: "CmdOrCtrl+Shift+S",
-          click: () => menuAction("save-as"),
-        },
-        { label: "工程模板…", click: () => menuAction("templates") },
-        { type: "separator" },
-        {
-          label: "导入素材",
-          accelerator: "CmdOrCtrl+I",
-          click: () => menuAction("import"),
-        },
-        {
-          label: "导入剪映草稿文件…",
-          click: () => menuAction("import-capcut-file"),
-        },
-        {
-          label: "导入剪映项目文件夹…",
-          click: () => menuAction("import-capcut-directory"),
-        },
-        {
-          label: "导出视频",
-          accelerator: "CmdOrCtrl+E",
-          click: () => menuAction("export"),
-        },
-      ],
-    },
-    {
-      label: "编辑",
-      submenu: [
-        {
-          label: "撤销",
-          accelerator: "CmdOrCtrl+Z",
-          click: () => menuAction("undo"),
-        },
-        {
-          label: "重做",
-          accelerator: "CmdOrCtrl+Shift+Z",
-          click: () => menuAction("redo"),
-        },
-        { type: "separator" },
-        { role: "cut" },
-        { role: "copy" },
-        { role: "paste" },
-        { role: "selectAll" },
-      ],
-    },
-    {
-      label: "窗口",
-      submenu: [
-        { role: "minimize" },
-        { role: "togglefullscreen" },
-        ...(process.env.VITE_DEV_SERVER_URL
-          ? [{ role: "toggleDevTools" as const }]
-          : []),
-      ],
-    },
-    {
-      label: "帮助",
-      submenu: [
-        { label: "快捷键", click: () => menuAction("shortcuts") },
-        { label: "关于 ReaCut", click: () => menuAction("about") },
-      ],
-    },
-  ];
-  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+  uiLanguage = app.getLocale().toLowerCase().startsWith("zh") ? "zh-CN" : "en";
+  updateApplicationMenu();
   createWindow();
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

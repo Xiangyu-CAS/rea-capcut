@@ -1,3 +1,4 @@
+import { firstChineseWindow } from "./ui-language";
 /** Uses synthetic media and an isolated application profile. Also supports the final .app. */
 import { _electron as electron, expect } from '@playwright/test';
 import { mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
@@ -19,7 +20,7 @@ const env=Object.fromEntries(Object.entries(process.env).filter((e):e is [string
 env.REACUT_USER_DATA=path.join(output,'user-data');delete env.ELECTRON_RUN_AS_NODE;delete env.VITE_DEV_SERVER_URL;
 if(appPath){env.PATH='';delete env.REACUT_FFMPEG;delete env.REACUT_FFPROBE;}
 const app=await electron.launch({...appPath?{executablePath:path.join(path.resolve(appPath),'Contents/MacOS/ReaCut'),args:[projectFile],cwd:output}:{args:[path.join(root,'dist-electron/main.cjs'),projectFile]},env});
-const page=await app.firstWindow(),errors:string[]=[],checks:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+const page=await firstChineseWindow(app),errors:string[]=[],checks:string[]=[];page.on('pageerror',e=>errors.push(e.message));
 try {
  await app.evaluate(({dialog},paths)=>{
   (dialog as any).showOpenDialog=async(_window:unknown,options:{title?:string})=>{if(options.title?.includes('素材包保存')) await new Promise<void>(resolve=>{(globalThis as any).releasePackagePicker=resolve;});return {canceled:false,filePaths:[options.title?.includes('素材包保存')?paths.packages:paths.open]};};

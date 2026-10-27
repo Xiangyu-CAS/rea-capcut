@@ -11,6 +11,7 @@
     "build": "tsc --noEmit && vite build && node scripts/build-plugin-ui.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:i18n": "tsx tests/i18n-browser.ts",
     "test:watch": "vitest",
     "dist": "npm run build && electron-builder",
     "dist:mac": "npm run build && electron-builder --mac --dir",

@@ -1,3 +1,4 @@
+import { firstChineseWindow } from "./ui-language";
 /** Real UI dissolve on clips with pre-existing cut fade envelopes, including exported pixel evidence. */
 import { _electron as electron, expect } from "@playwright/test";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
@@ -87,7 +88,7 @@ const app = await electron.launch({
   env,
   timeout: 30_000,
 });
-const page = await app.firstWindow();
+const page = await firstChineseWindow(app);
 const errors: string[] = [];
 page.on("pageerror", (error) => errors.push(error.message));
 try {

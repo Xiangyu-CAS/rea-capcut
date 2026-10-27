@@ -1,15 +1,16 @@
+import { localizeMessage } from "../i18n/messages";
 import { useEffect, useRef, useState } from 'react';
 import { useEditorStore } from '../editor/store';
 import { applySpeech, speechSource, type SpeechInfo, type SpeechLanguage, type SpeechProgress, type SpeechRequest } from '../core/speech';
 import { useTranslation } from '../i18n/useTranslation';
 
 export default function SpeechDialog({mode,onClose}:{mode:'asr'|'tts';onClose:()=>void}) {
-  const {t}=useTranslation(),project=useEditorStore(s=>s.project);
+  const {t,language:uiLanguage}=useTranslation(),project=useEditorStore(s=>s.project);
   const [source,setSource]=useState(()=>{
     const s=useEditorStore.getState(),clip=s.project.clips.find(c=>c.id===s.selectedIds[0]&&s.project.assets.some(a=>a.id===c.assetId&&a.hasAudio));
     return clip ? `clip:${clip.id}` : `asset:${s.project.assets.find(a=>a.hasAudio)?.id??''}`;
   });
-  const [info,setInfo]=useState<SpeechInfo|null>(null),[language,setLanguage]=useState<SpeechLanguage>(mode==='tts'?'zh':'auto');
+  const [info,setInfo]=useState<SpeechInfo|null>(null),[language,setLanguage]=useState<SpeechLanguage>(mode==='tts'?(uiLanguage==='zh-CN'?'zh':'en'):'auto');
   const [voice,setVoice]=useState(''),[text,setText]=useState(''),[rate,setRate]=useState(180);
   const [busy,setBusy]=useState(false),[checking,setChecking]=useState(true),[error,setError]=useState(''),[progress,setProgress]=useState<SpeechProgress|null>(null);
   const running=useRef<string|null>(null),alive=useRef(true),cancelled=useRef(false);
@@ -59,7 +60,7 @@ export default function SpeechDialog({mode,onClose}:{mode:'asr'|'tts';onClose:()
           <button disabled={busy||checking} onClick={()=>void choose('model')}>{t('speech.model')}</button>
           <p>{t('speech.setup')}</p>
         </details>
-        {info&&!info.ready&&<p role="alert" className="inline-warning">{info.error}</p>}
+        {info&&!info.ready&&<p role="alert" className="inline-warning">{localizeMessage(info.error ?? "")}</p>}
       </>:<>
         <label>{t('speech.text')}<textarea aria-label={t('speech.text')} disabled={busy} maxLength={10000} rows={4} value={text} onChange={e=>setText(e.target.value)} style={{width:'100%'}}/></label>
       </>}
@@ -74,7 +75,7 @@ export default function SpeechDialog({mode,onClose}:{mode:'asr'|'tts';onClose:()
       <p className="muted small">{t('speech.storage')}</p>
       {checking&&<p role="status">{t('speech.checking')}</p>}
       {progress&&<div role="status"><p>{t(`speech.stage.${progress.stage}`)}</p><progress max={1} value={progress.progress}/>{progress.progress!==undefined&&<span> {Math.round(progress.progress*100)}%</span>}</div>}
-      {(error||sourceError)&&<p role="alert" className="inline-warning">{error||sourceError}</p>}
+      {(error||sourceError)&&<p role="alert" className="inline-warning">{localizeMessage(error||sourceError)}</p>}
     </div>
     <footer>{busy?<button onClick={()=>{cancelled.current=true;if(running.current)void window.editorAPI?.cancelSpeech(running.current).catch(fail);}}>{t('speech.cancel')}</button>:<>
       <button onClick={onClose}>{t('dialog.closeButton')}</button>

@@ -1,3 +1,4 @@
+import { firstChineseWindow } from "./ui-language";
 /** Actual system voices, cached Whisper inference, desktop editing, playback, restart and FFmpeg export. */
 import {_electron as electron,expect,type ElectronApplication,type Page} from '@playwright/test';
 import {mkdir,readFile,writeFile,stat,rm} from 'node:fs/promises';
@@ -23,7 +24,7 @@ let launches=0;
 async function launch(){
  app=await electron.launch({...(bundle?{executablePath:path.join(bundle,'Contents/MacOS/ReaCut'),args:[saved]}:{args:[path.resolve('dist-electron/main.cjs'),saved]}),env});
  native=await app.evaluate(({app})=>({packaged:app.isPackaged,version:app.getVersion(),path:app.getAppPath()}));if(bundle){assert(native.packaged);assert(native.path.startsWith(bundle));assert.equal(native.version,JSON.parse(await readFile('package.json','utf8')).version);}
- page=await app.firstWindow();page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(/^https?:/.test(r.url()))network.push(r.url());});
+ page=await firstChineseWindow(app);page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(/^https?:/.test(r.url()))network.push(r.url());});
  await app.evaluate(({dialog,BrowserWindow},files)=>{
   BrowserWindow.getAllWindows()[0].setSize(1470,900);
   (dialog as any).showOpenDialog=async(...args:any[])=>({canceled:false,filePaths:[args.at(-1).title.includes('Python')?files.python:args.at(-1).title.includes('model folder')?files.model:args.at(-1).title==='打开 ReaCut 项目'?files.saved:files.source]});

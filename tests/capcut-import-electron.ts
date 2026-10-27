@@ -1,3 +1,4 @@
+import { firstChineseWindow } from "./ui-language";
 /** Compiled desktop import against synthetic projects; dialogs are replaced only
  * inside this isolated test process. No installed editor or user draft is read. */
 import { _electron as electron, expect, type Page } from "@playwright/test";
@@ -123,7 +124,7 @@ try {
     (dialog as any).showSaveDialog = async () => ({ canceled: false, filePath: paths.saved });
     (dialog as any).showMessageBox = async () => ({ response: 2 });
   }, { folder: projectFolder, saved });
-  page = await app.firstWindow();
+  page = await firstChineseWindow(app);
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("dialog", (dialog) => void dialog.accept().catch(() => {}));
   await page.waitForSelector(".app-shell");

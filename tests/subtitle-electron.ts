@@ -1,3 +1,4 @@
+import { firstChineseWindow } from "./ui-language";
 /** Real UI controls + serialized project assertions, isolated synthetic captions only. */
 import { _electron as electron, expect, type Page } from "@playwright/test";
 import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
@@ -24,7 +25,7 @@ try {
     (dialog as any).showSaveDialog = async (...args: any[]) => ({ canceled: false, filePath: args.at(-1).defaultPath?.endsWith(".srt") ? files.exported : files.saved });
     (dialog as any).showMessageBox = async () => ({ response: 2 });
   }, { original, subtitles, saved, exported });
-  page = await app.firstWindow(); page.on("pageerror", e => errors.push(e.message));
+  page = await firstChineseWindow(app); page.on("pageerror", e => errors.push(e.message));
   await page.waitForSelector(".app-shell");
   await page.getByRole("button", { name: "文件菜单", exact: true }).click();
   await page.getByRole("button", { name: "打开项目", exact: false }).click();

@@ -32,7 +32,7 @@ const server = await createServer({configFile:false,plugins:[react(),{
 await server.listen();
 const chrome='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const browser=await chromium.launch({headless:true,...(existsSync(chrome)?{executablePath:chrome}:{})});
-const page=await browser.newPage({viewport:{width:1024,height:720}});
+const page=await browser.newPage({locale: "zh-CN", viewport:{width:1024,height:720}});
 const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
 const checks:string[]=[];
 try {

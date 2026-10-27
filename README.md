@@ -50,6 +50,8 @@ See the [feature matrix](docs/FEATURE_MATRIX.md) for detailed support and limita
 
 ## Getting started
 
+**Interface language:** open **Settings** (shown as **设置 / Settings** in Chinese), then **Language**, or press **Cmd/Ctrl+,**. The choice is saved locally. Current source detects the system language on first launch, with English as fallback; the broader English interface fix is not yet in the v0.6.0 installer. [Language coverage and tests](docs/LOCALIZATION.md).
+
 ### Option 1: standalone DMG
 
 Download the [ReaCut 0.6.0 DMG for macOS Apple Silicon](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.6.0/ReaCut-0.6.0-arm64.dmg), open it, drag the app into Applications, and launch it. FFmpeg and FFprobe are bundled. This preview is ad-hoc signed and is not Apple-notarized.

@@ -33,7 +33,6 @@ import {
 import { useEditorStore } from "./editor/store";
 import {
   clone,
-  createProject,
   createTrack,
   formatTime,
   id,
@@ -66,7 +65,9 @@ import { TextLibrary, TransitionLibrary } from "./components/CreativeLibrary";
 import { addTextPreset, applyTransition, type TextPreset, type TransitionId } from "./core/creativePresets";
 import Player from "./components/Player";
 import Inspector from "./components/Inspector";
-import { useTranslation, useLanguageStore, type Language, type TranslationKey } from "./i18n";
+import { useUITranslation, translateUI, useTranslation, useLanguageStore, type Language, type TranslationKey } from "./i18n";
+import { createEditorProject } from "./editor/localizedDefaults";
+import { localizeMessage } from "./i18n/messages";
 import "./styles.css";
 type Modal = "templates" | "reverse" | "freeze" | "package" | "export" | "settings" | "shortcuts" | "about" | "capcut" | null;
 type PendingCapcutImport = {
@@ -135,6 +136,7 @@ function ExportDialog({
   onClose: () => void;
   notify: (message: string) => void;
 }) {
+  const ui = useUITranslation();
   const [options, setOptions] = useState<ExportOptions>({
       path: "",
       width: project.width + (project.width % 2),
@@ -162,7 +164,7 @@ function ExportDialog({
           setProgress(event);
           if (["complete", "error", "cancelled"].includes(event.status)) {
             setBusy(false);
-            if (event.status === "error") setError(event.message ?? "导出失败");
+            if (event.status === "error") setError(event.message ?? translateUI("导出失败", "Export failed"));
           }
         }
       }),
@@ -181,13 +183,13 @@ function ExportDialog({
   };
   const exportVideo = async () => {
     if (!window.editorAPI) {
-      setError("视频导出需要桌面版和本地 FFmpeg。");
+      setError(ui("视频导出需要桌面版和本地 FFmpeg。", "Video export requires the desktop app and local FFmpeg."));
       return;
     }
     try {
       setError("");
-      if (scope === "selected" && !selectedRange) throw new Error("请先选择时间线片段");
-      if (scope === "custom" && (!rangeStart.trim() || !rangeEnd.trim())) throw new Error("请填写区间起止时间");
+      if (scope === "selected" && !selectedRange) throw new Error(ui("请先选择时间线片段", "Select timeline clips first"));
+      if (scope === "custom" && (!rangeStart.trim() || !rangeEnd.trim())) throw new Error(ui("请填写区间起止时间", "Enter the range start and end times"));
       resolveExportRange(project, { ...options, range: rangeOptions });
       let path = options.path;
       if (!path) {
@@ -216,7 +218,7 @@ function ExportDialog({
   const status = progress?.status;
   return (
     <ModalShell
-      title="导出视频"
+      title={ui("导出视频", "Export video")}
       onClose={() => {
         if (!exporting) onClose();
       }}
@@ -227,38 +229,34 @@ function ExportDialog({
           <strong>{project.name}</strong>
           <span>
             {formatTime(exportDuration, project.fps)} ·{" "}
-            {project.clips.length} 个片段
-          </span>
+            {project.clips.length} {ui("个片段", " clips")}</span>
         </div>
-        <span className="export-badge">本地渲染</span>
+        <span className="export-badge">{ui("本地渲染", "Local rendering")}</span>
       </div>
       <div className="modal-body">
         <label className="stacked-label">
-          保存位置
-          <div className="file-picker">
+          {ui("保存位置", "Save location")}<div className="file-picker">
             <input
-              aria-label="导出位置"
+              aria-label={ui("导出位置", "Export location")}
               readOnly
               value={options.path}
-              placeholder="选择视频保存位置"
+              placeholder={ui("选择视频保存位置", "Choose where to save the video")}
             />
             <button disabled={exporting} onClick={choose}>
               <FolderOpen size={16} />
             </button>
           </div>
         </label>
-        <label className="stacked-label">导出范围
-          <select aria-label="导出范围" value={scope} disabled={exporting} onChange={e => setScope(e.target.value)}>
-            <option value="all">整个时间线</option><option value="selected" disabled={!selectedRange}>选中片段所在区间</option><option value="custom">自定义区间</option>
+        <label className="stacked-label">{ui("导出范围", "Export range")}<select aria-label={ui("导出范围", "Export range")} value={scope} disabled={exporting} onChange={e => setScope(e.target.value)}>
+            <option value="all">{ui("整个时间线", "Entire timeline")}</option><option value="selected" disabled={!selectedRange}>{ui("选中片段所在区间", "Selected clip range")}</option><option value="custom">{ui("自定义区间", "Custom range")}</option>
           </select>
         </label>
-        {scope === "custom" && <div className="export-fields"><label>起点（秒）<input aria-label="区间起点" type="number" min="0" step={1 / project.fps} disabled={exporting} value={rangeStart} onChange={e => setRangeStart(e.target.value)} /></label><label>终点（秒）<input aria-label="区间终点" type="number" min="0" step={1 / project.fps} disabled={exporting} value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} /></label></div>}
-        {scope === "selected" && selectedRange && <p className="field-hint">{selectedRange.start.toFixed(3)}–{selectedRange.end.toFixed(3)} 秒，包含该区间内所有可见画面和声音。</p>}
+        {scope === "custom" && <div className="export-fields"><label>{ui("起点（秒）", "Start (seconds)")}<input aria-label={ui("区间起点", "Range start")} type="number" min="0" step={1 / project.fps} disabled={exporting} value={rangeStart} onChange={e => setRangeStart(e.target.value)} /></label><label>{ui("终点（秒）", "End (seconds)")}<input aria-label={ui("区间终点", "Range end")} type="number" min="0" step={1 / project.fps} disabled={exporting} value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} /></label></div>}
+        {scope === "selected" && selectedRange && <p className="field-hint">{selectedRange.start.toFixed(3)}–{selectedRange.end.toFixed(3)} {ui("秒，包含该区间内所有可见画面和声音。", " seconds, including all visible video and sound in this range.")}</p>}
         <div className="export-fields">
           <label>
-            分辨率
-            <select
-              aria-label="导出分辨率"
+            {ui("分辨率", "Resolution")}<select
+              aria-label={ui("导出分辨率", "Export resolution")}
               disabled={exporting}
               value={`${options.width}:${options.height}`}
               onChange={(e) => {
@@ -269,7 +267,7 @@ function ExportDialog({
               <option
                 value={`${project.width + (project.width % 2)}:${project.height + (project.height % 2)}`}
               >
-                原始 · {project.width}×{project.height}
+                {ui("原始 ·", "Original · ")}{project.width}×{project.height}
               </option>
               {[720, 1080, 1440, 2160].map((height) => {
                 const width =
@@ -283,9 +281,8 @@ function ExportDialog({
             </select>
           </label>
           <label>
-            帧率
-            <select
-              aria-label="导出帧率"
+            {ui("帧率", "Frame rate")}<select
+              aria-label={ui("导出帧率", "Export frame rate")}
               value={options.fps}
               disabled={exporting}
               onChange={(e) =>
@@ -298,9 +295,8 @@ function ExportDialog({
             </select>
           </label>
           <label>
-            画质
-            <select
-              aria-label="导出画质"
+            {ui("画质", "Quality")}<select
+              aria-label={ui("导出画质", "Export quality")}
               disabled={exporting}
               value={options.quality}
               onChange={(e) =>
@@ -310,15 +306,14 @@ function ExportDialog({
                 }))
               }
             >
-              <option value="draft">草稿 · 更快</option>
-              <option value="standard">标准 · 推荐</option>
-              <option value="high">高画质</option>
+              <option value="draft">{ui("草稿 · 更快", "Draft · Faster")}</option>
+              <option value="standard">{ui("标准 · 推荐", "Standard · Recommended")}</option>
+              <option value="high">{ui("高画质", "High quality")}</option>
             </select>
           </label>
           <label>
-            格式
-            <select
-              aria-label="导出格式"
+            {ui("格式", "Format")}<select
+              aria-label={ui("导出格式", "Export format")}
               disabled={exporting}
               value={options.format}
               onChange={(e) => {
@@ -336,8 +331,7 @@ function ExportDialog({
           </label>
         </div>
         <p className="field-hint">
-          导出原始素材和所有可见画面轨道，按音频设置混音。无需登录或上传。
-        </p>
+          {ui("导出原始素材和所有可见画面轨道，按音频设置混音。无需登录或上传。", "Renders original media and all visible video tracks, with audio mixed using your settings. No sign-in or upload required.")}</p>
         {progress && (
           <div
             className={`export-progress ${status === "complete" ? "is-complete" : ""}`}
@@ -345,14 +339,14 @@ function ExportDialog({
             <div>
               <span>
                 {status === "complete"
-                  ? "导出完成"
+                  ? ui("导出完成", "Export complete")
                   : status === "cancelled"
-                    ? "导出已取消"
+                    ? ui("导出已取消", "Export cancelled")
                     : status === "preparing"
-                      ? "正在准备素材"
+                      ? ui("正在准备素材", "Preparing media")
                       : status === "error"
-                        ? "导出失败"
-                        : "正在渲染视频"}
+                        ? ui("导出失败", "Export failed")
+                        : ui("正在渲染视频", "Rendering video")}
               </span>
               <strong>{Math.round(progress.progress * 100)}%</strong>
             </div>
@@ -361,7 +355,7 @@ function ExportDialog({
         )}
         {error && (
           <div role="alert" className="inline-warning">
-            {error}
+            {localizeMessage(error)}
           </div>
         )}
       </div>
@@ -370,8 +364,7 @@ function ExportDialog({
           <>
             <span className="muted">
               <LoaderCircle size={14} className="spin" />
-              编辑会在本地渲染完成后继续
-            </span>
+              {ui("编辑会在本地渲染完成后继续", "Editing resumes after local rendering finishes")}</span>
             <button
               onClick={() => {
                 if (job.current)
@@ -380,8 +373,7 @@ function ExportDialog({
                     .catch((error) => setError(String(error)));
               }}
             >
-              取消导出
-            </button>
+              {ui("取消导出", "Cancel export")}</button>
           </>
         ) : status === "complete" ? (
           <>
@@ -393,24 +385,21 @@ function ExportDialog({
               }
             >
               <FolderOpen size={15} />
-              在访达中查看
-            </button>
+              {ui("在访达中查看", "Show in folder")}</button>
             <button className="primary" onClick={onClose}>
               <Check size={15} />
-              完成
-            </button>
+              {ui("完成", "Done")}</button>
           </>
         ) : (
           <>
-            <button onClick={onClose}>取消</button>
+            <button onClick={onClose}>{ui("取消", "Cancel")}</button>
             <button
               className="primary"
               onClick={exportVideo}
               disabled={!project.clips.length}
             >
               <Download size={16} />
-              开始导出
-            </button>
+              {ui("开始导出", "Start export")}</button>
           </>
         )}
       </footer>
@@ -431,7 +420,7 @@ async function browserAssets(files: File[]): Promise<MediaAsset[]> {
       image.src = url;
       await new Promise<void>((resolve, reject) => {
         image.onload = () => resolve();
-        image.onerror = () => reject(new Error(`无法读取 ${file.name}`));
+        image.onerror = () => reject(new Error(translateUI(`无法读取 ${file.name}`, `Cannot read ${file.name}`)));
       });
       results.push({
         id: id(),
@@ -452,7 +441,7 @@ async function browserAssets(files: File[]): Promise<MediaAsset[]> {
       element.src = url;
       await new Promise<void>((resolve, reject) => {
         element.onloadedmetadata = () => resolve();
-        element.onerror = () => reject(new Error(`无法读取 ${file.name}`));
+        element.onerror = () => reject(new Error(translateUI(`无法读取 ${file.name}`, `Cannot read ${file.name}`)));
       });
       const video = element instanceof HTMLVideoElement ? element : null;
       results.push({
@@ -474,6 +463,7 @@ async function browserAssets(files: File[]): Promise<MediaAsset[]> {
   return results;
 }
 export default function App() {
+  const ui = useUITranslation();
   const s = useEditorStore();
   const [speechMode, setSpeechMode] = useState<"asr" | "tts" | null>(null);
   const [assistantOpen, setAssistantOpen] = useState(false);
@@ -513,20 +503,20 @@ export default function App() {
     return () => window.removeEventListener("resize", clamp);
   }, []);
   const addBuiltin = async (definition: BuiltinAsset) => {
-    if (!window.editorAPI) throw new Error("添加内置素材需要桌面版");
+    if (!window.editorAPI) throw new Error(ui("添加内置素材需要桌面版", "Adding built-in assets requires the desktop app"));
     if (addingBuiltin) return;
     const projectId = useEditorStore.getState().project.id;
     setAddingBuiltin(definition.id);
     try {
       const imported = await window.editorAPI.importBuiltinAsset(definition.id);
       const state = useEditorStore.getState();
-      if (state.project.id !== projectId) throw new Error("项目已切换，请重新添加素材");
+      if (state.project.id !== projectId) throw new Error(ui("项目已切换，请重新添加素材", "The project changed. Add the asset again."));
       state.beginTransaction();
       try {
-        state.addAssets([imported]);
+        state.addAssets([{ ...imported, name: definition.name }]);
         const latest = useEditorStore.getState();
         const asset = latest.project.assets.find(a => a.path === imported.path)!;
-        const name = definition.category === "backgrounds" ? "内置背景" : definition.kind === "audio" ? "内置音效" : "内置装饰";
+        const name = definition.category === "backgrounds" ? ui("内置背景", "Built-in backgrounds") : definition.kind === "audio" ? ui("内置音效", "Built-in sounds") : ui("内置装饰", "Built-in decorations");
         let track = latest.project.tracks.find(t => t.name === name && t.kind === definition.kind && !t.locked);
         if (!track) {
           track = createTrack(definition.kind, name);
@@ -562,7 +552,7 @@ export default function App() {
     "import",
   );
   const notify = useCallback((message: string) => {
-    setToast(message);
+    setToast(localizeMessage(message));
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(""), 5000);
   }, []);
@@ -594,7 +584,7 @@ export default function App() {
           startup = await window.editorAPI.getStartupProject();
         } catch (error) {
           notify(
-            `启动项目无法打开：${error instanceof Error ? error.message : String(error)}`,
+            translateUI(`启动项目无法打开：${error instanceof Error ? error.message : String(error)}`, `Cannot open startup project: ${error instanceof Error ? error.message : String(error)}`),
           );
         }
         if (startup) {
@@ -620,16 +610,16 @@ export default function App() {
     const timer = setTimeout(() => {
       void window
         .editorAPI!.autosaveProject(s.project)
-        .catch((error) => notify(`自动保存失败：${String(error)}`));
+        .catch((error) => notify(translateUI(`自动保存失败：${String(error)}`, `Autosave failed: ${String(error)}`)));
     }, 1000);
     return () => clearTimeout(timer);
   }, [s.project, initialized, recover]);
   const confirmReplace = () =>
     !useEditorStore.getState().dirty ||
-    window.confirm("当前项目有未保存修改，继续会关闭当前项目。建议先保存。");
+    window.confirm(ui("当前项目有未保存修改，继续会关闭当前项目。建议先保存。", "This project has unsaved changes. Continuing will close it. Save your changes first."));
   const importMedia = async (paths?: string[]) => {
     if (!window.editorAPI) {
-      notify("浏览器预览可用拖拽文件导入。完整文件操作请运行桌面版。");
+      notify(ui("浏览器预览可用拖拽文件导入。完整文件操作请运行桌面版。", "Drag local files into the browser preview to import them. Use the desktop app for full file operations."));
       return;
     }
     const projectId = useEditorStore.getState().project.id;
@@ -637,18 +627,18 @@ export default function App() {
     try {
       const assets = await window.editorAPI.importMedia(paths);
       if (useEditorStore.getState().project.id !== projectId) {
-        notify("项目已切换，导入素材未加入新项目");
+        notify(ui("项目已切换，导入素材未加入新项目", "The project changed. Imported assets were not added to the new project."));
         return;
       }
       s.addAssets(assets);
-      if (assets.length) notify(`已导入 ${assets.length} 个素材`);
+      if (assets.length) notify(ui(`已导入 ${assets.length} 个素材`, `Imported ${assets.length} assets`));
     } finally {
       setImporting(false);
     }
   };
   const save = async (as = false) => {
     if (saving.current) {
-      notify("项目正在保存，请稍候");
+      notify(ui("项目正在保存，请稍候", "Saving the project. Please wait."));
       return false;
     }
     if (!window.editorAPI) {
@@ -661,7 +651,7 @@ export default function App() {
       a.download = s.project.name + ".reacut";
       a.click();
       URL.revokeObjectURL(url);
-      notify("已下载项目 JSON。浏览器素材链接不支持跨会话恢复。");
+      notify(ui("已下载项目 JSON。浏览器素材链接不支持跨会话恢复。", "Project JSON downloaded. Browser media links cannot be restored across sessions."));
       return false;
     }
     saving.current = true;
@@ -676,13 +666,13 @@ export default function App() {
       setRecent(await window.editorAPI.getRecentProjects());
       const latest = useEditorStore.getState();
       if (latest.project.id !== captured.id) {
-        notify("原项目快照已保存");
+        notify(ui("原项目快照已保存", "Original project snapshot saved"));
         return false;
       }
       const unchanged = latest.project === captured;
       if (unchanged) latest.markSaved(file);
       else useEditorStore.setState({ path: file, dirty: true });
-      notify(unchanged ? "项目已保存" : "当前快照已保存，后续编辑尚未保存");
+      notify(unchanged ? ui("项目已保存", "Project saved") : ui("当前快照已保存，后续编辑尚未保存", "Snapshot saved. Newer edits are not saved yet."));
       return unchanged;
     } finally {
       saving.current = false;
@@ -691,20 +681,23 @@ export default function App() {
   const open = async () => {
     if (!confirmReplace()) return;
     if (!window.editorAPI) {
-      notify("打开本地项目需要桌面版。");
+      notify(ui("打开本地项目需要桌面版。", "Opening local projects requires the desktop app."));
       return;
     }
     const result = await window.editorAPI.openProject();
     if (result) s.setProject(result.project, result.path);
   };
   const newProject = () => {
-    if (confirmReplace()) s.setProject(createProject());
+    if (confirmReplace()) s.setProject(createEditorProject());
   };
   const handleAction = async (action: string) => {
     // Native menu accelerators bypass DOM key handlers; keep modal workflows intact.
     if ((modal || speechMode || recover) && action !== "save-and-close") return;
     setFileMenu(false);
     switch (action) {
+      case "settings":
+        setModal("settings");
+        break;
       case "templates":
         s.setPlaying(false); setModal("templates");
         break;
@@ -796,6 +789,9 @@ export default function App() {
       let handled = true;
       if (modifier) {
         switch (e.key.toLowerCase()) {
+          case ",":
+            void safe(() => actionRef.current("settings"));
+            break;
           case "n":
             void safe(() => actionRef.current("new"));
             break;
@@ -901,9 +897,9 @@ export default function App() {
     const result = await window.editorAPI.readTextFile(["srt", "vtt"]);
     if (!result) return;
     const cues = parseSubtitles(result.text);
-    if (!cues.length) throw new Error("没有读取到有效的 SRT / VTT 字幕");
+    if (!cues.length) throw new Error(ui("没有读取到有效的 SRT / VTT 字幕", "No valid SRT / VTT captions found"));
     s.addSubtitles(cues);
-    notify(`已导入 ${cues.length} 条字幕`);
+    notify(ui(`已导入 ${cues.length} 条字幕`, `Imported ${cues.length} captions`));
   };
   const exportSubtitles = async () => {
     const cues = s.project.clips
@@ -914,7 +910,7 @@ export default function App() {
         end: c.start + c.duration,
         text: c.text!.text,
       }));
-    if (!cues.length) throw new Error("项目没有文字或字幕");
+    if (!cues.length) throw new Error(ui("项目没有文字或字幕", "The project has no text or captions"));
     const text = stringifySubtitles(cues);
     if (window.editorAPI)
       await window.editorAPI.writeTextFile(text, s.project.name + ".srt");
@@ -955,7 +951,7 @@ export default function App() {
       for (const asset of imported.project.assets) {
         try {
           const probed = (await window.editorAPI.importMedia([asset.path]))[0];
-          if (!probed) throw new Error("素材无法读取");
+          if (!probed) throw new Error(ui("素材无法读取", "Cannot read the media"));
           loaded.push({ ...asset, ...probed, id: asset.id, kind: asset.kind });
         } catch {
           loaded.push({
@@ -967,7 +963,7 @@ export default function App() {
       }
       const latest = useEditorStore.getState();
       if (latest.project.id !== pending.capturedProject.id) {
-        notify("项目已切换，请在当前项目中重新导入剪映草稿。");
+        notify(ui("项目已切换，请在当前项目中重新导入剪映草稿。", "The project changed. Import the CapCut draft again into the current project."));
         return;
       }
       if (latest.project !== pending.capturedProject && !confirmReplace())
@@ -989,11 +985,11 @@ export default function App() {
   const importDraft = async (mode: "file" | "directory" = "file") => {
     setFileMenu(false);
     if (capcutBusyRef.current || capcutImportRef.current) {
-      notify("请先完成当前剪映项目的导入。");
+      notify(ui("请先完成当前剪映项目的导入。", "Finish importing the current CapCut project first."));
       return;
     }
     if (!window.editorAPI && mode === "directory") {
-      notify("导入剪映项目文件夹需要桌面版。");
+      notify(ui("导入剪映项目文件夹需要桌面版。", "Importing a CapCut project folder requires the desktop app."));
       return;
     }
     if (!confirmReplace()) return;
@@ -1029,15 +1025,15 @@ export default function App() {
     const result = detachLinkedAudio(s.project, active.id);
     s.commit(result.project);
     s.select([active.id]);
-    notify("音频已分离，画声保持关联；可在底部解除关联");
+    notify(ui("音频已分离，画声保持关联；可在底部解除关联", "Audio detached. Video and audio remain linked; use Unlink video and audio to separate them."));
   };
   const applySceneTransition = (transition: TransitionId, seconds: number) => {
-    if (!active) throw new Error("请选择一个画面片段");
+    if (!active) throw new Error(ui("请选择一个画面片段", "Select a video or image clip"));
     const result = applyTransition(s.project, active.id, transition, seconds);
     s.commit(result.project);
     notify(transition === "dissolve"
-      ? `已添加 ${result.duration.toFixed(2)} 秒叠化（后片段提前重叠）`
-      : `已添加 ${result.duration.toFixed(2)} 秒转场，可撤销`);
+      ? ui(`已添加 ${result.duration.toFixed(2)} 秒叠化（后片段提前重叠）`, `Added a ${result.duration.toFixed(2)} second crossfade (the following clip overlaps earlier)`)
+      : ui(`已添加 ${result.duration.toFixed(2)} 秒转场，可撤销`, `Added a ${result.duration.toFixed(2)} second transition; you can undo this`));
   };
   return (
     <div
@@ -1099,7 +1095,7 @@ export default function App() {
                   </button>
                 ))}
                 <hr />
-                <button onClick={() => void safe(() => handleAction("templates"))} disabled={!window.editorAPI}>工程模板…</button>
+                <button onClick={() => void safe(() => handleAction("templates"))} disabled={!window.editorAPI}>{ui("工程模板…", "Project templates…")}</button>
                 <button onClick={() => { setFileMenu(false); setModal("package"); }}>{t("toolbar.collectAssets")}</button>
                 <button onClick={() => void safe(() => importDraft("file"))}>
                   {t("toolbar.importCapcutFile")}<span>{t("toolbar.experimental")}</span>
@@ -1139,11 +1135,11 @@ export default function App() {
             <Save size={16} />
           </button>
           <button
-            title={t("toolbar.settings")}
-            aria-label={t("toolbar.settings.aria")}
+            title={ui("设置 / Settings · 语言 / Language", "Settings · Language")}
+            aria-label={ui("设置 / Settings", "Settings")}
             onClick={() => setModal("settings")}
           >
-            <Settings2 size={16} />
+            <Settings2 size={16} /><span>{ui("设置 / Settings", "Settings")}</span>
           </button>
           <button
             className="primary export-button"
@@ -1175,7 +1171,7 @@ export default function App() {
                 onClick={() => setTab(label as string)}
               >
                 {typeof Icon !== "string" && <Icon size={19} />}
-                <span>{label as string}</span>
+                <span>{ui(label as string, ({ 素材: "Media", 音频: "Audio", 文本: "Text", 贴纸: "Stickers", 特效: "Effects", 转场: "Transitions", 字幕: "Captions" } as Record<string, string>)[label as string])}</span>
               </button>
             ))}
           </nav>
@@ -1225,7 +1221,7 @@ export default function App() {
                 locked={activeTrack?.locked}
                 onApply={(patch) => {
                   if (active) s.updateClip(active.id, patch);
-                  else notify("先选择一个时间线片段");
+                  else notify(ui("先选择一个时间线片段", "Select a timeline clip first"));
                 }}
               />
             )}
@@ -1267,12 +1263,12 @@ export default function App() {
           className="timeline-resize"
           role="separator"
           tabIndex={0}
-          aria-label="调整时间线高度"
+          aria-label={ui("调整时间线高度", "Resize timeline height")}
           aria-orientation="horizontal"
           aria-valuenow={Math.round(timelineHeight)}
           aria-valuemin={190}
           aria-valuemax={Math.max(190, window.innerHeight - 290)}
-          title="拖动调整时间线高度"
+          title={ui("拖动调整时间线高度", "Drag to resize the timeline")}
           onKeyDown={(event) => {
             if (event.key === "ArrowUp" || event.key === "ArrowDown") {
               event.preventDefault();
@@ -1347,14 +1343,14 @@ export default function App() {
         </span>
         <div>
           {active && s.project.assets.find(a => a.id === active.assetId)?.kind === "video" && <>
-            <button disabled={activeTrack?.locked} onClick={() => { s.setPlaying(false); setModal("reverse"); }}>倒放</button>
-            <button disabled={activeTrack?.locked} onClick={() => { s.setPlaying(false); setModal("freeze"); }}>定格</button>
+            <button disabled={activeTrack?.locked} onClick={() => { s.setPlaying(false); setModal("reverse"); }}>{ui("倒放", "Reverse")}</button>
+            <button disabled={activeTrack?.locked} onClick={() => { s.setPlaying(false); setModal("freeze"); }}>{ui("定格", "Freeze frame")}</button>
           </>}
-          {active?.linkId && <button onClick={() => { s.unlinkSelected(); }} disabled={s.project.clips.some(c => c.linkId === active.linkId && s.project.tracks.find(t => t.id === c.trackId)?.locked)}>解除画声关联</button>}
+          {active?.linkId && <button onClick={() => { s.unlinkSelected(); }} disabled={s.project.clips.some(c => c.linkId === active.linkId && s.project.tracks.find(t => t.id === c.trackId)?.locked)}>{ui("解除画声关联", "Unlink video and audio")}</button>}
           {active?.assetId &&
             s.project.assets.find((a) => a.id === active.assetId)?.kind === "video" &&
             s.project.assets.find((a) => a.id === active.assetId)?.hasAudio && !active.linkId && (
-              <button onClick={() => void safe(detachAudio)}>分离音频</button>
+              <button onClick={() => void safe(detachAudio)}>{ui("分离音频", "Detach audio")}</button>
             )}
           {s.project.assets.some((a) => a.missing) && (
             <button
@@ -1364,8 +1360,7 @@ export default function App() {
                 )
               }
             >
-              重新链接丢失素材
-            </button>
+              {ui("重新链接丢失素材", "Relink missing media")}</button>
           )}
           <span>{s.dirty ? t("toolbar.status.dirty") : t("toolbar.status.ready")}</span>
           <button title={t("toolbar.recentProjects")} onClick={() => setModal("settings")}>
@@ -1376,8 +1371,8 @@ export default function App() {
       {toast && (
         <div role="status" className="toast">
           <Info size={16} />
-          <span>{toast}</span>
-          <button aria-label="关闭提示" onClick={() => setToast("")}>
+          <span>{localizeMessage(toast, language)}</span>
+          <button aria-label={ui("关闭提示", "Dismiss notification")} onClick={() => setToast("")}>
             <X size={13} />
           </button>
         </div>
@@ -1399,16 +1394,14 @@ export default function App() {
         />
       )}
       {modal === "capcut" && capcutImport && (
-        <ModalShell title="选择剪映时间线" onClose={cancelCapcutImport}>
+        <ModalShell title={ui("选择剪映时间线", "Choose a CapCut timeline")} onClose={cancelCapcutImport}>
           <div className="modal-body">
             <p>
               <strong>{capcutImport.selection.name}</strong>{" "}
-              包含多条时间线，请选择要导入的内容。
-            </p>
+              {ui("包含多条时间线，请选择要导入的内容。", "contains multiple timelines. Choose one to import.")}</p>
             <label>
-              时间线
-              <select
-                aria-label="剪映时间线"
+              {ui("时间线", "Timeline")}<select
+                aria-label={ui("剪映时间线", "CapCut timeline")}
                 value={capcutTimelineId}
                 disabled={capcutBusy}
                 onChange={(event) => setCapcutTimelineId(event.target.value)}
@@ -1416,23 +1409,22 @@ export default function App() {
                 {capcutImport.selection.timelines.map((timeline) => (
                   <option key={timeline.id} value={timeline.id}>
                     {timeline.name}
-                    {timeline.isActive ? " · 当前编辑" : ""}
-                    {timeline.isMain ? " · 主时间线" : ""}
+                    {timeline.isActive ? ui(" · 当前编辑", " · Currently editing") : ""}
+                    {timeline.isMain ? ui(" · 主时间线", " · Main timeline") : ""}
                   </option>
                 ))}
               </select>
             </label>
             {capcutImport.selection.warnings.map((warning) => (
               <p className="muted" key={warning}>
-                {warning}
+                {localizeMessage(warning, language)}
               </p>
             ))}
-            <p className="muted">导入后请核对画面、文字和效果。</p>
+            <p className="muted">{ui("导入后请核对画面、文字和效果。", "Review video, text and effects after importing.")}</p>
           </div>
           <footer>
             <button disabled={capcutBusy} onClick={cancelCapcutImport}>
-              取消
-            </button>
+              {ui("取消", "Cancel")}</button>
             <button
               className="primary"
               disabled={capcutBusy || !capcutTimelineId}
@@ -1442,7 +1434,7 @@ export default function App() {
                 )
               }
             >
-              {capcutBusy ? "正在导入…" : "导入所选时间线"}
+              {capcutBusy ? ui("正在导入…", "Importing…") : ui("导入所选时间线", "Import selected timeline")}
             </button>
           </footer>
         </ModalShell>
@@ -1468,36 +1460,31 @@ export default function App() {
         </ModalShell>
       )}
       {modal === "about" && (
-        <ModalShell title="关于 ReaCut" onClose={() => setModal(null)}>
+        <ModalShell title={ui("关于 ReaCut", "About ReaCut")} onClose={() => setModal(null)}>
           <div className="about-body">
             <div className="about-logo">
-              <img src="./icons/reacut.png" width="58" height="58" alt="ReaCut 图标" />
+              <img src="./icons/reacut.png" width="58" height="58" alt={ui("ReaCut 图标", "ReaCut icon")} />
             </div>
             <h2>ReaCut · 映刻</h2>
-            <span>{appVersion} · 独立开源桌面视频编辑器</span>
+            <span>{appVersion} {ui("· 独立开源桌面视频编辑器", " · Independent open-source desktop video editor")}</span>
             <p>
-              利用 REA
-              研究可观察的剪辑流程，以独立代码实现离线编辑。核心源码采用 MIT
-              许可证。macOS 安装包内置 FFmpeg / FFprobe 与 x264（GPL-2.0-or-later），对应源码、构建脚本及许可文件位于应用资源的 media-tools 目录。
-            </p>
+              {ui("利用 REA 研究可观察的剪辑流程，以独立代码实现离线编辑。核心源码采用 MIT 许可证。macOS 安装包内置 FFmpeg / FFprobe 与 x264（GPL-2.0-or-later），对应源码、构建脚本及许可文件位于应用资源的 media-tools 目录。", "ReaCut uses REA to study observable editing workflows and independently implements offline editing. Core source code is MIT licensed. The macOS app bundles FFmpeg / FFprobe and x264 (GPL-2.0-or-later); corresponding source, build scripts and licenses are in the application resources' media-tools directory.")}</p>
             <p className="muted">
-              非剪映官方产品。不包含剪映的专有代码、库或素材。
-            </p>
+              {ui("非剪映官方产品。不包含剪映的专有代码、库或素材。", "Not an official CapCut product. Contains no proprietary CapCut code, libraries or assets.")}</p>
           </div>
           <footer>
             <button className="primary" onClick={() => setModal(null)}>
-              关闭
-            </button>
+              {ui("关闭", "Close")}</button>
           </footer>
         </ModalShell>
       )}
       {modal === "settings" && (
         <ModalShell title={t("settings.title")} onClose={() => setModal(null)}>
           <div className="modal-body">
-          <h3>{t("settings.language")}</h3>
+          <h3>{ui("语言 / Language", t("settings.language"))}</h3>
               <p className="muted small">{t("settings.language.description")}</p>
               <select
-                aria-label={t("settings.language")}
+                aria-label={ui("语言 / Language", t("settings.language"))}
                 value={language}
                 onChange={(e) => setLanguage(e.target.value as Language)}
                 style={{ marginTop: "0.5rem", marginBottom: "1rem" }}
@@ -1589,30 +1576,28 @@ export default function App() {
       )}
       {recover && (
         <ModalShell
-          title="恢复上次编辑"
+          title={ui("恢复上次编辑", "Recover previous edits")}
           onClose={() => {
             setRecover(null);
           }}
         >
           <div className="modal-body">
             <p>
-              发现本机自动保存的项目 <strong>{recover.name}</strong>，包含{" "}
-              {recover.clips.length} 个片段。
-            </p>
-            <p className="muted">恢复后可继续编辑，并另存为项目文件。</p>
+              {ui("发现本机自动保存的项目", "Found a locally autosaved project: ")}<strong>{recover.name}</strong>{ui("，包含", " with ")}{" "}
+              {recover.clips.length} {ui("个片段。", " clips.")}</p>
+            <p className="muted">{ui("恢复后可继续编辑，并另存为项目文件。", "Recover to continue editing, then save as a project file.")}</p>
           </div>
           <footer>
-            <button onClick={() => setRecover(null)}>新建空项目</button>
+            <button onClick={() => setRecover(null)}>{ui("新建空项目", "Start a blank project")}</button>
             <button
               className="primary"
               onClick={() => {
                 s.setProject(recover);
                 setRecover(null);
-                notify("已恢复上次编辑");
+                notify(ui("已恢复上次编辑", "Previous edits recovered"));
               }}
             >
-              恢复项目
-            </button>
+              {ui("恢复项目", "Recover project")}</button>
           </footer>
         </ModalShell>
       )}
@@ -1632,7 +1617,7 @@ export default function App() {
                 notify(imported.warnings.join(" "));
               } else {
                 const cues = parseSubtitles(text);
-                if (!cues.length) throw new Error("字幕文件没有有效字幕");
+                if (!cues.length) throw new Error(ui("字幕文件没有有效字幕", "The subtitle file contains no valid captions"));
                 s.addSubtitles(cues);
               }
             });

@@ -1,3 +1,4 @@
+import { useUITranslation } from "../i18n";
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 const key = 'reacut-panel-widths-v1';
 type Widths = [number, number];
@@ -6,6 +7,7 @@ function read(): Widths | null {
 }
 /** UI-only layout preferences never modify project history or media coordinates. */
 export default function EditorWorkspace({ assistantOpen, children }: { assistantOpen: boolean; children: ReactNode }) {
+  const ui = useUITranslation();
   const main = useRef<HTMLElement>(null), drag = useRef<{ side: 0 | 1; x: number; widths: Widths } | null>(null);
   const [preferred, setPreferred] = useState<Widths | null>(read), [available, setAvailable] = useState(0), [measured, setMeasured] = useState<Widths>([0,0]);
   const rightMin = assistantOpen ? 310 : 280;
@@ -33,7 +35,7 @@ export default function EditorWorkspace({ assistantOpen, children }: { assistant
   const reset = () => { drag.current = null; setPreferred(null); remember(null); };
   return <main ref={main} className={`editor-workspace ${assistantOpen ? 'assistant-open' : ''}`} style={preferred && available ? { gridTemplateColumns: `${widths[0]}px minmax(320px,1fr) ${widths[1]}px` } : undefined}>
     {children}
-    {([0,1] as const).map(side => <div key={side} className="workspace-divider" role="separator" tabIndex={0} aria-orientation="vertical" aria-label={side === 0 ? '调整素材区宽度' : '调整属性区宽度'} aria-valuenow={Math.round(widths[side])} aria-valuemin={side === 0 ? 280 : rightMin} aria-valuemax={Math.floor(available - 320 - widths[side === 0 ? 1 : 0])} title="拖动调整宽度 · 双击恢复默认 · ← / → 微调" style={side === 0 ? {left: widths[0]} : {right: widths[1]}}
+    {([0,1] as const).map(side => <div key={side} className="workspace-divider" role="separator" tabIndex={0} aria-orientation="vertical" aria-label={side === 0 ? ui("调整素材区宽度", "Resize media panel") : ui("调整属性区宽度", "Resize properties panel")} aria-valuenow={Math.round(widths[side])} aria-valuemin={side === 0 ? 280 : rightMin} aria-valuemax={Math.floor(available - 320 - widths[side === 0 ? 1 : 0])} title={ui("拖动调整宽度 · 双击恢复默认 · ← / → 微调", "Drag to resize · Double-click to reset · ← / → to fine-tune")} style={side === 0 ? {left: widths[0]} : {right: widths[1]}}
       onDoubleClick={reset}
       onKeyDown={event => { if (event.key === 'Home') { event.preventDefault();event.stopPropagation();reset(); } else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault();event.stopPropagation();const delta=(event.key==='ArrowRight'?1:-1)*(side===0?1:-1)*(event.shiftKey?40:10);remember(change(side,widths[side]+delta)); } }}
       onPointerDown={event => { if(event.button!==0)return;event.preventDefault();event.currentTarget.focus();drag.current={side,x:event.clientX,widths:[...widths]};event.currentTarget.setPointerCapture(event.pointerId); }}

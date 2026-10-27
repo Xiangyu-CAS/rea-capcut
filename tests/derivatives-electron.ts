@@ -1,3 +1,4 @@
+import { firstChineseWindow } from "./ui-language";
 /** Original numbered-frame video through the real desktop UI, storage, preview and export. */
 import { _electron as electron, expect, type ElectronApplication, type Page } from '@playwright/test';
 import { createCanvas } from '@napi-rs/canvas';
@@ -24,7 +25,7 @@ const video=createClip(asset,p.tracks[1].id,0,24);Object.assign(video,{sourceIn:
 const saved=path.join(out,'reverse-freeze.reacut'),output=path.join(out,'reverse-freeze.mp4');await writeFile(saved,JSON.stringify(p));
 const env: Record<string,string>=Object.fromEntries(Object.entries(process.env).filter((e):e is [string,string]=>e[1]!==undefined));env.REACUT_USER_DATA=path.join(out,'user-data');delete env.ELECTRON_RUN_AS_NODE;delete env.VITE_DEV_SERVER_URL;
 let app!:ElectronApplication,page!:Page;const errors:string[]=[],checks:string[]=[],previews:number[]=[];
-async function launch(){app=await electron.launch({args:[path.resolve('dist-electron/main.cjs'),saved],env});page=await app.firstWindow();page.on('pageerror',e=>errors.push(e.message));await app.evaluate(({dialog,BrowserWindow},output)=>{BrowserWindow.getAllWindows()[0].setSize(1470,834);(dialog as any).showSaveDialog=async()=>({canceled:false,filePath:output});(dialog as any).showMessageBox=async()=>({response:2});},output);await expect(page.locator('.tl-clip').first()).toBeVisible({timeout:30000});}
+async function launch(){app=await electron.launch({args:[path.resolve('dist-electron/main.cjs'),saved],env});page=await firstChineseWindow(app);page.on('pageerror',e=>errors.push(e.message));await app.evaluate(({dialog,BrowserWindow},output)=>{BrowserWindow.getAllWindows()[0].setSize(1470,834);(dialog as any).showSaveDialog=async()=>({canceled:false,filePath:output});(dialog as any).showMessageBox=async()=>({response:2});},output);await expect(page.locator('.tl-clip').first()).toBeVisible({timeout:30000});}
 async function save():Promise<Project>{const time=(await stat(saved)).mtimeMs;await page.getByRole('button',{name:'保存项目',exact:true}).click();await expect.poll(async()=>(await stat(saved)).mtimeMs).toBeGreaterThan(time);return JSON.parse(await readFile(saved,'utf8'));}
 async function seek(t:number){const r=(await page.locator('.tl-ruler-body').boundingBox())!;await page.mouse.click(r.x+t*60,r.y+15);}
 const select=async()=>{await page.locator(`[data-clip-id="${video.id}"]`).click({position:{x:20,y:26}});};

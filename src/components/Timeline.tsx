@@ -1,3 +1,4 @@
+import { useUITranslation } from "../i18n";
 import {
   useEffect,
   useRef,
@@ -177,6 +178,7 @@ type Gesture =
   | { kind: "marquee"; x: number; y: number; width: number; height: number };
 
 export default function Timeline(props: TimelineProps) {
+  const ui = useUITranslation();
   const { project, selectedIds, playhead, zoom, onSeek, onSelect } = props;
   const scrollRef = useRef<HTMLDivElement>(null);
   const gestureRef = useRef<Gesture | null>(null);
@@ -656,7 +658,7 @@ export default function Timeline(props: TimelineProps) {
   return (
     <section
       className="tl"
-      aria-label="多轨时间线"
+      aria-label={ui("多轨时间线", "Multitrack timeline")}
       style={
         {
           "--tl-row": `${ROW}px`,
@@ -667,16 +669,16 @@ export default function Timeline(props: TimelineProps) {
       <div className="tl-toolbar">
         <div className="tl-toolbar-group">
           <button
-            title="撤销 · ⌘Z"
-            aria-label="撤销"
+            title={ui("撤销 · ⌘Z", "Undo · ⌘Z")}
+            aria-label={ui("撤销", "Undo")}
             onClick={props.onUndo}
             disabled={!props.canUndo}
           >
             <Undo2 size={17} />
           </button>
           <button
-            title="重做 · ⇧⌘Z"
-            aria-label="重做"
+            title={ui("重做 · ⇧⌘Z", "Redo · ⇧⌘Z")}
+            aria-label={ui("重做", "Redo")}
             onClick={props.onRedo}
             disabled={!props.canRedo}
           >
@@ -685,14 +687,14 @@ export default function Timeline(props: TimelineProps) {
           <span className="tl-divider" />
           <span
             className="tl-tool-indicator"
-            title="选择工具 · 拖动空白区域可框选"
-            aria-label="选择工具"
+            title={ui("选择工具 · 拖动空白区域可框选", "Selection tool · Drag an empty area to select clips")}
+            aria-label={ui("选择工具", "Selection tool")}
           >
             <MousePointer2 size={16} />
           </span>
           <button
-            title="在播放位置分割 · ⌘B"
-            aria-label="分割片段"
+            title={ui("在播放位置分割 · ⌘B", "Split at playhead · ⌘B")}
+            aria-label={ui("分割片段", "Split clip")}
             onClick={props.onSplit}
             disabled={
               !project.clips.some(
@@ -707,16 +709,16 @@ export default function Timeline(props: TimelineProps) {
             <Scissors size={17} />
           </button>
           <button
-            title="复制选中片段"
-            aria-label="复制选中片段"
+            title={ui("复制选中片段", "Duplicate selected clips")}
+            aria-label={ui("复制选中片段", "Duplicate selected clips")}
             onClick={props.onDuplicate}
             disabled={!selectedUnlocked || !props.onDuplicate}
           >
             <Copy size={16} />
           </button>
           <button
-            title="删除选中片段 · Backspace"
-            aria-label="删除选中片段"
+            title={ui("删除选中片段 · Backspace", "Delete selected clips · Backspace")}
+            aria-label={ui("删除选中片段", "Delete selected clips")}
             onClick={props.onDelete}
             disabled={!selectedUnlocked}
           >
@@ -727,10 +729,10 @@ export default function Timeline(props: TimelineProps) {
             className={magnetic ? "is-active" : ""}
             title={
               magnetic
-                ? "关闭磁性删除（删除后收拢间隙）"
-                : "打开磁性删除（删除后收拢间隙）"
+                ? ui("关闭磁性删除（删除后收拢间隙）", "Disable ripple delete (close gaps after deletion)")
+                : ui("打开磁性删除（删除后收拢间隙）", "Enable ripple delete (close gaps after deletion)")
             }
-            aria-label="磁性删除"
+            aria-label={ui("磁性删除", "Ripple delete")}
             aria-pressed={magnetic}
             onClick={() => {
               setLocalMagnetic(!magnetic);
@@ -741,8 +743,8 @@ export default function Timeline(props: TimelineProps) {
           </button>
           <button
             className={snapping ? "is-active" : ""}
-            title={snapping ? "关闭时间线吸附" : "打开时间线吸附"}
-            aria-label="时间线吸附"
+            title={snapping ? ui("关闭时间线吸附", "Disable timeline snapping") : ui("打开时间线吸附", "Enable timeline snapping")}
+            aria-label={ui("时间线吸附", "Timeline snapping")}
             aria-pressed={snapping}
             onClick={() => {
               setLocalSnap(!snapping);
@@ -761,14 +763,14 @@ export default function Timeline(props: TimelineProps) {
             )}
           </span>
           <button
-            title="缩小时间线"
-            aria-label="缩小时间线"
+            title={ui("缩小时间线", "Zoom out timeline")}
+            aria-label={ui("缩小时间线", "Zoom out timeline")}
             onClick={() => props.onZoom(Math.max(5, pps / 1.25))}
           >
             <ZoomOut size={16} />
           </button>
           <input
-            aria-label="时间线缩放"
+            aria-label={ui("时间线缩放", "Timeline zoom")}
             type="range"
             min="5"
             max="400"
@@ -776,15 +778,15 @@ export default function Timeline(props: TimelineProps) {
             onChange={(e) => props.onZoom(Number(e.target.value))}
           />
           <button
-            title="放大时间线"
-            aria-label="放大时间线"
+            title={ui("放大时间线", "Zoom in timeline")}
+            aria-label={ui("放大时间线", "Zoom in timeline")}
             onClick={() => props.onZoom(Math.min(400, pps * 1.25))}
           >
             <ZoomIn size={16} />
           </button>
           <button
             className="tl-fit"
-            title="适配整个项目"
+            title={ui("适配整个项目", "Fit entire project")}
             onClick={() => {
               const width =
                 (scrollRef.current?.clientWidth ?? 900) - GUTTER - 60;
@@ -804,8 +806,7 @@ export default function Timeline(props: TimelineProps) {
               if (scrollRef.current) scrollRef.current.scrollLeft = 0;
             }}
           >
-            适配
-          </button>
+            {ui("适配", "Fit")}</button>
         </div>
       </div>
       <div className="tl-scroll" ref={scrollRef}>
@@ -819,7 +820,7 @@ export default function Timeline(props: TimelineProps) {
         >
           <div className="tl-ruler" style={{ height: RULER }}>
             <div className="tl-ruler-label">
-              时间线 <span>{project.fps} FPS</span>
+              {ui("时间线", "Timeline")}<span>{project.fps} FPS</span>
             </div>
             <div
               className="tl-ruler-body"
@@ -840,7 +841,7 @@ export default function Timeline(props: TimelineProps) {
                   className="tl-playhead-handle"
                   role="slider"
                   tabIndex={0}
-                  aria-label="播放位置"
+                  aria-label={ui("播放位置", "Playhead position")}
                   aria-valuenow={playhead}
                   aria-valuemin={0}
                   aria-valuemax={duration}
@@ -890,7 +891,7 @@ export default function Timeline(props: TimelineProps) {
                   {renamingId === track.id ? (
                     <input
                       className="tl-track-name-input"
-                      aria-label="轨道名称"
+                      aria-label={ui("轨道名称", "Track name")}
                       autoFocus
                       defaultValue={track.name}
                       maxLength={256}
@@ -915,7 +916,7 @@ export default function Timeline(props: TimelineProps) {
                     />
                   ) : (
                     <span
-                      title={`${track.name}${track.locked ? "" : " · 双击重命名"}`}
+                      title={`${track.name}${track.locked ? "" : ui(" · 双击重命名", " · Double-click to rename")}`}
                       onDoubleClick={() => beginRename(track)}
                     >
                       {track.name}
@@ -923,14 +924,14 @@ export default function Timeline(props: TimelineProps) {
                   )}
                   <span className="tl-track-number">
                     {trackLayouts[index].count > 1
-                      ? `${trackLayouts[index].count} 层`
+                      ? ui(`${trackLayouts[index].count} 层`, `${trackLayouts[index].count} layers`)
                       : index + 1}
                   </span>
                 </div>
                 <div className="tl-track-controls">
                   <button
-                    title={track.locked ? "解锁轨道" : "锁定轨道"}
-                    aria-label={`${track.locked ? "解锁" : "锁定"}${track.name}`}
+                    title={track.locked ? ui("解锁轨道", "Unlock track") : ui("锁定轨道", "Lock track")}
+                    aria-label={`${track.locked ? ui("解锁", "Unlock ") : ui("锁定", "Lock ")}${track.name}`}
                     className={track.locked ? "is-active" : ""}
                     onClick={() =>
                       props.onTrackUpdate(track.id, { locked: !track.locked })
@@ -943,8 +944,8 @@ export default function Timeline(props: TimelineProps) {
                     )}
                   </button>
                   <button
-                    title={track.hidden ? "显示轨道" : "隐藏轨道"}
-                    aria-label={`${track.hidden ? "显示" : "隐藏"}${track.name}`}
+                    title={track.hidden ? ui("显示轨道", "Show track") : ui("隐藏轨道", "Hide track")}
+                    aria-label={`${track.hidden ? ui("显示", "Show ") : ui("隐藏", "Hide ")}${track.name}`}
                     className={track.hidden ? "is-active" : ""}
                     onClick={() =>
                       props.onTrackUpdate(track.id, { hidden: !track.hidden })
@@ -954,8 +955,8 @@ export default function Timeline(props: TimelineProps) {
                   </button>
                   {track.kind !== "text" && (
                     <button
-                      title={track.muted ? "取消静音" : "静音轨道"}
-                      aria-label={`${track.muted ? "取消静音" : "静音"}${track.name}`}
+                      title={track.muted ? ui("取消静音", "Unmute ") : ui("静音轨道", "Mute track")}
+                      aria-label={`${track.muted ? ui("取消静音", "Unmute ") : ui("静音", "Mute ")}${track.name}`}
                       className={track.muted ? "is-active" : ""}
                       onClick={() =>
                         props.onTrackUpdate(track.id, { muted: !track.muted })
@@ -970,8 +971,8 @@ export default function Timeline(props: TimelineProps) {
                   )}
                   <button
                     className="tl-track-more"
-                    title="轨道操作"
-                    aria-label={`${track.name}轨道操作`}
+                    title={ui("轨道操作", "Track actions")}
+                    aria-label={ui(`${track.name}轨道操作`, `${track.name} track actions`)}
                     aria-expanded={trackActions?.id === track.id}
                     onClick={(event) => {
                       const rect = event.currentTarget.getBoundingClientRect();
@@ -1068,10 +1069,10 @@ export default function Timeline(props: TimelineProps) {
                         }}
                         onPointerDown={(event) => startClip(event, original)}
                         onDoubleClick={() => onSeek(clip.start)}
-                        title={`${clip.name}\n${formatTimelineTime(clip.start, project.fps)} · ${clip.duration.toFixed(2)} 秒${track.locked ? "\n轨道已锁定" : ""}`}
+                        title={ui(`${clip.name}\n${formatTimelineTime(clip.start, project.fps)} · ${clip.duration.toFixed(2)} 秒${track.locked ? "\n轨道已锁定" : ""}`, `${clip.name}\n${formatTimelineTime(clip.start, project.fps)} · ${clip.duration.toFixed(2)} s${track.locked ? "\nTrack locked" : ""}`)}
                         tabIndex={0}
                         role="button"
-                        aria-label={`${clip.name}，${clip.duration.toFixed(1)} 秒`}
+                        aria-label={ui(`${clip.name}，${clip.duration.toFixed(1)} 秒`, `${clip.name}, ${clip.duration.toFixed(1)} seconds`)}
                         aria-pressed={selected}
                         aria-disabled={track.locked}
                         aria-keyshortcuts="Enter Alt+ArrowLeft Alt+ArrowRight"
@@ -1123,7 +1124,7 @@ export default function Timeline(props: TimelineProps) {
                           ) : (
                             <Film size={12} />
                           )}
-                          {clip.linkId && <Link2 size={12} aria-label="画声关联" />}
+                          {clip.linkId && <Link2 size={12} aria-label={ui("画声关联", "Linked video and audio")} />}
                           <span>{clip.name}</span>
                           {clip.speed !== 1 && <b>{clip.speed}×</b>}
                           {(clip.muted || track.muted) && <VolumeX size={12} />}
@@ -1184,10 +1185,10 @@ export default function Timeline(props: TimelineProps) {
                           <>
                             <div
                               className="tl-trim tl-trim-start"
-                              title="拖动裁剪入点 · 左右键逐帧调整"
+                              title={ui("拖动裁剪入点 · 左右键逐帧调整", "Drag to trim in point · Arrow keys adjust by frame")}
                               role="slider"
                               tabIndex={selected ? 0 : -1}
-                              aria-label={`${clip.name} 入点`}
+                              aria-label={ui(`${clip.name} 入点`, `${clip.name} in point`)}
                               aria-valuenow={clip.start}
                               aria-valuetext={formatTimelineTime(
                                 clip.start,
@@ -1220,10 +1221,10 @@ export default function Timeline(props: TimelineProps) {
                             />
                             <div
                               className="tl-trim tl-trim-end"
-                              title="拖动裁剪出点 · 左右键逐帧调整"
+                              title={ui("拖动裁剪出点 · 左右键逐帧调整", "Drag to trim out point · Arrow keys adjust by frame")}
                               role="slider"
                               tabIndex={selected ? 0 : -1}
-                              aria-label={`${clip.name} 出点`}
+                              aria-label={ui(`${clip.name} 出点`, `${clip.name} out point`)}
                               aria-valuenow={clip.start + clip.duration}
                               aria-valuetext={formatTimelineTime(
                                 clip.start + clip.duration,
@@ -1262,13 +1263,11 @@ export default function Timeline(props: TimelineProps) {
                     className="tl-drop-marker"
                     style={{ left: dropTarget.time * pps }}
                   >
-                    <Plus size={12} /> 添加素材
-                  </div>
+                    <Plus size={12} /> {ui("添加素材", "Add media")}</div>
                 )}
                 {track.locked && (
                   <span className="tl-lock-overlay">
-                    <LockKeyhole size={12} /> 轨道已锁定
-                  </span>
+                    <LockKeyhole size={12} /> {ui("轨道已锁定", "Track locked")}</span>
                 )}
               </div>
             </div>
@@ -1279,7 +1278,7 @@ export default function Timeline(props: TimelineProps) {
                 onClick={() => setTrackMenu(!trackMenu)}
                 aria-expanded={trackMenu}
               >
-                <Plus size={13} /> 添加轨道 <ChevronDown size={11} />
+                <Plus size={13} /> {ui("添加轨道", "Add track")}<ChevronDown size={11} />
               </button>
               {trackMenu && (
                 <div className="tl-popup">
@@ -1293,10 +1292,10 @@ export default function Timeline(props: TimelineProps) {
                     >
                       <TrackIcon kind={kind} />
                       {kind === "video"
-                        ? "视频轨道"
+                        ? ui("视频轨道", "Video track")
                         : kind === "audio"
-                          ? "音频轨道"
-                          : "文字轨道"}
+                          ? ui("音频轨道", "Audio track")
+                          : ui("文字轨道", "Text track")}
                     </button>
                   ))}
                 </div>
@@ -1304,8 +1303,7 @@ export default function Timeline(props: TimelineProps) {
             </div>
             {project.clips.length === 0 && (
               <span className="tl-empty-hint">
-                <Film size={16} /> 从素材库拖入视频、图片或音频，开始创作
-              </span>
+                <Film size={16} /> {ui("从素材库拖入视频、图片或音频，开始创作", "Drag video, images or audio from the library to get started")}</span>
             )}
           </div>
           <div
@@ -1346,7 +1344,7 @@ export default function Timeline(props: TimelineProps) {
           ref={actionsMenuRef}
           className="tl-track-action-menu"
           role="menu"
-          aria-label={`${actionTrack.name}轨道操作菜单`}
+          aria-label={ui(`${actionTrack.name}轨道操作菜单`, `${actionTrack.name} track actions menu`)}
           style={{ left: trackActions.x, top: trackActions.y }}
           onKeyDown={(event) => {
             if (
@@ -1392,8 +1390,7 @@ export default function Timeline(props: TimelineProps) {
             onClick={() => beginRename(actionTrack)}
           >
             <Pencil size={12} />
-            重命名轨道
-          </button>
+            {ui("重命名轨道", "Rename track")}</button>
           <button
             role="menuitem"
             disabled={
@@ -1408,8 +1405,7 @@ export default function Timeline(props: TimelineProps) {
             }}
           >
             <ArrowUp size={12} />
-            向上移动轨道
-          </button>
+            {ui("向上移动轨道", "Move track up")}</button>
           <button
             role="menuitem"
             disabled={
@@ -1424,8 +1420,7 @@ export default function Timeline(props: TimelineProps) {
             }}
           >
             <ArrowDown size={12} />
-            向下移动轨道
-          </button>
+            {ui("向下移动轨道", "Move track down")}</button>
           <div className="tl-menu-divider" />
           <button
             role="menuitem"
@@ -1434,8 +1429,7 @@ export default function Timeline(props: TimelineProps) {
             onClick={() => requestTrackDelete(actionTrack)}
           >
             <Trash2 size={12} />
-            删除轨道
-          </button>
+            {ui("删除轨道", "Delete track")}</button>
         </div>
       )}
       {deletionTrack && (
@@ -1451,17 +1445,15 @@ export default function Timeline(props: TimelineProps) {
             className="tl-confirm"
             role="dialog"
             aria-modal="true"
-            aria-label="删除轨道确认"
+            aria-label={ui("删除轨道确认", "Confirm track deletion")}
           >
-            <h3>删除「{deletionTrack.name}」？</h3>
+            <h3>{ui(`删除「${deletionTrack.name}」？`, `Delete “${deletionTrack.name}”?`)}</h3>
             <p>
-              这条轨道上的 {deletionCount}{" "}
-              个片段也会被删除。素材库中的原素材会保留，可通过撤销恢复轨道和片段。
+              {ui(`这条轨道上的 ${deletionCount} 个片段也会被删除。素材库中的原素材会保留，可通过撤销恢复轨道和片段。`, `This also deletes ${deletionCount} clips on the track. Original library media is kept. Undo restores the track and clips.`)}
             </p>
             <footer>
               <button autoFocus onClick={() => setDeleteTrackId(null)}>
-                取消
-              </button>
+                {ui("取消", "Cancel")}</button>
               <button
                 className="is-danger"
                 disabled={deletionTrack.locked}
@@ -1470,8 +1462,7 @@ export default function Timeline(props: TimelineProps) {
                   setDeleteTrackId(null);
                 }}
               >
-                删除轨道和片段
-              </button>
+                {ui("删除轨道和片段", "Delete track and clips")}</button>
             </footer>
           </section>
         </div>
@@ -1479,16 +1470,16 @@ export default function Timeline(props: TimelineProps) {
       <div className="tl-status">
         <span>
           {gesture?.kind === "move"
-            ? `移动 ${gesture.ids.length} 个片段 · ${gesture.delta > 0 ? "+" : ""}${gesture.delta.toFixed(2)}s`
+            ? ui(`移动 ${gesture.ids.length} 个片段 · ${gesture.delta > 0 ? "+" : ""}${gesture.delta.toFixed(2)}s`, `Move ${gesture.ids.length} clips · ${gesture.delta > 0 ? "+" : ""}${gesture.delta.toFixed(2)}s`)
             : gesture?.kind === "trim"
-              ? `裁剪${gesture.edge === "start" ? "入点" : "出点"} · ${formatTimelineTime(gesture.time, project.fps)}`
+              ? ui(`裁剪${gesture.edge === "start" ? "入点" : "出点"} · ${formatTimelineTime(gesture.time, project.fps)}`, `Trim ${gesture.edge === "start" ? "in" : "out"} point · ${formatTimelineTime(gesture.time, project.fps)}`)
               : selectedIds.length
-                ? `已选择 ${selectedIds.length} 个片段`
-                : "拖动移动/裁剪 · ⇧ 多选 · ⌥←/→ 逐帧微移"}
+                ? ui(`已选择 ${selectedIds.length} 个片段`, `${selectedIds.length} clips selected`)
+                : ui("拖动移动/裁剪 · ⇧ 多选 · ⌥←/→ 逐帧微移", "Drag to move/trim · ⇧ Multiselect · ⌥←/→ Nudge by frame")}
         </span>
         <span>
-          {project.tracks.length} 条轨道 <i>·</i> {project.clips.length} 个片段{" "}
-          <i>·</i> {snapping ? "吸附开启" : "吸附关闭"}
+          {ui(`${project.tracks.length} 条轨道`, `${project.tracks.length} tracks`)} <i>·</i> {ui(`${project.clips.length} 个片段`, `${project.clips.length} clips`)}{" "}
+          <i>·</i> {snapping ? ui("吸附开启", "Snapping on") : ui("吸附关闭", "Snapping off")}
         </span>
       </div>
     </section>

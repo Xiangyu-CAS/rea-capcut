@@ -1,3 +1,4 @@
+import { useUITranslation } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import {
   Maximize,
@@ -49,6 +50,7 @@ export default function Player({
   onSelect,
   onUpdateClip,
 }: PlayerProps) {
+  const ui = useUITranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null),
     hostRef = useRef<HTMLDivElement>(null);
   const sources = useRef(new Map<string, Source>()),
@@ -342,9 +344,9 @@ export default function Player({
     displayW = Math.min(size.w, size.h * aspect) * viewScale,
     displayH = displayW / aspect;
   return (
-    <section className="player-panel panel" aria-label="播放器">
+    <section className="player-panel panel" aria-label={ui("播放器", "Player")}>
       <div className="panel-heading">
-        <span>播放器</span>
+        <span> {ui("播放器", "Player")} </span>
         <span className="muted small">
           {project.width} × {project.height} · {project.fps} fps
         </span>
@@ -352,7 +354,7 @@ export default function Player({
       <div className="player-stage" ref={hostRef}>
         <canvas
           ref={canvasRef}
-          aria-label="视频预览"
+          aria-label={ui("视频预览", "Video preview")}
           width={Math.max(
             2,
             Math.round(Math.min(1920, displayW * devicePixelRatio)),
@@ -433,8 +435,8 @@ export default function Player({
             <div className="preview-mark">
               R<span>✦</span>
             </div>
-            <p>让灵感，成为画面</p>
-            <span>导入素材并加入时间线开始创作</span>
+            <p> {ui("让灵感，成为画面", "Bring your ideas to life")} </p>
+            <span> {ui("导入素材并加入时间线开始创作", "Import media and add it to the timeline to start")} </span>
           </div>
         )}
         {selectedIds.length === 1 &&
@@ -445,8 +447,7 @@ export default function Player({
               playhead < c.start + c.duration,
           ) && (
             <div className="player-selection-hint">
-              拖动画面调整所选片段位置
-            </div>
+               {ui("拖动画面调整所选片段位置", "Drag the picture to reposition the selected clip")} </div>
           )}
         {errors.length > 0 && (
           <button
@@ -454,8 +455,7 @@ export default function Player({
             onClick={() => setErrors([])}
             title={errors.join("、")}
           >
-            素材无法预览，导出仍使用原文件 · 点击收起
-          </button>
+             {ui("素材无法预览，导出仍使用原文件 · 点击收起", "Preview unavailable. Export still uses the original file · Click to dismiss")} </button>
         )}
       </div>
       <div className="player-controls">
@@ -465,14 +465,14 @@ export default function Player({
         </div>
         <div className="transport">
           <button
-            title="上一帧 ←"
+            title={ui("上一帧 ←", "Previous frame ←")}
             onClick={() => onSeek(Math.max(0, playhead - 1 / project.fps))}
           >
             <SkipBack size={15} />
           </button>
           <button
             className="play-button"
-            aria-label={playing ? "暂停" : "播放"}
+            aria-label={playing ? ui("暂停", "Pause") : ui("播放", "Play")}
             onClick={() => {
               initializeAudio();
               if (!playing && playhead >= duration) onSeek(0);
@@ -487,7 +487,7 @@ export default function Player({
             )}
           </button>
           <button
-            title="下一帧 →"
+            title={ui("下一帧 →", "Next frame →")}
             onClick={() =>
               onSeek(Math.min(duration, playhead + 1 / project.fps))
             }
@@ -497,19 +497,19 @@ export default function Player({
         </div>
         <div className="player-tools">
           <button
-            title={muted ? "开启预览声音" : "静音预览"}
+            title={muted ? ui("开启预览声音", "Unmute preview") : ui("静音预览", "Mute preview")}
             onClick={() => setMuted(!muted)}
           >
             {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
           </button>
           <button
-            title="预览缩放"
+            title={ui("预览缩放", "Preview zoom")}
             onClick={() => setViewScale(viewScale === 1 ? 1.5 : 1)}
           >
             <ZoomIn size={16} />
           </button>
           <button
-            title="全屏预览"
+            title={ui("全屏预览", "Fullscreen preview")}
             onClick={() => {
               if (document.fullscreenElement) void document.exitFullscreen();
               else void hostRef.current?.requestFullscreen();

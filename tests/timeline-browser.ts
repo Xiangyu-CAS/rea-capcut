@@ -60,7 +60,7 @@ const browser = await chromium.launch({
   headless: true,
   ...(existsSync(chrome) ? { executablePath: chrome } : {}),
 });
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+const page = await browser.newPage({locale: "zh-CN",  viewport: { width: 1440, height: 900 } });
 page.on("response", (response) => {
   if (response.status() >= 400)
     console.log("HTTP", response.status(), response.url());

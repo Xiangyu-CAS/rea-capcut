@@ -29,6 +29,14 @@ jobs:
         if: runner.os == 'Windows'
         run: choco install ffmpeg --no-progress -y
       - run: npm run check
+      - name: Browser localization (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:i18n
+      - name: Desktop localization (macOS)
+        if: runner.os == 'macOS'
+        run: npx tsx tests/i18n-electron.ts
       - name: Desktop integration (macOS)
         if: runner.os == 'macOS'
         run: npm run check:desktop

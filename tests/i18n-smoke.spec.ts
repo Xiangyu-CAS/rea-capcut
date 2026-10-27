@@ -1,3 +1,4 @@
+import { firstChineseWindow } from "./ui-language";
 import { test, expect, _electron as electron } from '@playwright/test';
 import path from 'path';
 import fs from 'fs';
@@ -9,7 +10,7 @@ import { tr } from '../src/i18n/locales/tr';
 test('Electron i18n smoke test', async () => {
   const mainPath = path.resolve('dist-electron', 'main.cjs');
 
-  const userDataPath = path.resolve('test-user-data');
+  const userDataPath = path.resolve('.test-output', 'i18n-smoke', 'user-data');
   if (fs.existsSync(userDataPath)) {
     fs.rmSync(userDataPath, { recursive: true, force: true });
   }
@@ -17,11 +18,11 @@ test('Electron i18n smoke test', async () => {
   const electronApp = await electron.launch({
     args: [mainPath, `--user-data-dir=${userDataPath}`]
   });
-  const window = await electronApp.firstWindow();
+  const window = await firstChineseWindow(electronApp);
   await window.waitForLoadState('domcontentloaded');
 
   // Chinese
-  await expect(window.locator(`button[title="${zhCN['toolbar.settings']}"]`)).toBeVisible({ timeout: 10000 });
+  await expect(window.getByRole("button", { name: "设置 / Settings", exact: true })).toBeVisible({ timeout: 10000 });
 
   await window.locator(`button:has-text("${zhCN['toolbar.shortcuts']}")`).click();
   await expect(window.locator(`h2:has-text("${zhCN['shortcuts.title']}")`)).toBeVisible();
@@ -29,10 +30,10 @@ test('Electron i18n smoke test', async () => {
   await window.locator(`button[aria-label="${zhCN['dialog.close']}"]`).click();
 
   // English
-  await window.locator(`button[title="${zhCN['toolbar.settings']}"]`).click();
+  await window.getByRole("button", { name: "设置 / Settings", exact: true }).click();
   await expect(window.locator(`h2:has-text("${zhCN['settings.title']}")`)).toBeVisible();
 
-  const languageSelect = window.locator(`select[aria-label="${zhCN['settings.language']}"]`);
+  const languageSelect = window.getByRole("combobox", { name: "语言 / Language", exact: true });
   await languageSelect.waitFor({ state: 'visible' });
   await languageSelect.selectOption('en');
 
@@ -45,7 +46,7 @@ test('Electron i18n smoke test', async () => {
   await window.locator(`button[aria-label="${en['dialog.close']}"]`).click();
 
   // Turkish
-  await window.locator(`button[title="${en['toolbar.settings']}"]`).click();
+  await window.getByRole("button", { name: "Settings", exact: true }).click();
   await expect(window.locator(`h2:has-text("${en['settings.title']}")`)).toBeVisible();
 
   const turkishSelect = window.locator(`select[aria-label="${en['settings.language']}"]`);
@@ -71,7 +72,9 @@ test('Electron i18n smoke test', async () => {
   const window2 = await electronApp2.firstWindow();
   await window2.waitForLoadState('domcontentloaded');
 
-  await expect(window2.locator(`button[title="${tr['toolbar.settings']}"]`)).toBeVisible({ timeout: 10000 });
+  await expect(window2.locator(".titlebar-actions").getByRole("button", { name: "Settings", exact: true })).toBeVisible({ timeout: 10000 });
 
+  await window2.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(window2.getByRole("combobox", { name: tr["settings.language"], exact: true })).toHaveValue("tr");
   await electronApp2.close();
 });

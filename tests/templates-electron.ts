@@ -1,3 +1,4 @@
+import { firstChineseWindow } from "./ui-language";
 /** Own Electron app, generated media, native-dialog stubs limited to test fixtures. */
 import {
   _electron as electron,
@@ -136,7 +137,7 @@ async function launch(file = initial) {
     args: [path.join(root, "dist-electron/main.cjs"), file],
     env,
   });
-  page = await app.firstWindow();
+  page = await firstChineseWindow(app);
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("dialog", (d) => void d.accept());
   await configure();
