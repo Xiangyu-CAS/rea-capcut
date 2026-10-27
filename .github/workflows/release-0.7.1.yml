@@ -143,6 +143,7 @@ jobs:
             .test-output/package-electron/evidence.json
             .test-output/i18n-electron/evidence.json
             .test-output/i18n-electron/english-desktop.png
-            .test-output/update-electron/
-            .test-output/update-browser/
+            .test-output/update-electron/*.png
+            .test-output/update-electron/evidence.json
+            .test-output/update-browser/*.png
             release/SHA256SUMS.txt

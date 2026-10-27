@@ -52,5 +52,6 @@ jobs:
         with:
           name: update-validation-${{ github.run_id }}
           path: |
-            .test-output/update-browser/
-            .test-output/update-electron/
+            .test-output/update-browser/*.png
+            .test-output/update-electron/*.png
+            .test-output/update-electron/evidence.json
