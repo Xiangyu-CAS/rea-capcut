@@ -53,7 +53,7 @@ const browser = await chromium.launch({
   headless: true,
   ...(existsSync(chrome) ? { executablePath: chrome } : {}),
 });
-const page = await browser.newPage({ viewport: { width: 1250, height: 850 } });
+const page = await browser.newPage({locale: "zh-CN",  viewport: { width: 1250, height: 850 } });
 const errors: string[] = [];
 page.on("pageerror", (error) => errors.push(error.message));
 const state = () => page.evaluate(() => (window as any).qa.getState());

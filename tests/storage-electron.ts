@@ -1,3 +1,4 @@
+import { firstChineseWindow } from "./ui-language";
 /** Real desktop storage flows; native dialogs deferred only in this owned test process. */
 import {
   _electron as electron,
@@ -71,7 +72,7 @@ const launch = async () => {
     },
     { saved, backup, video: fixture.video },
   );
-  page = await app.firstWindow();
+  page = await firstChineseWindow(app);
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("dialog", (dialog) => void dialog.accept());
   await page.waitForSelector(".app-shell");

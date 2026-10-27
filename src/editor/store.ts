@@ -1,3 +1,5 @@
+import { createEditorProject as createProject, createEditorTrack as createTrack, createEditorClip as createClip } from "./localizedDefaults";
+import { translateUI } from "../i18n/uiTranslation";
 import { create } from "zustand";
 import type {
   Clip,
@@ -7,9 +9,6 @@ import type {
   TrackKind,
 } from "../core/types";
 import {
-  createProject,
-  createTrack,
-  createClip,
   clone,
   id,
   snapToFrame,
@@ -245,7 +244,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
   addSubtitles: (cues) => {
     const p = get().project,
-      track = createTrack("text", "字幕");
+      track = createTrack("text", translateUI("字幕", "Subtitles"));
     const clips = cues
       .filter(
         (c) =>
@@ -401,7 +400,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const p = get().project,
       track = createTrack(
         kind,
-        `${{ video: "视频", image: "画面", audio: "音频", text: "文字" }[kind]} ${p.tracks.filter((t) => t.kind === kind).length + 1}`,
+        `${translateUI({ video: "视频", image: "画面", audio: "音频", text: "文字" }[kind], { video: "Video", image: "Image", audio: "Audio", text: "Text" }[kind])} ${p.tracks.filter((t) => t.kind === kind).length + 1}`,
       );
     get().commit({
       ...p,

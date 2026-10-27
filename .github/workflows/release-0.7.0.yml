@@ -1,0 +1,129 @@
+name: Publish 0.7.0 preview
+# One explicitly authorized release, not an ongoing automatic release policy.
+on:
+  push:
+    branches: [main]
+    paths:
+      - package.json
+      - .github/workflows/release-0.7.0.yml
+permissions:
+  contents: read
+concurrency:
+  group: release-v0.7.0
+  cancel-in-progress: false
+jobs:
+  release:
+    if: github.repository == 'Xiangyu-CAS/rea-capcut' && github.ref == 'refs/heads/main'
+    runs-on: macos-15
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Refuse wrong version, architecture or existing release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = arm64
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          assert.equal(process.arch, 'arm64');
+          for (const file of ['package.json', 'package-lock.json', 'plugin/plugin.json', 'plugin/.codex-plugin/plugin.json', 'plugin/protocol.json']) {
+            const data = JSON.parse(fs.readFileSync(file));
+            assert.equal(data.version, '0.7.0', file);
+            if (file === 'package-lock.json') assert.equal(data.packages[''].version, '0.7.0');
+          }
+          NODE
+          if gh api "repos/$GITHUB_REPOSITORY/releases/tags/v0.7.0" > /tmp/existing-release.json 2> /tmp/release-error; then
+            echo 'Release already exists; refusing to overwrite it.' >&2; exit 1
+          fi
+          grep -q 'HTTP 404' /tmp/release-error
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v0.7.0" > /tmp/existing-tag.json 2> /tmp/tag-error; then
+            echo 'Tag already exists; refusing to retarget it.' >&2; exit 1
+          fi
+          grep -q 'HTTP 404' /tmp/tag-error
+      - run: npm ci
+      - run: node node_modules/electron/install.js
+      - run: brew install ffmpeg
+      - run: npm run check
+      - run: python3 tests/plugin-launcher.py
+      - run: npm run licenses
+      - run: npm run dist:mac:installer
+      - run: npm run plugin:pack
+      - name: Verify and extract the actual DMG
+        run: |
+          set -euo pipefail
+          hdiutil verify release/ReaCut-0.7.0-arm64.dmg
+          mkdir -p .test-output/release-0.7.0/{mount,extracted}
+          mount="$PWD/.test-output/release-0.7.0/mount"
+          hdiutil attach -readonly -nobrowse -mountpoint "$mount" release/ReaCut-0.7.0-arm64.dmg
+          trap 'hdiutil detach "$mount"' EXIT
+          ditto "$mount/ReaCut.app" .test-output/release-0.7.0/extracted/ReaCut.app
+          app="$PWD/.test-output/release-0.7.0/extracted/ReaCut.app"
+          codesign --verify --deep --strict "$app"
+          test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$app/Contents/Info.plist")" = 0.7.0
+          test "$(lipo -archs "$app/Contents/MacOS/ReaCut")" = arm64
+          RELEASE_APP="$app" node --input-type=module <<'NODE'
+          import { extractFile } from '@electron/asar';
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const archive = `${process.env.RELEASE_APP}/Contents/Resources/app.asar`;
+          for (const file of ['dist-electron/main.cjs', 'dist-electron/preload.cjs']) {
+            assert.deepEqual(extractFile(archive, file), fs.readFileSync(file), `Packaged source mismatch: ${file}`);
+          }
+          NODE
+          echo "REACUT_TEST_APP=$app" >> "$GITHUB_ENV"
+      - run: npm run demo
+      - run: npm run test:package
+      - run: npx tsx tests/i18n-electron.ts
+      - name: Assemble source, license and checksum assets
+        run: |
+          set -euo pipefail
+          cp LICENSE release/LICENSE.txt
+          cp THIRD_PARTY_NOTICES.md release/THIRD_PARTY_NOTICES.md
+          tar -czf release/ReaCut-0.7.0-media-tool-sources.tar.gz -C media-tools/darwin-arm64 sources licenses manifest.json
+          cd release
+          test -s ReaCut-0.7.0-arm64.dmg
+          test -s ReaCut-0.7.0-arm64-mac.zip
+          test -s ReaCut-plugin-0.7.0.zip
+          shasum -a 256 ReaCut-0.7.0-arm64.dmg ReaCut-0.7.0-arm64-mac.zip ReaCut-plugin-0.7.0.zip ReaCut-0.7.0-media-tool-sources.tar.gz LICENSE.txt THIRD_PARTY_NOTICES.md > SHA256SUMS.txt
+          shasum -a 256 -c SHA256SUMS.txt
+      - name: Create draft, upload and publish this preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create v0.7.0 --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --draft --prerelease --title 'ReaCut v0.7.0 Preview — English editor and creative workflows' --notes-file docs/RELEASE_NOTES_0.7.0.md \
+            release/ReaCut-0.7.0-arm64.dmg release/ReaCut-0.7.0-arm64-mac.zip release/ReaCut-plugin-0.7.0.zip release/ReaCut-0.7.0-media-tool-sources.tar.gz release/LICENSE.txt release/THIRD_PARTY_NOTICES.md release/SHA256SUMS.txt
+          gh release edit v0.7.0 --repo "$GITHUB_REPOSITORY" --draft=false --prerelease --latest=false
+      - name: Verify public download bytes
+        run: |
+          set -euo pipefail
+          mkdir -p .test-output/release-0.7.0/download
+          cd .test-output/release-0.7.0/download
+          base="https://github.com/$GITHUB_REPOSITORY/releases/download/v0.7.0"
+          curl --fail --location --retry 3 "$base/SHA256SUMS.txt" -o SHA256SUMS.txt
+          curl --fail --location --retry 3 "$base/ReaCut-0.7.0-arm64.dmg" -o ReaCut-0.7.0-arm64.dmg
+          grep ' ReaCut-0.7.0-arm64.dmg$' SHA256SUMS.txt | shasum -a 256 -c -
+          cmp SHA256SUMS.txt "$GITHUB_WORKSPACE/release/SHA256SUMS.txt"
+      - name: Retain release validation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-0.7.0-validation
+          path: |
+            .test-output/package-electron/evidence.json
+            .test-output/i18n-electron/evidence.json
+            .test-output/i18n-electron/english-desktop.png
+            release/SHA256SUMS.txt

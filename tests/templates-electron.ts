@@ -1,3 +1,4 @@
+import { firstChineseWindow } from "./ui-language";
 /** Own Electron app, generated media, native-dialog stubs limited to test fixtures. */
 import {
   _electron as electron,
@@ -136,7 +137,7 @@ async function launch(file = initial) {
     args: [path.join(root, "dist-electron/main.cjs"), file],
     env,
   });
-  page = await app.firstWindow();
+  page = await firstChineseWindow(app);
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("dialog", (d) => void d.accept());
   await configure();
@@ -157,7 +158,11 @@ async function save() {
     .catch(() => 0);
   await page.getByRole("button", { name: "保存项目", exact: true }).click();
   await expect
-    .poll(() => stat(projectFile).then((s) => s.mtimeMs))
+    .poll(() => stat(projectFile).then((s) => s.mtimeMs).catch((error: NodeJS.ErrnoException) => {
+      // Atomic save may not have created the new destination on the first poll.
+      if (error.code === "ENOENT") return 0;
+      throw error;
+    }))
     .toBeGreaterThan(previous);
   await expect
     .poll(async () => {

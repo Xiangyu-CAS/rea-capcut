@@ -1,3 +1,5 @@
+import { localizeMessage } from "../i18n/messages";
+import { useUITranslation } from "../i18n";
 import {
   SubtitleAnimationForm,
   SubtitleStyleForm,
@@ -46,6 +48,7 @@ const timeLabel = (value: number) =>
     .padStart(2, "0")}:${(value % 60).toFixed(2).padStart(5, "0")}`;
 
 export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
+  const ui = useUITranslation();
   const { t } = useTranslation();
   const project = useEditorStore((s) => s.project);
   const [trackId, setTrackId] = useState("");
@@ -100,7 +103,7 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
   useEffect(() => {
     const textTracks = project.tracks.filter((t) => t.kind === "text");
     const preferred =
-      textTracks.find((t) => t.name.includes("字幕")) ?? textTracks[0];
+      textTracks.find((t) => /字幕|subtitles?|captions?/i.test(t.name)) ?? textTracks[0];
     setTrackId(preferred?.id ?? "");
     setQuery("");
     setChecked([]);
@@ -113,7 +116,7 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
     if (!project.tracks.some((t) => t.id === trackId && t.kind === "text")) {
       const preferred =
         project.tracks.find(
-          (t) => t.kind === "text" && t.name.includes("字幕"),
+          (t) => t.kind === "text" && /字幕|subtitles?|captions?/i.test(t.name),
         ) ?? project.tracks.find((t) => t.kind === "text");
       setTrackId(preferred?.id ?? "");
     }
@@ -178,7 +181,7 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
     attempt(() => {
       if (!draft) return;
       if (!draft.start.trim() || !draft.end.trim())
-        throw new Error("请填写开始和结束时间");
+        throw new Error(ui("请填写开始和结束时间", "Enter start and end times"));
       const next = prepareSubtitleEdit(draft.project, [draft.id], {
         type: "cue",
         text: draft.text,
@@ -189,7 +192,7 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
       store.commit(applySubtitleEdit(store.project, next));
       setDraft(null);
       setNotice(
-        next.changedIds.length ? "字幕已保存，可一次撤销" : "字幕未变化",
+        next.changedIds.length ? ui("字幕已保存，可一次撤销", "Subtitle saved. Undo once to revert.") : ui("字幕未变化", "Subtitle unchanged"),
       );
     });
   }
@@ -197,7 +200,7 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
     attempt(() => {
       let edit: SubtitleEdit;
       if (mode === "offset") {
-        if (!offset.trim()) throw new Error("请填写时间偏移量");
+        if (!offset.trim()) throw new Error(ui("请填写时间偏移量", "Enter a time offset"));
         edit = { type: "offset", seconds: Number(offset) };
       } else if (mode === "replace")
         edit = { type: "replace", find, replacement };
@@ -212,7 +215,7 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
       );
       if (!next.changedIds.length) {
         setPlan(null);
-        setNotice("没有需要修改的字幕");
+        setNotice(ui("没有需要修改的字幕", "No subtitles need changing"));
         return;
       }
       setPlan(next);
@@ -228,7 +231,7 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
       );
       store.select(surviving);
       setChecked(surviving);
-      setNotice(`已修改 ${plan.changedIds.length} 条字幕，可一次撤销`);
+      setNotice(ui(`已修改 ${plan.changedIds.length} 条字幕，可一次撤销`, `Updated ${plan.changedIds.length} subtitles. Undo once to revert.`));
       setPlan(null);
       setDraft(null);
     });
@@ -247,7 +250,7 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
       setChecked(next.changedIds);
       setDraft(null);
       setPlan(null);
-      setNotice("字幕已按播放头与文本光标拆分，可一次撤销");
+      setNotice(ui("字幕已按播放头与文本光标拆分，可一次撤销", "Subtitle split at the playhead and text cursor. Undo once to revert."));
     });
   }
   function mergeSelection() {
@@ -268,10 +271,10 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
     draft && JSON.stringify(draft.project) !== JSON.stringify(project);
 
   return (
-    <section className="subtitle-panel" aria-label="字幕编辑器">
+    <section className="subtitle-panel" aria-label={ui("字幕编辑器", "Subtitle editor")}>
       <div className="subtitle-heading">
-        <h3>字幕编辑</h3>
-        <span>{clips.length} 条</span>
+        <h3>{ui("字幕编辑", "Edit subtitles")}</h3>
+        <span>{ui(`${clips.length} 条`, `${clips.length} subtitles`)}</span>
       </div>
       <div className="subtitle-file-actions">
         <button
@@ -293,33 +296,33 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
           onClick={() => void fileAction(onImport)}
         >
           <FolderOpen size={14} />
-          导入字幕文件
+          {ui("导入字幕文件", "Import subtitle file")}
         </button>
         <button
           className="small-button"
           onClick={() => void fileAction(onExport)}
           disabled={!project.clips.some((c) => c.text)}
-          title="导出项目中全部文字片段为 SRT"
+          title={ui("导出项目中全部文字片段为 SRT", "Export all project text clips as SRT")}
         >
           <Download size={14} />
-          导出全部 SRT
+          {ui("导出全部 SRT", "Export all as SRT")}
         </button>
       </div>
       <p className="subtitle-hint">
-        SRT 仅保存文案与时间，不携带样式或动画；动画需导出为视频。
+        {ui("SRT 仅保存文案与时间，不携带样式或动画；动画需导出为视频。", "SRT contains only text and timing, not styles or animation. Export a video to include animation.")}
       </p>
       <label className="subtitle-track-label">
-        文字轨道
+        {ui("文字轨道", "Text track")}
         <select
-          aria-label="字幕轨道"
+          aria-label={ui("字幕轨道", "Subtitle track")}
           value={trackId}
           onChange={(e) => setTrackId(e.target.value)}
         >
-          {!tracks.length && <option value="">暂无文字轨道</option>}
+          {!tracks.length && <option value="">{ui("暂无文字轨道", "No text tracks")}</option>}
           {tracks.map((t) => (
             <option key={t.id} value={t.id}>
               {t.name}
-              {t.locked ? " · 已锁定" : ""}
+              {t.locked ? ui(" · 已锁定", " · Locked") : ""}
             </option>
           ))}
         </select>
@@ -327,8 +330,8 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
       <label className="subtitle-search">
         <Search size={14} />
         <input
-          aria-label="搜索字幕"
-          placeholder="搜索当前轨道字幕"
+          aria-label={ui("搜索字幕", "Search subtitles")}
+          placeholder={ui("搜索当前轨道字幕", "Search subtitles in this track")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -337,7 +340,7 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
         <label>
           <input
             type="checkbox"
-            aria-label="选择搜索结果"
+            aria-label={ui("选择搜索结果", "Select search results")}
             disabled={locked || !visible.length}
             checked={
               visible.length > 0 &&
@@ -351,20 +354,20 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
               )
             }
           />
-          选择搜索结果
+          {ui("选择搜索结果", "Select search results")}
         </label>
         <button
           className="subtitle-clear"
           disabled={!selected.length}
           onClick={() => setSelection([])}
         >
-          清空 ({selected.length})
+          {ui(`清空 (${selected.length})`, `Clear (${selected.length})`)}
         </button>
       </div>
       {locked && (
         <p className="subtitle-hint">
           <LockKeyhole size={13} />
-          此轨道已锁定，仍可定位和查看字幕。
+          {ui("此轨道已锁定，仍可定位和查看字幕。", "This track is locked. You can still seek to and view subtitles.")}
         </p>
       )}
       <div className="subtitle-cues">
@@ -373,8 +376,8 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
             <Subtitles size={27} />
             <p>
               {clips.length
-                ? "没有匹配的字幕"
-                : "导入 SRT / WebVTT，或选择含字幕的文字轨道"}
+                ? ui("没有匹配的字幕", "No matching subtitles")
+                : ui("导入 SRT / WebVTT，或选择含字幕的文字轨道", "Import SRT / WebVTT, or choose a text track with subtitles")}
             </p>
           </div>
         )}
@@ -387,7 +390,7 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
             <div className="subtitle-cue-line">
               <input
                 type="checkbox"
-                aria-label={`选择字幕：${clip.text!.text.slice(0, 40)}`}
+                aria-label={ui(`选择字幕：${clip.text!.text.slice(0, 40)}`, `Select subtitle: ${clip.text!.text.slice(0, 40)}`)}
                 checked={selected.includes(clip.id)}
                 disabled={locked}
                 onChange={(e) =>
@@ -401,20 +404,20 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
               <button
                 className="subtitle-cue-content"
                 onClick={() => editCue(clip)}
-                title="定位到此字幕并编辑"
+                title={ui("定位到此字幕并编辑", "Seek to this subtitle and edit")}
               >
                 <span className="subtitle-time">
                   {timeLabel(clip.start)} —{" "}
                   {timeLabel(clip.start + clip.duration)}
                 </span>
-                <span>{clip.text!.text || "（空字幕）"}</span>
+                <span>{clip.text!.text || ui("（空字幕）", "(Empty subtitle)")}</span>
               </button>
             </div>
             {draft?.id === clip.id && (
               <div className="subtitle-cue-form">
                 <textarea
                   ref={cueText}
-                  aria-label="字幕内容"
+                  aria-label={ui("字幕内容", "Subtitle text")}
                   value={draft.text}
                   maxLength={20000}
                   disabled={locked}
@@ -422,9 +425,9 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
                 />
                 <div className="subtitle-times">
                   <label>
-                    开始 (秒)
+                    {ui("开始 (秒)", "Start (seconds)")}
                     <input
-                      aria-label="字幕开始时间"
+                      aria-label={ui("字幕开始时间", "Subtitle start time")}
                       type="number"
                       min="0"
                       max="86400"
@@ -437,9 +440,9 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
                     />
                   </label>
                   <label>
-                    结束 (秒)
+                    {ui("结束 (秒)", "End (seconds)")}
                     <input
-                      aria-label="字幕结束时间"
+                      aria-label={ui("字幕结束时间", "Subtitle end time")}
                       type="number"
                       min="0"
                       max="86400"
@@ -453,7 +456,7 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
                   </label>
                 </div>
                 <p className="subtitle-hint">
-                  拆分：先保存文案修改，将播放头移到分界时间，再把文本光标放在分句位置。
+                  {ui("拆分：先保存文案修改，将播放头移到分界时间，再把文本光标放在分句位置。", "To split: save text edits first, move the playhead to the split time, then place the text cursor where the sentence should split.")}
                 </p>
                 <button
                   className="small-button"
@@ -467,11 +470,11 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
                   }
                   onClick={splitCue}
                 >
-                  在播放头与文本光标拆分
+                  {ui("在播放头与文本光标拆分", "Split at playhead and text cursor")}
                 </button>
                 {draftStale && (
                   <p className="subtitle-warning">
-                    项目已变化，重新点击此条字幕后再编辑。
+                    {ui("项目已变化，重新点击此条字幕后再编辑。", "The project changed. Select this subtitle again before editing.")}
                   </p>
                 )}
                 <div className="subtitle-draft-actions">
@@ -479,14 +482,14 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
                     className="small-button"
                     onClick={() => setDraft(null)}
                   >
-                    取消
+                    {ui("取消", "Cancel")}
                   </button>
                   <button
                     className="primary small-button"
                     disabled={locked || !!draftStale}
                     onClick={saveCue}
                   >
-                    保存此条
+                    {ui("保存此条", "Save subtitle")}
                   </button>
                 </div>
               </div>
@@ -496,21 +499,21 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
       </div>
       <div className="subtitle-batch">
         <div className="subtitle-heading">
-          <h4>批量修改</h4>
-          <span>已选 {selected.length} 条</span>
+          <h4>{ui("批量修改", "Batch edit")}</h4>
+          <span>{ui(`已选 ${selected.length} 条`, `${selected.length} selected`)}</span>
         </div>
         <div
           className="subtitle-batch-tabs"
           role="tablist"
-          aria-label="字幕批量操作"
+          aria-label={ui("字幕批量操作", "Subtitle batch actions")}
         >
           {(
             [
-              ["offset", "时间偏移"],
-              ["replace", "查找替换"],
-              ["style", "统一样式"],
-              ["styleValues", "自定义样式"],
-              ["animation", "入场与出场"],
+              ["offset", ui("时间偏移", "Time offset")],
+              ["replace", ui("查找替换", "Find and replace")],
+              ["style", ui("统一样式", "Match style")],
+              ["styleValues", ui("自定义样式", "Custom style")],
+              ["animation", ui("入场与出场", "Entrance and exit")],
             ] as const
           ).map(([key, label]) => (
             <button
@@ -532,10 +535,10 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
           disabled={locked || selected.length < 2}
           onClick={mergeSelection}
         >
-          合并所选字幕
+          {ui("合并所选字幕", "Merge selected subtitles")}
         </button>
         <p className="subtitle-hint">
-          合并连续所选条目，以换行拼接文案；覆盖首条起点至最晚终点（含间隙/重叠）。采用首条样式，其动画按新时长拉伸。
+          {ui("合并连续所选条目，以换行拼接文案；覆盖首条起点至最晚终点（含间隙/重叠）。采用首条样式，其动画按新时长拉伸。", "Merge consecutive selected subtitles, joining text with line breaks. The result spans the first start to the latest end, including gaps and overlaps. It uses the first subtitle’s style and stretches its animation to the new duration.")}
         </p>
         {mode === "styleValues" && (
           <SubtitleStyleForm
@@ -557,9 +560,9 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
         )}
         {mode === "offset" && (
           <label className="subtitle-batch-field">
-            偏移秒数（负数提前）
+            {ui("偏移秒数（负数提前）", "Offset in seconds (negative moves earlier)")}
             <input
-              aria-label="字幕偏移秒数"
+              aria-label={ui("字幕偏移秒数", "Subtitle offset in seconds")}
               type="number"
               step={1 / project.fps}
               value={offset}
@@ -573,8 +576,8 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
         {mode === "replace" && (
           <div className="subtitle-replace">
             <input
-              aria-label="查找字幕文字"
-              placeholder="查找文字（区分大小写）"
+              aria-label={ui("查找字幕文字", "Find subtitle text")}
+              placeholder={ui("查找文字（区分大小写）", "Find text (case-sensitive)")}
               value={find}
               onChange={(e) => {
                 setFind(e.target.value);
@@ -582,8 +585,8 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
               }}
             />
             <input
-              aria-label="替换字幕文字"
-              placeholder="替换为（可留空）"
+              aria-label={ui("替换字幕文字", "Replace subtitle text")}
+              placeholder={ui("替换为（可留空）", "Replace with (may be empty)")}
               value={replacement}
               onChange={(e) => {
                 setReplacement(e.target.value);
@@ -595,26 +598,26 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
         {mode === "style" && (
           <>
             <label className="subtitle-batch-field">
-              样式参考字幕
+              {ui("样式参考字幕", "Style reference subtitle")}
               <select
-                aria-label="字幕样式参考"
+                aria-label={ui("字幕样式参考", "Subtitle style reference")}
                 value={referenceId}
                 onChange={(e) => {
                   setReferenceId(e.target.value);
                   setPlan(null);
                 }}
               >
-                <option value="">选择参考字幕</option>
+                <option value="">{ui("选择参考字幕", "Choose reference subtitle")}</option>
                 {clips.map((c) => (
                   <option key={c.id} value={c.id}>
                     {timeLabel(c.start)} ·{" "}
-                    {c.text!.text.slice(0, 30) || "空字幕"}
+                    {c.text!.text.slice(0, 30) || ui("空字幕", "Empty subtitle")}
                   </option>
                 ))}
               </select>
             </label>
             <p className="subtitle-hint">
-              复制字体、字号、颜色、描边与对齐；保留每条文案、位置和动画。
+              {ui("复制字体、字号、颜色、描边与对齐；保留每条文案、位置和动画。", "Copy font family, size, color, outline and alignment. Keep each subtitle’s text, position and animation.")}
             </p>
           </>
         )}
@@ -622,8 +625,8 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
           <div className="subtitle-plan">
             <p>
               {stale
-                ? "项目已变化，请重新检查修改。"
-                : `将修改 ${plan.changedIds.length} 条字幕，可一次撤销。`}
+                ? ui("项目已变化，请重新检查修改。", "The project changed. Check the changes again.")
+                : ui(`将修改 ${plan.changedIds.length} 条字幕，可一次撤销。`, `${plan.changedIds.length} subtitles will change. Undo once to revert.`)}
             </p>
             <div>
               <button
@@ -641,14 +644,14 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
                   })
                 }
               >
-                重新检查
+                {ui("重新检查", "Check again")}
               </button>
               <button
                 className="primary small-button"
                 disabled={stale || locked}
                 onClick={apply}
               >
-                应用 {plan.changedIds.length} 条修改
+                {ui(`应用 ${plan.changedIds.length} 条修改`, `Apply ${plan.changedIds.length} changes`)}
               </button>
             </div>
           </div>
@@ -658,18 +661,18 @@ export default function SubtitlePanel({ onImport, onExport, onSpeech }: Props) {
             disabled={!selected.length || locked}
             onClick={prepare}
           >
-            检查修改
+            {ui("检查修改", "Check changes")}
           </button>
         )}
       </div>
       {error && (
         <p ref={feedback} className="subtitle-error" role="alert">
-          {error}
+          {localizeMessage(error) }
         </p>
       )}
       {notice && (
         <p className="subtitle-notice" role="status">
-          {notice}
+          {localizeMessage(notice) }
         </p>
       )}
     </section>

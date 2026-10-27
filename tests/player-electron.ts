@@ -1,3 +1,4 @@
+import { firstChineseWindow } from "./ui-language";
 import { _electron as electron, expect } from "@playwright/test";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -44,7 +45,7 @@ const app = await electron.launch({
   timeout: 30000,
 });
 const errors: string[] = [];
-const page = await app.firstWindow();
+const page = await firstChineseWindow(app);
 page.on("pageerror", (e) => errors.push(e.message));
 try {
   await app.evaluate(({ dialog }, file) => {

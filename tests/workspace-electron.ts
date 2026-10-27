@@ -1,3 +1,4 @@
+import { firstChineseWindow } from "./ui-language";
 /** Panel layout preferences: real pointer/keyboard, resize, restart, no project mutations. */
 import { _electron as electron, expect } from '@playwright/test';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
@@ -9,7 +10,7 @@ const p=createProject('三栏布局验收');const clip=createClip(undefined,p.tr
 const file=path.join(output,'layout.reacut');await writeFile(file,JSON.stringify(p));
 const packaged=process.env.REACUT_TEST_APP,env=Object.fromEntries(Object.entries(process.env).filter((e):e is [string,string]=>e[1]!==undefined));env.REACUT_USER_DATA=path.join(output,'user-data');delete env.ELECTRON_RUN_AS_NODE;delete env.VITE_DEV_SERVER_URL;if(packaged){env.PATH='';delete env.REACUT_FFMPEG;delete env.REACUT_FFPROBE;}
 const launch=()=>electron.launch({...packaged?{executablePath:path.join(path.resolve(packaged),'Contents/MacOS/ReaCut'),args:[file],cwd:output}:{args:[path.join(root,'dist-electron/main.cjs'),file]},env});
-let app=await launch(),page=await app.firstWindow();const errors:string[]=[],checks:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+let app=await launch(),page=await firstChineseWindow(app);const errors:string[]=[],checks:string[]=[];page.on('pageerror',e=>errors.push(e.message));
 const geometry=()=>page.locator('.editor-workspace').evaluate(el=>{const panels=Array.from(el.children).filter(c=>!c.classList.contains('workspace-divider'));return {left:panels[0].getBoundingClientRect().width,center:panels[1].getBoundingClientRect().width,right:panels[2].getBoundingClientRect().width,total:el.getBoundingClientRect().width,document:document.documentElement.scrollWidth,window:window.innerWidth};});
 try{
  await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setSize(1470,834));await expect.poll(()=>page.evaluate(()=>window.innerWidth)).toBe(1470);
@@ -19,7 +20,7 @@ try{
  await expect.poll(async()=>Math.round((await geometry()).left-original.left)).toBe(80);
  await right.focus();await page.keyboard.press('ArrowLeft');await expect.poll(async()=>Math.round((await geometry()).right-original.right)).toBe(10);
  await expect(page.getByRole('button',{name:'撤销',exact:true})).toBeDisabled();const adjusted=await geometry();checks.push('pointer drag and arrow keys resize adjacent panels without changing project undo history');
- await app.close();app=await launch();page=await app.firstWindow();page.on('pageerror',e=>errors.push(e.message));await expect(page.locator('.tl-clip')).toHaveCount(1);
+ await app.close();app=await launch();page=await firstChineseWindow(app);page.on('pageerror',e=>errors.push(e.message));await expect(page.locator('.tl-clip')).toHaveCount(1);
  await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setSize(1470,834));await expect.poll(()=>page.evaluate(()=>window.innerWidth)).toBe(1470);
  await expect.poll(async()=>Math.round((await geometry()).left)).toBe(Math.round(adjusted.left));checks.push('panel widths persist across an actual application restart');
  await app.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0];w.setMinimumSize(1024,600);w.setSize(1024,720);});await expect.poll(()=>page.evaluate(()=>window.innerWidth)).toBe(1024);

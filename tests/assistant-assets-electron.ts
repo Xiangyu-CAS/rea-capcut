@@ -1,3 +1,4 @@
+import { firstChineseWindow } from "./ui-language";
 /** Actual desktop integration. Uses original bundled assets and a synthetic CLI,
  * never a real CLI account. Dialog replacements are limited to this test app. */
 import { _electron as electron, expect, type Page } from "@playwright/test";
@@ -40,7 +41,7 @@ try {
   (dialog as any).showSaveDialog=async(_window: unknown, options: {title?:string})=>({canceled:false,filePath:options?.title?.includes("导出")?args.exported:args.saved});
   (dialog as any).showMessageBox=async()=>({response:2});
  },{fixture,saved,exported});
- page = await app.firstWindow();
+ page = await firstChineseWindow(app);
  page.on("pageerror",error=>errors.push(error.message));
  page.on("response",response=>{if(response.url().startsWith("reacut-media:")&&response.status()>=400)failedMedia.push(`${response.status()} ${response.url().split("?")[0]}`);});
  await page.waitForSelector(".app-shell");

@@ -1,3 +1,4 @@
+import { firstChineseWindow } from "./ui-language";
 /** Full desktop recipe library workflow, isolated project and original bundled art only. */
 import { _electron as electron, expect } from "@playwright/test";
 import { mkdir, writeFile, readFile, rm, stat } from "node:fs/promises";
@@ -55,7 +56,7 @@ const app = await electron.launch({
     : { args: [path.join(root, "dist-electron/main.cjs"), source] }),
   env,
 });
-const page = await app.firstWindow(),
+const page = await firstChineseWindow(app),
   errors: string[] = [],
   checks: string[] = [];
 page.on("pageerror", (e) => errors.push(e.message));

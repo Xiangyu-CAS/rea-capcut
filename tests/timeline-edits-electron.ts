@@ -1,3 +1,4 @@
+import { firstChineseWindow } from "./ui-language";
 /** Real desktop source editing, linked gestures, persistence, preview and decoded export. Synthetic media only. */
 import { _electron as electron, expect, type ElectronApplication, type Page } from '@playwright/test';
 import { mkdir, readFile, rm, writeFile, stat } from 'node:fs/promises';
@@ -20,7 +21,7 @@ const env=Object.fromEntries(Object.entries(process.env).filter((e):e is [string
 let app!:ElectronApplication,page!:Page;const errors:string[]=[],checks:string[]=[];
 async function launch(){
  app=await electron.launch({args:[path.join(root,'dist-electron/main.cjs'),saved],env});
- page=await app.firstWindow();page.on('pageerror',e=>errors.push(e.message));
+ page=await firstChineseWindow(app);page.on('pageerror',e=>errors.push(e.message));
  await app.evaluate(({dialog},exported)=>{(dialog as any).showSaveDialog=async()=>({canceled:false,filePath:exported});(dialog as any).showMessageBox=async()=>({response:2});},exported);
  await expect(page.locator('[data-asset-id]')).toHaveCount(assets.length+(checks.length?1:0),{timeout:30000});
 }

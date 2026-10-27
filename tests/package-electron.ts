@@ -1,3 +1,4 @@
+import { firstChineseWindow } from "./ui-language";
 /** Launch the actual packaged app from a different cwd, not the developer entry. */
 import { _electron as electron, expect } from "@playwright/test";
 import { mkdir, rm, stat, writeFile } from "node:fs/promises";
@@ -53,7 +54,7 @@ const app = await electron.launch({
   env,
   timeout: 45000,
 });
-const page = await app.firstWindow(),
+const page = await firstChineseWindow(app),
   errors: string[] = [];
 page.on("pageerror", (e) => errors.push(e.message));
 try {

@@ -1,3 +1,4 @@
+import { firstChineseWindow } from "./ui-language";
 /** Real desktop audio separation and shared-source relinking; dialogs are stubbed only in this owned process. */
 import {
   _electron as electron,
@@ -129,7 +130,7 @@ try {
     },
     { source, replacement, saved, exported },
   );
-  page = await app.firstWindow();
+  page = await firstChineseWindow(app);
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("dialog", (dialog) => void dialog.accept());
   // Read-only analysers observe the actual product GainNodes without adding a second destination path.

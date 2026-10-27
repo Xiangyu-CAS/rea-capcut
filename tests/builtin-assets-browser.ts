@@ -16,7 +16,7 @@ const server = await createServer({configFile:false,plugins:[react(),{
 await server.listen();
 const chrome="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const browser=await chromium.launch({headless:true,...(existsSync(chrome)?{executablePath:chrome}:{})});
-const page=await browser.newPage({viewport:{width:700,height:900}}),errors:string[]=[];
+const page=await browser.newPage({locale: "zh-CN", viewport:{width:700,height:900}}),errors:string[]=[];
 page.on("pageerror",error=>errors.push(error.message));
 try {
  await page.goto("http://127.0.0.1:5187/assets-qa");

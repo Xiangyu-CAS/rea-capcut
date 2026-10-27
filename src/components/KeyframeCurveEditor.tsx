@@ -1,3 +1,4 @@
+import { useUITranslation } from "../i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Clip, Keyframe, Project } from "../core/types";
 import { evaluateKeyframes } from "../core/model";
@@ -38,6 +39,9 @@ export default function KeyframeCurveEditor({
   visual: boolean;
   onUpdate(patch: Partial<Clip>): void;
 }) {
+  const ui = useUITranslation();
+  const keyLabel = (p: Keyframe["property"]) => ui(KEY_LABELS[p], ({ x: "Position X", y: "Position Y", scale: "Scale", rotation: "Rotation", opacity: "Opacity", volume: "Volume" })[p]);
+  const easingLabel = (e: Keyframe["easing"]) => ui(EASING_LABELS[e], ({ linear: "Linear", easeIn: "Ease in", easeOut: "Ease out", easeInOut: "Ease in/out" })[e]);
   const [property, setProperty] = useState<Keyframe["property"]>(
     visual ? "x" : "volume",
   );
@@ -172,7 +176,7 @@ export default function KeyframeCurveEditor({
     safe(() => {
       if (!chosen || locked) return;
       if (!text.trim() || !Number.isFinite(Number(text)))
-        throw new Error("请输入有限数值");
+        throw new Error(ui("请输入有限数值", "Enter a finite number"));
       onUpdate({
         keyframes: editKey(project, clip, chosen.id, { [field]: Number(text) }),
       });
@@ -180,7 +184,7 @@ export default function KeyframeCurveEditor({
   return (
     <section
       className="keyframe-curve"
-      aria-label="关键帧曲线编辑器"
+      aria-label={ui("关键帧曲线编辑器", "Keyframe curve editor")}
       onKeyDown={(e) => {
         if ((e.target as HTMLElement).closest("input,select")) {
           e.stopPropagation();
@@ -202,9 +206,9 @@ export default function KeyframeCurveEditor({
       }}
     >
       <header>
-        <h3>关键帧曲线</h3>
+        <h3>{ui("关键帧曲线", "Keyframe curves")}</h3>
         <select
-          aria-label="曲线属性"
+          aria-label={ui("曲线属性", "Curve property")}
           value={property}
           onChange={(e) => {
             endDrag();
@@ -215,7 +219,7 @@ export default function KeyframeCurveEditor({
         >
           {KEY_PROPERTIES.filter((p) => visual || p === "volume").map((p) => (
             <option key={p} value={p}>
-              {KEY_LABELS[p]}
+              {keyLabel(p)}
             </option>
           ))}
         </select>
@@ -223,7 +227,7 @@ export default function KeyframeCurveEditor({
       <svg
         viewBox={`0 0 ${W} ${H}`}
         role="group"
-        aria-label={`${KEY_LABELS[property]}关键帧曲线`}
+        aria-label={ui(`${keyLabel(property)}关键帧曲线`, `${keyLabel(property)} keyframe curve`)}
         tabIndex={0}
         onPointerMove={(e) => {
           const d = drag.current;
@@ -281,7 +285,7 @@ export default function KeyframeCurveEditor({
             data-key-id={k.id}
             role="button"
             tabIndex={0}
-            aria-label={`关键帧 ${property} ${k.time.toFixed(3)} 秒`}
+            aria-label={ui(`关键帧 ${property} ${k.time.toFixed(3)} 秒`, `${property} keyframe at ${k.time.toFixed(3)} seconds`)}
             aria-pressed={selected.includes(k.id)}
             cx={x(k.time)}
             cy={y(k.value)}
@@ -342,9 +346,7 @@ export default function KeyframeCurveEditor({
         ))}
       </svg>
       <p className="field-hint">
-        拖动点调整时间与数值；Shift
-        点击多选。缓动作用于到达该点的区间。时间为片段内秒数。
-      </p>
+        {ui("拖动点调整时间与数值；Shift\n        点击多选。缓动作用于到达该点的区间。时间为片段内秒数。", "Drag points to adjust time and value; Shift-click to select multiple points. Easing applies to the segment leading into the point. Time is measured in seconds within the clip.")}</p>
       <div className="curve-actions">
         <button
           disabled={locked}
@@ -356,30 +358,24 @@ export default function KeyframeCurveEditor({
             })
           }
         >
-          添加当前帧
-        </button>
+          {ui("添加当前帧", "Add at current frame")}</button>
         <button disabled={!selected.length} onClick={copy}>
-          复制关键帧
-        </button>
+          {ui("复制关键帧", "Copy keyframes")}</button>
         <button disabled={locked || !clipboard} onClick={paste}>
-          粘贴到播放头
-        </button>
+          {ui("粘贴到播放头", "Paste at playhead")}</button>
         <button disabled={locked || !selected.length} onClick={remove}>
-          删除选中关键帧
-        </button>
+          {ui("删除选中关键帧", "Delete selected keyframes")}</button>
         <button
           disabled={!keys.length}
           onClick={() => setSelected(keys.map((k) => k.id))}
         >
-          选择此曲线全部
-        </button>
+          {ui("选择此曲线全部", "Select all points on this curve")}</button>
       </div>
       {chosen && (
         <div className="curve-fields">
           <label>
-            时间（秒）
-            <input
-              aria-label="选中关键帧时间"
+            {ui("时间（秒）", "Time (seconds)")}<input
+              aria-label={ui("选中关键帧时间", "Selected keyframe time")}
               type="number"
               min="0"
               max={clip.duration}
@@ -394,9 +390,8 @@ export default function KeyframeCurveEditor({
             />
           </label>
           <label>
-            数值
-            <input
-              aria-label="选中关键帧数值"
+            {ui("数值", "Value")}<input
+              aria-label={ui("选中关键帧数值", "Selected keyframe value")}
               type="number"
               min={limits[0]}
               max={limits[1]}
@@ -411,9 +406,8 @@ export default function KeyframeCurveEditor({
             />
           </label>
           <label>
-            进入该点的缓动
-            <select
-              aria-label="曲线缓动"
+            {ui("进入该点的缓动", "Easing into this point")}<select
+              aria-label={ui("曲线缓动", "Curve easing")}
               disabled={locked}
               value={chosen.easing}
               onChange={(e) =>
@@ -428,21 +422,31 @@ export default function KeyframeCurveEditor({
             >
               {EASINGS.map((e) => (
                 <option key={e} value={e}>
-                  {EASING_LABELS[e]}
+                  {easingLabel(e)}
                 </option>
               ))}
             </select>
           </label>
           {chosen.easingWindow && (
             <p className="field-hint">
-              保留了裁剪后的曲线区间；切换缓动将重置该区间。
-            </p>
+              {ui("保留了裁剪后的曲线区间；切换缓动将重置该区间。", "The trimmed curve interval is preserved. Changing easing resets this interval.")}</p>
           )}
         </div>
       )}
       {error && (
         <p className="inline-warning" role="alert">
-          {error}
+          {ui(error, ({
+            "请先解锁轨道": "Unlock the track first.",
+            "关键帧已不存在": "This keyframe no longer exists.",
+            "请输入有限数值": "Enter a finite number.",
+            "无效缓动": "Invalid easing.",
+            "这个时间已有同属性关键帧": "A keyframe for this property already exists at this time.",
+            "请先选择关键帧": "Select keyframes first.",
+            "关键帧剪贴板为空": "The keyframe clipboard is empty.",
+            "音频片段只能粘贴音量关键帧": "Only volume keyframes can be pasted into audio clips.",
+            "粘贴范围超出片段，请移动播放头或选择更少的关键帧": "The paste range exceeds the clip. Move the playhead or select fewer keyframes.",
+            "目标帧率下关键帧重叠，无法粘贴": "Keyframes overlap at the target frame rate and cannot be pasted.",
+          } as Record<string, string>)[error] ?? error)}
         </p>
       )}
     </section>

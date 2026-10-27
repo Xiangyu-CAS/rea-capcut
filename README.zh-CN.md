@@ -4,7 +4,7 @@
 <h1 align="center">ReaCut · 映刻</h1>
 <p align="center"><strong>借助 <a href="https://github.com/morluto/rea">REA</a> 研究剪映 / CapCut，独立重实现的开源视频编辑器。</strong><br />macOS 优先；仅开展授权范围内的研究，不复制剪映专有代码或素材。</p>
 <p align="center">
-  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.6.0/ReaCut-0.6.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="Download for macOS — v0.6.0 · Apple Silicon" /></a><br />
+  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.7.0/ReaCut-0.7.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="Download for macOS — v0.7.0 · Apple Silicon" /></a><br />
   <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">全部 Releases / ZIP / 校验和</a> · <a href="#快速开始">安装说明</a><br />
   <sub>仅 Apple Silicon（M 系列）· 预览版 · ad-hoc 签名，未公证。ASR 需另配本地 Python/MLX 与模型。</sub>
 </p>
@@ -25,7 +25,7 @@ ReaCut 将素材管理、多轨剪辑、字幕和视频导出放在一个熟悉�
 
 项目使用 [REA](https://github.com/morluto/rea) 辅助研究剪映的界面行为和本地项目格式，再以 Electron、React、TypeScript 和 FFmpeg 独立实现编辑器。REA 是开发研究工具，运行 ReaCut 不需要安装 REA、Ghidra 或剪映。
 
-> **v0.6.0 预览版**包含本地语音、时间线编辑、倒放/定格和插件按需启动修复。Apple Silicon DMG 已独立于源码构建验收，见 [发布验收](docs/RELEASE_0.6.0.md)。不提供 Windows/Linux 安装包，已有 Windows 测试失败仍保留。
+> **v0.7.0 预览版**新增完整编辑工作区英文覆盖、清晰的语言设置入口、关键帧曲线、字幕工作流与工程模板，并包含已有本地语音和时间线功能。发布流程单独验收实际 Apple Silicon 安装包，见 [发布验收](docs/RELEASE_0.7.0.md)。不提供 Windows/Linux 安装包，已有 Windows 测试失败仍保留。
 
 ## 核心功能
 
@@ -34,12 +34,12 @@ ReaCut 将素材管理、多轨剪辑、字幕和视频导出放在一个熟悉�
 | **素材与源预览** | 导入视频、音频和图片，查看缩略图与波形；用 I/O 标记入出点，将选段加入时间线。 |
 | **多轨剪辑** | 插入 / 覆盖 / 叠加入轨，画声关联移动和裁剪；拖拽、分割、复制、多选、吸附、锁轨及撤销重做。见 [操作说明](docs/TIMELINE_EDITING.md)。 |
 | **倒放与定格** | 本地倒放所选视频选段，可倒放或移除原声；播放头插入可调时长静帧，见 [操作与边界](docs/REVERSE_FREEZE.md)。 |
-| **关键帧曲线（源码新增）** | 拖动控制点、精确输入、复制粘贴，提供线性/缓入/缓出/缓入缓出，用于运镜、透明度和音量。见 [操作与验收](docs/KEYFRAME_CURVES.md)，尚未包含在 v0.6.0 DMG。 |
+| **关键帧曲线** | 拖动控制点、精确输入、复制粘贴，提供线性/缓入/缓出/缓入缓出，用于运镜、透明度和音量。见 [操作与验收](docs/KEYFRAME_CURVES.md)，纳入 v0.7.0 预览。 |
 | **画面与声音** | 变换、裁剪、基础调色、色度抠像、矩形 / 椭圆蒙版、关键帧、音量、淡入淡出和常规变速。 |
 | **本地语音** | Apple Silicon 离线 Whisper 自动字幕、macOS 中文/英文配音；需要已有本地模型/系统声音，见 [操作与依赖](docs/LOCAL_SPEECH.md)。 |
-| **文字与字幕** | SRT / 基础 WebVTT 导入、逐句编辑、批量替换、时间偏移和 SRT 导出。源码新增播放头/文本光标拆分、连续合并、可编辑批量样式及入场/停留/出场动画，见 [操作与验收](docs/SUBTITLE_WORKFLOW.md)，尚未包含在 v0.6.0 DMG。 |
+| **文字与字幕** | SRT / 基础 WebVTT 导入、逐句编辑、批量替换、时间偏移和 SRT 导出。新增播放头/文本光标拆分、连续合并、可编辑批量样式及入场/停留/出场动画，见 [操作与验收](docs/SUBTITLE_WORKFLOW.md)，纳入 v0.7.0 预览。 |
 | **本地项目** | `.reacut` 保存、自动恢复、素材重新链接；收集项目素材为可搬移的文件夹。 |
-| **工程模板（源码新增）** | 保存封面与素材/文案占位，批量替换后新建独立工程，导入/导出模板媒体包，附三套原创示例。见 [操作与验收](docs/PROJECT_TEMPLATES.md)，尚未包含在 v0.6.0 DMG。 |
+| **工程模板** | 保存封面与素材/文案占位，批量替换后新建独立工程，导入/导出模板媒体包，附三套原创示例。见 [操作与验收](docs/PROJECT_TEMPLATES.md)，纳入 v0.7.0 预览。 |
 | **视频导出** | 导出整条时间线、选中区间或自定义区间，支持 H.264 / AAC 编码的 MP4 与 MOV。 |
 | **文字与效果库** | 16 款可编辑文字模板、16 款调色 / 动效预设、8 款转场，支持动态预览与一次撤销。 |
 | **离线素材** | 内置 64 款原创贴纸、背景、标题底板与合成音效，以及 Noto Sans SC 中文字体。 |
@@ -50,13 +50,15 @@ ReaCut 将素材管理、多轨剪辑、字幕和视频导出放在一个熟悉�
 
 ## 快速开始
 
+**界面语言：**点击右上角 **设置 / Settings** → **语言 / Language**，或按 **Cmd/Ctrl+,**；选择立即生效并保存在本机。首次启动按系统语言选择，不支持的语言使用英文。
+
 ### 方式一：独立 DMG 桌面版
 
-下载 [ReaCut 0.6.0 DMG（macOS Apple Silicon）](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.6.0/ReaCut-0.6.0-arm64.dmg)，打开后将应用拖入“应用程序”，直接启动即可剪辑。安装包自带 FFmpeg / FFprobe，不需要另外安装。当前为预览版，采用 ad-hoc 签名，尚未完成 Apple 公证。
+下载 [ReaCut 0.7.0 DMG（macOS Apple Silicon）](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.7.0/ReaCut-0.7.0-arm64.dmg)，打开后将应用拖入“应用程序”，直接启动即可剪辑。安装包自带 FFmpeg / FFprobe，不需要另外安装。当前为预览版，采用 ad-hoc 签名，尚未完成 Apple 公证。
 
 ### 方式二：作为 Codex 插件在右侧打开
 
-先安装 **ReaCut 0.5.0+** 和 Codex 桌面端，确保终端有 `codex` CLI 与 Python 3。下载 [Codex 插件包](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.6.0/ReaCut-plugin-0.6.0.zip)，在解压目录或仓库目录运行：
+先安装 **ReaCut 0.5.0+** 和 Codex 桌面端，确保终端有 `codex` CLI 与 Python 3。下载 [Codex 插件包](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.7.0/ReaCut-plugin-0.7.0.zip)，在解压目录或仓库目录运行：
 
 ```sh
 sh scripts/install-plugin.sh
