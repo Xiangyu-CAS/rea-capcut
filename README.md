@@ -13,6 +13,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/source_license-MIT-45d6c0" alt="Source license: MIT" /></a>
   <img src="https://img.shields.io/badge/status-early_development-orange" alt="Status: early development" />
   <img src="https://img.shields.io/badge/verified-macOS_arm64-333333" alt="Verified platform: macOS arm64" />
+  <a href="https://madewithrea.com/builds/reacut-open-source-video-editor-rebuilt-from-rea-assisted-jianying-cap"><img src="https://madewithrea.com/badges/featured.svg" alt="Featured on Made with REA" height="20" /></a>
 </p>
 <p align="center">
   <strong>English</strong> / <a href="README.zh-CN.md">简体中文</a><br />
