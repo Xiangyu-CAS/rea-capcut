@@ -13,6 +13,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/source_license-MIT-45d6c0" alt="Source license: MIT" /></a>
   <img src="https://img.shields.io/badge/status-early_development-orange" alt="Status: early development" />
   <img src="https://img.shields.io/badge/verified-macOS_arm64-333333" alt="Verified platform: macOS arm64" />
+  <a href="https://github.com/reacher-z/Awesome-REA"><img src="https://raw.githubusercontent.com/reacher-z/Awesome-REA/main/assets/featured-by-awesome-rea-inline.svg" alt="Featured by Awesome REA" width="184" height="20"></a>
 </p>
 <p align="center">
   <a href="README.md">English</a> / <strong>简体中文</strong><br />
