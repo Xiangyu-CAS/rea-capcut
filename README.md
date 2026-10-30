@@ -14,6 +14,7 @@
   <img src="https://img.shields.io/badge/status-early_development-orange" alt="Status: early development" />
   <img src="https://img.shields.io/badge/verified-macOS_arm64-333333" alt="Verified platform: macOS arm64" />
   <a href="https://madewithrea.com/builds/reacut-open-source-video-editor-rebuilt-from-rea-assisted-jianying-cap"><img src="https://madewithrea.com/badges/featured.svg" alt="Featured on Made with REA" height="20" /></a>
+  <a href="https://github.com/reacher-z/Awesome-REA"><img src="https://raw.githubusercontent.com/reacher-z/Awesome-REA/main/assets/featured-by-awesome-rea-inline.svg" alt="Featured by Awesome REA" width="184" height="20"></a>
 </p>
 <p align="center">
   <strong>English</strong> / <a href="README.zh-CN.md">简体中文</a><br />
