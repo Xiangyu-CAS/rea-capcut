@@ -34,6 +34,7 @@ import {
   X,
 } from "lucide-react";
 import { useEditorStore } from "./editor/store";
+import { usePreviewProxies } from "./editor/usePreviewProxies";
 import { setPluginProjectReady } from "./editor/pluginBridge";
 import {
   clone,
@@ -469,6 +470,7 @@ async function browserAssets(files: File[]): Promise<MediaAsset[]> {
 export default function App() {
   const ui = useUITranslation();
   const s = useEditorStore();
+  const previewProxies = usePreviewProxies(s.project);
   const [speechMode, setSpeechMode] = useState<"asr" | "tts" | null>(null);
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [sourceAssetId, setSourceAssetId] = useState<string | null>(null);
@@ -1252,6 +1254,7 @@ export default function App() {
           })}
         /> : <Player
           project={s.project}
+          proxies={previewProxies}
           selectedIds={s.selectedIds}
           playhead={s.playhead}
           playing={s.playing}
@@ -1553,6 +1556,12 @@ export default function App() {
               </button>
             </div>
             {window.editorAPI && <>
+              <h3>{ui("预览性能", "Preview performance")}</h3>
+              <label className="settings-proxy-toggle">
+                <input type="checkbox" checked={previewProxies.enabled} onChange={previewProxies.toggle} />
+                <span>{ui("代理模式", "Proxy mode")}</span>
+              </label>
+              <p className="muted small">{ui("为时间线里的高清素材生成较小的预览文件。导出使用原素材。", "Makes smaller preview files for high-resolution timeline media. Exports use the original files.")}</p>
               <h3>{ui("本地字幕", "Local captions")}</h3>
               <button onClick={() => setModal("speech-setup")}>{ui("配置本地字幕…", "Configure local captions…")}</button>
             </>}

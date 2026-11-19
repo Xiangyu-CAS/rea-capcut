@@ -1,7 +1,7 @@
 import { useUITranslation } from "../i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { dbGain, duckingEnvelope, duckingGain } from "../core/audioMix";
-import { usePreviewProxies } from "../editor/usePreviewProxies";
+import type { usePreviewProxies } from "../editor/usePreviewProxies";
 import {
   Maximize,
   Pause,
@@ -27,6 +27,7 @@ import {
 import { useEditorStore } from "../editor/store";
 interface PlayerProps {
   project: Project;
+  proxies: ReturnType<typeof usePreviewProxies>;
   selectedIds: string[];
   playhead: number;
   playing: boolean;
@@ -45,6 +46,7 @@ interface Source {
 }
 export default function Player({
   project,
+  proxies,
   selectedIds,
   playhead,
   playing,
@@ -54,7 +56,6 @@ export default function Player({
   onUpdateClip,
 }: PlayerProps) {
   const ui = useUITranslation();
-  const proxies = usePreviewProxies(project);
   const { urls: proxyURLs, discard: discardProxy } = proxies;
   const canvasRef = useRef<HTMLCanvasElement>(null),
     hostRef = useRef<HTMLDivElement>(null);
@@ -172,6 +173,8 @@ export default function Player({
           )
             source.element.cancelVideoFrameCallback(source.frameCallback);
           source.element.pause();
+          source.element.removeAttribute("src");
+          source.element.load();
         }
         source.gain?.disconnect();
       }

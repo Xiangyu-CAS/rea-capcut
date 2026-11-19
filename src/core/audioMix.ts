@@ -13,10 +13,11 @@ export interface AudioDucking extends DuckingOptions {
 }
 
 export type AudioAnalysisRequest =
-  | { mode: "normalize"; clipId: string; targetLufs: number }
+  | { mode: "normalize"; clipIds: readonly string[]; targetLufs: number }
   | { mode: "duck"; voiceTrackId: string; musicTrackId: string; options: DuckingOptions };
+export interface LoudnessMeasurement { clipId: string; lufs: number; truePeakDb: number; gainDb: number }
 export type AudioAnalysisResult =
-  | { mode: "normalize"; lufs: number; truePeakDb: number; gainDb: number }
+  | { mode: "normalize"; measurements: LoudnessMeasurement[] }
   | { mode: "duck"; regions: AudioInterval[] };
 export interface AudioAnalysisProgress { jobId: string; progress: number }
 
@@ -90,6 +91,16 @@ export function duckingGain(envelope: ReturnType<typeof duckingEnvelope>, time: 
   return gain + (1 - gain) * (time - region.end) / release;
 }
 
+export function normalizableClips(project: Project, clipIds: readonly string[]): Clip[] {
+  const selected = new Set(clipIds);
+  const available = new Set(project.assets.filter(asset =>
+    asset.hasAudio && !asset.missing && (asset.kind === "audio" || asset.kind === "video"),
+  ).map(asset => asset.id));
+  const editable = new Set(project.tracks.filter(track => !track.locked).map(track => track.id));
+  return project.clips.filter(clip =>
+    selected.has(clip.id) && editable.has(clip.trackId) && available.has(clip.assetId ?? ""));
+}
+
 export function audioAnalysisSources(project: Project, request: AudioAnalysisRequest): { clip: Clip; asset: MediaAsset }[] {
   const assets = new Map(project.assets.map(asset => [asset.id, asset]));
   const sources = (clips: Clip[]) => clips.map(clip => {
@@ -99,12 +110,14 @@ export function audioAnalysisSources(project: Project, request: AudioAnalysisReq
     return { clip, asset };
   });
   if (request?.mode === "normalize") {
-    const clip = project.clips.find(item => item.id === request.clipId);
-    if (!clip || project.tracks.find(track => track.id === clip.trackId)?.locked)
-      throw new Error("Choose an unlocked clip for normalization.");
     if (!inRange(request.targetLufs, -30, -10)) throw new Error("Choose a loudness target from -30 to -10 LUFS.");
-    if (clip.duration * clip.speed > 3600) throw new Error("Audio analysis supports up to 60 minutes of source audio.");
-    return sources([clip]);
+    if (!Array.isArray(request.clipIds) || !request.clipIds.length || request.clipIds.length > 200)
+      throw new Error("Select 1–200 available audio clips.");
+    const clips = normalizableClips(project, request.clipIds);
+    if (clips.length !== request.clipIds.length) throw new Error("Choose distinct, unlocked clips with available audio.");
+    if (clips.reduce((sum, clip) => sum + clip.duration * clip.speed, 0) > 3600)
+      throw new Error("Audio analysis supports up to 60 minutes of source audio.");
+    return sources(clips);
   }
   if (request?.mode !== "duck") throw new Error("Invalid audio analysis request.");
   validateDuckingOptions(request.options);

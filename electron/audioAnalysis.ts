@@ -1,7 +1,7 @@
 import { stat } from "node:fs/promises";
 import {
   audioAnalysisSources, MAX_DUCK_REGIONS, mergeAudioIntervals,
-  type AudioAnalysisRequest, type AudioAnalysisResult, type AudioInterval,
+  type AudioAnalysisRequest, type AudioAnalysisResult, type AudioInterval, type LoudnessMeasurement,
 } from "../src/core/audioMix";
 import type { Project } from "../src/core/types";
 import { clipAudioFilters, sourceAudioFilters } from "./audioFilters";
@@ -32,6 +32,7 @@ export async function analyzeAudio(
   const sources = audioAnalysisSources(project, request);
   const total = sources.reduce((duration, { clip }) => duration + clip.duration, 0);
   const intervals: AudioInterval[] = [];
+  const measurements: LoudnessMeasurement[] = [];
   let completed = 0;
   for (const { clip, asset } of sources) {
     signal.throwIfAborted();
@@ -79,11 +80,13 @@ export async function analyzeAudio(
       // A static gain preserves dynamics. The source's true peak takes precedence over LUFS.
       const gainDb = Math.min(24, request.targetLufs - lufs, -1.5 - truePeakDb);
       if (gainDb < -36) throw new Error("The source requires more than 36 dB of attenuation.");
-      report(1);
-      return { mode: "normalize", lufs, truePeakDb, gainDb };
-    }
-    intervals.push(...complementSilence(diagnostic, clip.start, clip.duration));
+      measurements.push({ clipId: clip.id, lufs, truePeakDb, gainDb });
+    } else intervals.push(...complementSilence(diagnostic, clip.start, clip.duration));
     completed += clip.duration;
+  }
+  if (request.mode === "normalize") {
+    report(1);
+    return { mode: "normalize", measurements };
   }
   const regions = mergeAudioIntervals(intervals);
   if (!regions.length) throw new Error("No sound crossed the voice threshold on this track.");

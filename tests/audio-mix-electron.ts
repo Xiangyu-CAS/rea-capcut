@@ -37,31 +37,53 @@ const saved = path.join(root, "mix.reacut"), exported = path.join(root, "mix.mp4
 await writeFile(saved, JSON.stringify(project));
 const before = createHash("sha256").update(await readFile(voice)).digest("hex");
 
-const normal = { mode: "normalize", clipId: voiceClip.id, targetLufs: -16 } as const;
+const normal = { mode: "normalize", clipIds: [voiceClip.id, overlap.id], targetLufs: -16 } as const;
 const silent = { ...project, clips: [{ ...voiceClip, assetId: silenceAsset.id }] };
-await assert.rejects(analyzeAudio(silent, normal, new AbortController().signal, () => {}), /too short or quiet/);
+await assert.rejects(analyzeAudio(silent, { ...normal, clipIds: [voiceClip.id] }, new AbortController().signal, () => {}), /too short or quiet/);
+await assert.rejects(analyzeAudio({
+  ...project, clips: [voiceClip, { ...overlap, assetId: silenceAsset.id }],
+}, normal, new AbortController().signal, () => {}), /too short or quiet/);
+await assert.rejects(analyzeAudio(project, { ...normal, clipIds: [voiceClip.id, voiceClip.id] },
+  new AbortController().signal, () => {}), /distinct/);
 const controller = new AbortController();
 await assert.rejects(analyzeAudio(project, normal, controller.signal, () => controller.abort()));
 const bad = structuredClone(project);
 bad.clips[0].audioGainDb = Infinity;
 assert.throws(() => validateProject(bad));
-const analysis = await analyzeAudio(project, normal, new AbortController().signal, () => {});
-assert(analysis.mode === "normalize" && analysis.gainDb > 3);
+const measurements = await analyzeAudio(project, normal, new AbortController().signal, () => {});
+assert(measurements.mode === "normalize" && measurements.measurements.length === 2);
+const [analysis, overlapAnalysis] = measurements.measurements;
+assert(analysis.gainDb > 3);
 assert(analysis.truePeakDb + analysis.gainDb <= -1.5 && Math.abs(analysis.lufs + analysis.gainDb + 16) < .01);
 const peakFile = path.join(root, "transient.wav");
 await runMediaTool("ffmpeg", ["-v", "error", "-y", "-f", "lavfi", "-i",
   "aevalsrc='if(between(t,0.5,0.501),0.995,0.035*sin(2*PI*660*t))':s=48000:d=3", peakFile]);
 const [peakAsset] = await importAssets([peakFile], path.join(root, "fixture-cache"));
-const peak = await analyzeAudio({ ...project, assets: [peakAsset], clips: [{ ...voiceClip, assetId: peakAsset.id, duration: 3 }] },
-  normal, new AbortController().signal, () => {});
-assert(peak.mode === "normalize");
+const peakResult = await analyzeAudio({ ...project, assets: [peakAsset], clips: [{ ...voiceClip, assetId: peakAsset.id, duration: 3 }] },
+  { ...normal, clipIds: [voiceClip.id] }, new AbortController().signal, () => {});
+assert(peakResult.mode === "normalize");
+const [peak] = peakResult.measurements;
 assert(Math.abs(peak.truePeakDb + peak.gainDb - (-1.5)) < .01 && peak.lufs + peak.gainDb < -18);
 
 let app!: ElectronApplication, page!: Page;
 const errors: string[] = [];
 async function open() {
-  app = await electron.launch({ args: [path.resolve("dist-electron/main.cjs"), saved],
-    env: { ...process.env, VITE_DEV_SERVER_URL: "", REACUT_USER_DATA: path.join(root, "user-data") } });
+  const bundle = process.env.REACUT_TEST_APP;
+  const env = Object.fromEntries(Object.entries(process.env).filter(
+    (entry): entry is [string, string] => entry[1] !== undefined,
+  ));
+  env.VITE_DEV_SERVER_URL = "";
+  env.REACUT_USER_DATA = path.join(root, "user-data");
+  if (bundle) {
+    env.PATH = "";
+    delete env.REACUT_FFMPEG;
+    delete env.REACUT_FFPROBE;
+  }
+  app = await electron.launch({
+    ...(bundle ? { executablePath: path.join(bundle, "Contents/MacOS/ReaCut"), args: [saved] }
+      : { args: [path.resolve("dist-electron/main.cjs"), saved] }), env,
+  });
+  assert.equal(await app.evaluate(({ app }) => app.isPackaged), Boolean(bundle));
   page = await firstChineseWindow(app);
   page.on("pageerror", error => errors.push(error.message));
   await app.evaluate(({ dialog }, destination) => {
@@ -78,20 +100,29 @@ const save = async (): Promise<Project> => {
 try {
   await open();
   await page.locator(`[data-clip-id="${voiceClip.id}"]`).click({ position: { x: 20, y: 25 } });
+  await page.locator(`[data-clip-id="${overlap.id}"]`).click({ position: { x: 20, y: 25 }, modifiers: ["Shift"] });
   await page.getByRole("button", { name: "音频", exact: true }).last().click();
   await page.getByRole("button", { name: "响度统一…", exact: true }).click();
   let modal = page.getByRole("dialog", { name: "响度统一" });
+  await expect(modal.getByText("已选 2 个可处理片段")).toBeVisible();
   await expect(modal.getByLabel("目标响度（LUFS）")).toHaveValue("-23");
   await modal.getByLabel("目标响度（LUFS）").selectOption("-16");
   await modal.getByRole("button", { name: "分析", exact: true }).click();
-  await expect(modal.getByText(/实测响度.*LUFS/)).toBeVisible();
+  await expect(modal.getByText(/实测响度.*LUFS/)).toHaveCount(2);
   await modal.getByRole("button", { name: "应用", exact: true }).click();
-  assert(Math.abs((await save()).clips[0].audioGainDb! - analysis.gainDb) < .01);
+  const normalized = await save();
+  assert(Math.abs(normalized.clips[0].audioGainDb! - analysis.gainDb) < .01);
+  assert(Math.abs(normalized.clips[1].audioGainDb! - overlapAnalysis.gainDb) < .01);
+  assert.equal(normalized.clips[2].audioGainDb, undefined);
+  await page.getByRole("button", { name: "撤销", exact: true }).click();
+  assert((await save()).clips.every(clip => clip.audioGainDb === undefined));
+  await page.getByRole("button", { name: "重做", exact: true }).click();
+  assert.deepEqual((await save()).clips.map(clip => clip.audioGainDb), normalized.clips.map(clip => clip.audioGainDb));
 
   await page.getByRole("button", { name: "自动压低背景音乐", exact: true }).click();
   modal = page.getByRole("dialog", { name: "自动压低背景音乐" });
-  await modal.getByLabel("人声轨道").selectOption(voiceTrack.id);
   await modal.getByLabel("背景音乐轨道").selectOption(musicTrack.id);
+  await modal.getByLabel("人声轨道").selectOption(voiceTrack.id);
   await modal.getByRole("button", { name: "分析", exact: true }).click();
   await expect(modal.getByText("已检测到 2 段活动音频")).toBeVisible();
   await modal.getByRole("button", { name: "应用", exact: true }).click();
@@ -166,7 +197,7 @@ try {
   assert.equal(createHash("sha256").update(await readFile(voice)).digest("hex"), before);
   assert.deepEqual(errors, []);
   const evidence = { lufs: analysis.lufs, gainDb: analysis.gainDb, truePeakDb: analysis.truePeakDb,
-    peakLimitedGainDb: peak.gainDb, automation, previewGains: gains, exportMusicDb: 20 * Math.log10(down / loud),
+    peakLimitedGainDb: peak.gainDb, normalizedClips: 2, automation, previewGains: gains, exportMusicDb: 20 * Math.log10(down / loud),
     rendererErrors: errors, sourceUnchanged: true };
   await writeFile(path.join(root, "evidence.json"), JSON.stringify(evidence, null, 2));
   console.log(evidence);

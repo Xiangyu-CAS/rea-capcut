@@ -30,8 +30,6 @@
     "dist:mac:installer": "npm run build && electron-builder --mac dmg zip --publish never",
     "test:tracks": "npm run build && tsx tests/track-electron.ts",
     "test:audio": "npm run build && tsx tests/audio-electron.ts",
-    "test:audio-mix": "npm run build && tsx tests/audio-mix-electron.ts",
-    "benchmark:4k": "npm run build && tsx tests/benchmark-4k-electron.ts",
     "test:package": "tsx tests/package-electron.ts",
     "check:desktop": "npm run build && tsx tests/app-electron.ts && tsx tests/visual-ui-electron.ts && tsx tests/storage-electron.ts && tsx tests/player-electron.ts && tsx tests/audio-electron.ts && tsx tests/track-electron.ts && tsx tests/transition-electron.ts && tsx tests/capcut-import-electron.ts",
     "test:transition": "npm run build && tsx tests/transition-electron.ts",

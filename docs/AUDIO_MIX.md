@@ -4,11 +4,11 @@
 
 ## 响度统一
 
-1. 选择有声音的片段，在右侧 **音频 → 响度统一** 打开对话框。
+1. 选择一个或多个有声音的片段，在右侧 **音频 → 响度统一** 打开对话框。
 2. 选择目标响度，默认 **−23 LUFS**，也可以选 −16 或 −14 LUFS 等目标。
-3. 点 **分析**，核对测得的综合响度、真峰值和拟应用增益，再点 **应用**。
+3. 点 **分析**，逐片段核对测得的综合响度、真峰值和拟应用增益，再点 **应用**。整批可以一次撤销。锁定或缺少音频的片段会排除在处理范围外。
 
-分析测量片段当前的源入出点和变速结果。固定增益在音量关键帧、静音和淡化之外单独保存。分析上限为 60 分钟源声，增益最高 +24 dB，并按源信号的 −1.5 dBTP 真峰值上限调整。峰值受限或素材本身非常安静时，结果可能低于目标。此处的 LUFS 用于统一单个片段，导出仍会叠加其它声轨。
+分析测量每个片段当前的源入出点和变速结果。固定增益在音量关键帧、静音和淡化之外单独保存。每次最多分析 200 个片段和 60 分钟源声。增益最高 +24 dB，并按源信号的 −1.5 dBTP 真峰值上限调整。峰值受限或素材本身非常安静时，结果可能低于目标。此处的 LUFS 用于统一单个片段，导出仍会叠加其它声轨。
 
 ## 自动压低背景音乐
 
@@ -22,6 +22,6 @@
 
 ## 功能参考
 
-仓库既有 REA 受控观察记录了剪映 macOS 11.0.12922（构建 11.1.0-beta3）的右侧音频页签和代理模式入口。CapCut 官方资料进一步说明从音频页开启片段响度统一，并给出 −23 LUFS 示例。本实现以自己的工程模型、FFmpeg 测量与 Web Audio 播放能力提供对应操作。背景音乐包络、目标预设及实际导出结果由 ReaCut 独立验证。 [既有 REA 观察](research/REA_FINDINGS.md) · [CapCut 响度操作](https://www.capcut.com/features/how-to-normalize-audio-capcut-workflow) · [CapCut 目标响度说明](https://www.capcut.com/resource/normalize-audio-premiere)
+仓库既有 REA 受控观察记录了剪映 macOS 11.0.12922（构建 11.1.0-beta3）的右侧音频页签和代理模式状态。CapCut 官方资料说明可从音频页统一多个片段的响度，并给出 −23 LUFS 的操作示例。ReaCut 使用自己的工程模型、FFmpeg 测量和 Web Audio 播放，独立验证背景音乐包络、目标预设和导出结果。 [既有 REA 观察](research/REA_FINDINGS.md) · [CapCut 批量响度统一](https://www.capcut.com/tools/loudness-normalization) · [CapCut 目标响度说明](https://www.capcut.com/resource/normalize-audio-premiere)
 
-用 `npm run test:audio-mix` 可以复现合成素材的真峰值、重叠人声、音量恢复、撤销重做、重启及实际导出验收。
+先运行 `npm run build`，再运行 `npx tsx tests/audio-mix-electron.ts`，可以复现合成素材的批量统一、真峰值、重叠人声、音量恢复、撤销重做、重启及实际导出验收。

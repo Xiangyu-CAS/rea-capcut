@@ -37,13 +37,26 @@ project.clips = project.assets.map((asset, i) => {
 const file = path.join(root, "4k.reacut");
 await writeFile(file, JSON.stringify(project));
 const data = path.join(root, "user-data");
-const app = await electron.launch({ args: [path.resolve("dist-electron/main.cjs")], env: {
-  ...process.env, REACUT_USER_DATA: data, VITE_DEV_SERVER_URL: "",
-} });
+const bundle = process.env.REACUT_TEST_APP;
+const env = Object.fromEntries(Object.entries(process.env).filter(
+  (entry): entry is [string, string] => entry[1] !== undefined,
+));
+env.REACUT_USER_DATA = data;
+env.VITE_DEV_SERVER_URL = "";
+if (bundle) {
+  env.PATH = "";
+  delete env.REACUT_FFMPEG;
+  delete env.REACUT_FFPROBE;
+}
+const app = await electron.launch({
+  ...(bundle ? { executablePath: path.join(bundle, "Contents/MacOS/ReaCut") }
+    : { args: [path.resolve("dist-electron/main.cjs")] }), env,
+});
 const errors: string[] = [];
 const measurements = [];
 let proxyBuildMs = 0;
 try {
+  assert.equal(await app.evaluate(({ app }) => app.isPackaged), Boolean(bundle));
   const page = await app.firstWindow();
   await app.evaluate(({ dialog, BrowserWindow }, fixture) => {
     dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [fixture] });
@@ -143,8 +156,19 @@ try {
   };
   measurements.push(await sample(3840));
   const toggle = page.getByRole("button", { name: /^(Proxy mode|代理模式)$/ });
+  const cachedProxies = async () => (await readdir(path.join(data, "thumbnails"))).filter(file => file.endsWith("-proxy-960-v1.mp4"));
+  await page.locator(".titlebar-actions button:has(svg.lucide-settings2)").click();
+  const settings = page.getByRole("dialog");
   const enabledAt = performance.now();
-  await toggle.click();
+  await settings.getByRole("checkbox", { name: /^(Proxy mode|代理模式)$/ }).check();
+  await settings.getByRole("button", { name: /^(Done|完成)$/ }).click();
+  await page.locator(`[data-asset-id="${project.assets[0].id}"]`).click();
+  const source = page.locator(".source-preview");
+  await expect(source).toBeVisible();
+  await expect.poll(() => source.locator("video").evaluate(video => (video as HTMLVideoElement).videoWidth)).toBe(3840);
+  await expect.poll(async () => (await cachedProxies()).length, { timeout: 120000 }).toBe(3);
+  await source.getByRole("button", { name: /^(Back to timeline player|返回时间线播放器)$/ }).click();
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByText(/^(Proxies ready|代理就绪) 3\/3$/)).toBeVisible({ timeout: 120000 });
   await checkWidth(960);
   proxyBuildMs = Math.round(performance.now() - enabledAt);
@@ -152,6 +176,9 @@ try {
   measurements.push(await sample(960));
   await toggle.click();
   measurements.push(await sample(3840));
+  await page.locator(".titlebar-actions button:has(svg.lucide-settings2)").click();
+  await expect(settings.getByRole("checkbox", { name: /^(Proxy mode|代理模式)$/ })).not.toBeChecked();
+  await settings.getByRole("button", { name: /^(Done|完成)$/ }).click();
   assert.deepEqual(errors, []);
 } finally { await app.close(); }
 
@@ -192,7 +219,7 @@ if (process.platform === "darwin") {
 const proxies = (await readdir(path.join(data, "thumbnails"))).filter(file => file.endsWith("-proxy-960-v1.mp4"));
 assert.equal(proxies.length, 3);
 const evidence = {
-  hardwareModel: os.cpus()[0].model, os: os.release(), arch: process.arch, proxyBuildMs,
+  hardwareModel: os.cpus()[0].model, os: os.release(), arch: process.arch, proxyBuildMs, packaged: Boolean(bundle),
   measurements, exportMs, hardware, sources: "3 × 3840×2160 30 fps H.264, three visible tracks with brightness adjustment",
 };
 await writeFile(path.join(root, "evidence.json"), JSON.stringify(evidence, null, 2));
