@@ -107,5 +107,8 @@ export function buildTemplateExample(key: string, assets: MediaAsset[]) {
     c.transform.y = -140;
     p.clips.push(c);
   }
-  return defaultTemplate(p);
+  const template = defaultTemplate(p);
+  const indices = { media: 0, text: 0 };
+  for (const slot of template.slots) slot.id = `${slot.kind}-${++indices[slot.kind]}`;
+  return template;
 }

@@ -148,7 +148,7 @@ class Proxy:
                 version = '2025-11-25'
             self.result(request, {'protocolVersion': version, 'capabilities': {'tools': {}, 'resources': {}},
                 'serverInfo': {'name': 'reacut', 'version': self.metadata['version']},
-                'instructions': 'Use reacut_open to open the editor. Discovery does not start ReaCut. Read state before edits. Import only user-selected media.'})
+                'instructions': 'Use reacut_open to open the editor. Discovery does not start ReaCut. Read state before edits. Import only user-selected media. For batch outputs, have the user choose a folder with reacut_output_folder.'})
         elif method == 'ping':
             self.result(request, {})
         elif method == 'tools/list':

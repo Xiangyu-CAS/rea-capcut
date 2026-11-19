@@ -25,6 +25,7 @@ import {
   Plus,
   Redo2,
   Scissors,
+  SlidersHorizontal,
   Trash2,
   Type,
   Undo2,
@@ -64,6 +65,7 @@ export interface TimelineProps {
   onMagneticChange?: (value: boolean) => void;
   onDuplicate?: () => void;
   onAddText?: () => void;
+  onDuckAudio?: () => void;
   onUndo?: () => void;
   onRedo?: () => void;
   canUndo?: boolean;
@@ -753,6 +755,13 @@ export default function Timeline(props: TimelineProps) {
           >
             <span className="tl-snap-icon">][</span>
           </button>
+          {props.onDuckAudio && <button
+            title={ui("自动压低背景音乐", "Auto-duck background music")}
+            aria-label={ui("自动压低背景音乐", "Auto-duck background music")}
+            onClick={props.onDuckAudio}
+          >
+            <SlidersHorizontal size={16} />
+          </button>}
         </div>
         <div className="tl-toolbar-end">
           <span className="tl-duration">

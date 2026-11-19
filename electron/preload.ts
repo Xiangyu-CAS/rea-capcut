@@ -18,12 +18,28 @@ const api: EditorAPI = {
   },
   getSpeechInfo: () => ipcRenderer.invoke("speech-info"),
   chooseSpeechDependency: kind => ipcRenderer.invoke("speech-choose-dependency", kind),
+  selectCachedSpeechModel: id => ipcRenderer.invoke("speech-select-cached-model", id),
+  resetSpeechDependencies: () => ipcRenderer.invoke("speech-reset-dependencies"),
   generateSpeech: (jobId, project, request) => ipcRenderer.invoke("speech-generate", jobId, project, request),
   cancelSpeech: jobId => ipcRenderer.invoke("speech-cancel", jobId),
   onSpeechProgress: callback => {
     const listener = (_: unknown, event: import("../src/core/speech").SpeechProgress) => callback(event);
     ipcRenderer.on("speech-progress", listener);
     return () => ipcRenderer.removeListener("speech-progress", listener);
+  },
+  analyzeAudio: (id, project, request) => ipcRenderer.invoke("analyze-audio", id, project, request),
+  cancelAudioAnalysis: id => ipcRenderer.invoke("cancel-audio-analysis", id),
+  onAudioAnalysisProgress: callback => {
+    const listener = (_: unknown, event: import("../src/core/audioMix").AudioAnalysisProgress) => callback(event);
+    ipcRenderer.on("audio-analysis-progress", listener);
+    return () => ipcRenderer.removeListener("audio-analysis-progress", listener);
+  },
+  preparePreviewProxies: (id, paths) => ipcRenderer.invoke("prepare-preview-proxies", id, paths),
+  cancelPreviewProxies: id => ipcRenderer.invoke("cancel-preview-proxies", id),
+  onPreviewProxyProgress: callback => {
+    const listener = (_: unknown, event: import("../src/core/types").PreviewProxyProgress) => callback(event);
+    ipcRenderer.on("preview-proxy-progress", listener);
+    return () => ipcRenderer.removeListener("preview-proxy-progress", listener);
   },
   deriveMedia: (jobId, project, clipId, request) => ipcRenderer.invoke("derive-media", jobId, project, clipId, request),
   cancelDerivative: jobId => ipcRenderer.invoke("cancel-derivative", jobId),
@@ -107,5 +123,12 @@ if (process.argv.includes("--reacut-plugin")) {
       });
       ipcRenderer.send("plugin-ready");
     },
+    outputs: {
+      chooseFolder: () => ipcRenderer.invoke("plugin-output-folder"),
+      save: (project, name) => ipcRenderer.invoke("plugin-save-output", project, name),
+      exportStart: (project, name, options) => ipcRenderer.invoke("plugin-export-start", project, name, options),
+      exportStatus: id => ipcRenderer.invoke("plugin-export-status", id),
+      exportCancel: id => ipcRenderer.invoke("plugin-export-cancel", id),
+    } satisfies import("../src/core/pluginWorkflow").PluginOutputs,
   });
 }

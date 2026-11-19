@@ -4,7 +4,19 @@ import type { Subtitle } from './subtitles';
 export type SpeechLanguage = 'auto' | 'zh' | 'en';
 export interface SpeechSettings { python?: string; model?: string }
 export interface SpeechVoice { name: string; locale: string }
-export interface SpeechInfo extends SpeechSettings { modelBytes?: number; ready: boolean; error?: string; voices: SpeechVoice[] }
+export interface CachedSpeechModel { id: string; name: string; bytes: number }
+export interface SpeechDependencyCheck { state: "ready" | "missing" | "error" | "unsupported"; detail?: string }
+export interface SpeechInfo extends SpeechSettings {
+  modelBytes?: number;
+  ready: boolean;
+  error?: string;
+  voices: SpeechVoice[];
+  models: CachedSpeechModel[];
+  cachedModelId?: string;
+  checks: { python: SpeechDependencyCheck; model: SpeechDependencyCheck; media: SpeechDependencyCheck };
+  overrides: { python: boolean; model: boolean };
+  configured: boolean;
+}
 export type SpeechRequest = { mode: 'asr'; source: string; language: SpeechLanguage } | { mode: 'tts'; text: string; voice: string; rate: number };
 export interface SpeechProgress { jobId: string; stage: 'prepare' | 'recognize' | 'synthesize' | 'import' | 'complete'; progress?: number }
 export type SpeechResult = { mode: 'asr'; cues: Subtitle[] } | { mode: 'tts'; asset: MediaAsset };

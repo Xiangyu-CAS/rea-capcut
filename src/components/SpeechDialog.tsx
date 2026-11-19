@@ -1,8 +1,9 @@
 import { localizeMessage } from "../i18n/messages";
 import { useEffect, useRef, useState } from 'react';
 import { useEditorStore } from '../editor/store';
-import { applySpeech, speechSource, type SpeechInfo, type SpeechLanguage, type SpeechProgress, type SpeechRequest } from '../core/speech';
+import { applySpeech, speechSource, type SpeechLanguage, type SpeechProgress, type SpeechRequest } from '../core/speech';
 import { useTranslation } from '../i18n/useTranslation';
+import { SpeechSetupControls, useSpeechSetup } from './SpeechSetup';
 
 export default function SpeechDialog({mode,onClose}:{mode:'asr'|'tts';onClose:()=>void}) {
   const {t,language:uiLanguage}=useTranslation(),project=useEditorStore(s=>s.project);
@@ -10,23 +11,23 @@ export default function SpeechDialog({mode,onClose}:{mode:'asr'|'tts';onClose:()
     const s=useEditorStore.getState(),clip=s.project.clips.find(c=>c.id===s.selectedIds[0]&&s.project.assets.some(a=>a.id===c.assetId&&a.hasAudio));
     return clip ? `clip:${clip.id}` : `asset:${s.project.assets.find(a=>a.hasAudio)?.id??''}`;
   });
-  const [info,setInfo]=useState<SpeechInfo|null>(null),[language,setLanguage]=useState<SpeechLanguage>(mode==='tts'?(uiLanguage==='zh-CN'?'zh':'en'):'auto');
+  const setup=useSpeechSetup(),info=setup.info;
+  const [language,setLanguage]=useState<SpeechLanguage>(mode==='tts'?(uiLanguage==='zh-CN'?'zh':'en'):'auto');
   const [voice,setVoice]=useState(''),[text,setText]=useState(''),[rate,setRate]=useState(180);
-  const [busy,setBusy]=useState(false),[checking,setChecking]=useState(true),[error,setError]=useState(''),[progress,setProgress]=useState<SpeechProgress|null>(null);
+  const [busy,setBusy]=useState(false),[importing,setImporting]=useState(false),[error,setError]=useState(''),[progress,setProgress]=useState<SpeechProgress|null>(null);
+  const checking=setup.checking||importing;
   const running=useRef<string|null>(null),alive=useRef(true),cancelled=useRef(false);
   const fail=(e:unknown)=>{if(alive.current) setError(String(e).replace(/^Error: Error invoking remote method '[^']+': (?:Error: )?/,''));};
   useEffect(()=>{
     alive.current=true;
-    void window.editorAPI?.getSpeechInfo().then(value=>{if(alive.current) setInfo(value);}).catch(fail).finally(()=>{if(alive.current)setChecking(false);});
     const off=window.editorAPI?.onSpeechProgress(e=>{if(e.jobId===running.current)setProgress(e);});
     return ()=>{alive.current=false;off?.();if(running.current)void window.editorAPI?.cancelSpeech(running.current);};
   },[]);
   const voices=info?.voices.filter(v=>v.locale.startsWith(language==='zh'?'zh_':'en_'))??[];
   useEffect(()=>{setVoice(voices.find(v=>v.name===(language==='zh'?'Tingting':'Samantha'))?.name??voices[0]?.name??'');},[info,language]);
-  const choose=async(kind:'python'|'model')=>{setChecking(true);setError('');try{setInfo(await window.editorAPI!.chooseSpeechDependency(kind));}catch(e){fail(e);}finally{setChecking(false);}};
   const importMedia=async()=>{
-    setChecking(true);setError('');const before=useEditorStore.getState().project;
-    try{const assets=await window.editorAPI!.importMedia();if(useEditorStore.getState().project!==before)throw new Error(t('speech.stale'));useEditorStore.getState().addAssets(assets);const first=assets.find(a=>a.hasAudio);if(first)setSource(`asset:${first.id}`);}catch(e){fail(e);}finally{setChecking(false);}
+    setImporting(true);setError('');const before=useEditorStore.getState().project;
+    try{const assets=await window.editorAPI!.importMedia();if(useEditorStore.getState().project!==before)throw new Error(t('speech.stale'));useEditorStore.getState().addAssets(assets);const first=assets.find(a=>a.hasAudio);if(first)setSource(`asset:${first.id}`);}catch(e){fail(e);}finally{setImporting(false);}
   };
   let sourceError='';if(mode==='asr'){try{speechSource(project,source);}catch(e){sourceError=(e as Error).message;}}
   const start=async()=>{
@@ -55,10 +56,7 @@ export default function SpeechDialog({mode,onClose}:{mode:'asr'|'tts';onClose:()
         <button disabled={busy||checking} onClick={()=>void importMedia()}>{t('speech.import')}</button>
         <p className="muted small">{t('speech.alignment')}</p>
         <details><summary>{t('speech.dependencies')}</summary>
-          <p className="small" style={{overflowWrap:'anywhere'}}>Python: {info?.python??'—'}<br/>MLX Whisper: {info?.model??'—'} {info?.modelBytes?`(${(info.modelBytes/1024/1024).toFixed(1)} MiB)`:''}</p>
-          <button disabled={busy||checking} onClick={()=>void choose('python')}>{t('speech.python')}</button>{' '}
-          <button disabled={busy||checking} onClick={()=>void choose('model')}>{t('speech.model')}</button>
-          <p>{t('speech.setup')}</p>
+          <SpeechSetupControls setup={setup} disabled={busy||importing} />
         </details>
         {info&&!info.ready&&<p role="alert" className="inline-warning">{localizeMessage(info.error ?? "")}</p>}
       </>:<>
@@ -75,7 +73,7 @@ export default function SpeechDialog({mode,onClose}:{mode:'asr'|'tts';onClose:()
       <p className="muted small">{t('speech.storage')}</p>
       {checking&&<p role="status">{t('speech.checking')}</p>}
       {progress&&<div role="status"><p>{t(`speech.stage.${progress.stage}`)}</p><progress max={1} value={progress.progress}/>{progress.progress!==undefined&&<span> {Math.round(progress.progress*100)}%</span>}</div>}
-      {(error||sourceError)&&<p role="alert" className="inline-warning">{localizeMessage(error||sourceError)}</p>}
+      {(error||sourceError||setup.error)&&<p role="alert" className="inline-warning">{localizeMessage(error||sourceError||setup.error)}</p>}
     </div>
     <footer>{busy?<button onClick={()=>{cancelled.current=true;if(running.current)void window.editorAPI?.cancelSpeech(running.current).catch(fail);}}>{t('speech.cancel')}</button>:<>
       <button onClick={onClose}>{t('dialog.closeButton')}</button>

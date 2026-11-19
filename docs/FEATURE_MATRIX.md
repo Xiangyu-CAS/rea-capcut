@@ -4,7 +4,7 @@
 
 | 功能 | 状态 | 边界与证据 |
 | --- | --- | --- |
-| 本地 ASR 与 TTS（未发布源码） | supported on macOS | Apple Silicon MLX Whisper + 已有本地权重；系统中英文声音；编辑/播放/持久化/取消，见 [本地语音](LOCAL_SPEECH.md) |
+| 本地 ASR 与 TTS | supported on macOS | Apple Silicon MLX Whisper 与已有权重，macOS 中英文系统声音。源码新增设置页检测 Python、Metal、媒体工具和本地模型。 [本地语音](LOCAL_SPEECH.md) |
 | 熟悉的三栏编辑界面 | supported | 中性深灰、资源顺序、属性分组及小窗口布局；独立实现，非逐像素复刻，见 UI_PARITY.md |
 | 本地倒放与定格 | supported | 倒放源选段/速度烘焙/关联画声；静帧全轨插入；进度、取消、撤销、保存重启和逐帧导出。最长 60 分钟、4096×2160 像素量，详见 [边界](REVERSE_FREEZE.md) |
 | 源素材预览与 I/O 选段 | supported | 单击预览、局部快捷键、入出点插入和一次撤销；实际预览与导出帧/声音验证 |
@@ -17,6 +17,7 @@
 | 自定义 / 选中时间区间导出 | supported | 保留区间内全部可见图层与声音；像素、RMS、逐帧边界和 UI 验证 |
 | 视频、音频、图片导入 | supported | FFprobe 检测；真实素材、Unicode 路径、缩略图、波形测试 |
 | 本地预览代理 | supported | H.264 4:4:4、不兼容视频/音频容器代理测试；具体编码依赖本机 FFmpeg |
+| 高分辨率素材代理模式 | supported（源码） | 播放器按需生成最长边 960 像素的本地代理。导出读取原素材。 |
 | HEVC 等编码输入 | limited | 条件测试取决于本机编码器；非所有 codec/平台保证 |
 | 可调时间线高度与实时画面拖动 | supported | 分隔条支持拖动/键盘调整；播放器实时反馈、关键帧路径整体移动、单次撤销和最终帧保留通过 GUI 验证 |
 | 多轨与同轨重叠 | supported | 时间线分行、兼容轨道限制、移动与合成测试 |
@@ -38,6 +39,7 @@
 | 文字与字体 | supported | 默认内置原版 Noto Sans SC（OFL 1.1），可选系统字体；内容、描边、背景、对齐；中文真实渲染测试，其他系统字体跨机器可能不同 |
 | SRT / 基础 WebVTT | limited | 基础时间与文本转换，SRT 输出；不保留全部富文本/定位属性 |
 | 视频音频分离、音轨混合 | supported | 独立声音引用共享原媒体；实际 GainNode RMS、源移动后派生素材重新链接/代理及非重复混音导出通过 |
+| 响度统一与背景音乐压低 | supported（源码） | 片段响度和真峰值分析、轨道瞬态音量包络、预览和 FFmpeg 导出一致。 [声音处理](AUDIO_MIX.md) |
 | 保存、打开、最近项目、自动恢复 | supported | 校验、原子写入和本地恢复实现；桌面保存/重开与媒体重新载入通过，异常断电恢复未做破坏性测试 |
 | macOS 内置媒体引擎 | supported | v0.2.1 内置独立构建 FFmpeg/FFprobe，无需系统安装；随包提供源码与许可 |
 | MP4 / MOV 视频导出 | supported | H.264 / AAC，进度、取消、错误、目标保护与关闭进程测试 |
@@ -52,6 +54,7 @@
 | 账号、云项目、SaaS | unused | 没有服务端与云同步 |
 | 直接 API AI、人物抠像 | unused | 未实现 |
 | Codex 插件 | limited | 本地 stdio MCP、fullscreen App 画面桥接、鼠标/键盘操作和版本校验编辑；协议、真实编辑器交互及导出已验，Codex 宿主打开留待用户重连后验收；见 CODEX_PLUGIN.md |
+| Codex 模板批量出片 | supported（源码协议） | 占位查询、原子批量替换、同目录保存、导出进度与取消。 [插件流程](CODEX_PLUGIN.md#从同一模板生成多支视频) |
 | CLI 剪辑助手 | limited | Codex / Claude Code，项目对话、取消、受限编辑建议与一次撤销；真实 Codex 合成问答通过，Claude 本机需重新登录；见 ASSISTANT.md |
 | 原创离线素材 | supported | 64 款原创 PNG / WAV，SVG 源与 MIT 许可；分类、搜索、试听、添加 |
 | HDR、专业颜色管理、曲线变速 | unused | 本期无完整实现 |

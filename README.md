@@ -50,6 +50,8 @@ The project uses [REA](https://github.com/morluto/rea) to study Jianying's inter
 
 See the [feature matrix](docs/FEATURE_MATRIX.md) for detailed support and limitations.
 
+Current source adds [loudness normalization and background-music ducking](docs/AUDIO_MIX.md), template-based [batch export from Codex](docs/CODEX_PLUGIN.md#从同一模板生成多支视频), guided local caption setup, and a lower-resolution preview proxy switch.
+
 ## Getting started
 
 **Interface language:** open **Settings** (shown as **设置 / Settings** in Chinese), then **Language**, or press **Cmd/Ctrl+,**. The choice is saved locally. Current source detects the system language on first launch, with English as fallback; the broader English interface fix is included in the v0.7.0 preview. [Language coverage and tests](docs/LOCALIZATION.md).

@@ -104,7 +104,9 @@ Path(os.environ['STARTS']+'.closed').write_text('flushed')
 
     def test_missing_app_does_not_break_discovery(self):
         (self.bundle / 'Contents/MacOS/ReaCut').unlink()
-        self.assertEqual(len(self.rpc('tools/list')['result']['tools']),9)
+        tools = self.rpc('tools/list')['result']['tools']
+        self.assertEqual(len(tools), 17)
+        self.assertIn('reacut_export_start', {tool['name'] for tool in tools})
         self.assertIn('error',self.rpc('tools/call',{'name':'reacut_open'}))
         self.assertFalse(self.starts.exists())
 

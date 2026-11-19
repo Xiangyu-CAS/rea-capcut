@@ -29,6 +29,7 @@ interface Props {
   playhead: number;
   onUpdate: (patch: Partial<Clip>) => void;
   onProjectUpdate: (patch: Partial<Project>) => void;
+  onNormalizeAudio?: () => void;
 }
 function NumberField({
   label,
@@ -152,6 +153,7 @@ export default function Inspector({
   playhead,
   onUpdate,
   onProjectUpdate,
+  onNormalizeAudio,
 }: Props) {
   const ui = useUITranslation();
   const [tab, setTab] = useState("画面"),
@@ -523,6 +525,12 @@ export default function Inspector({
                   onChange={(e) => onUpdate({ muted: e.target.checked })}
                 />
               </label>
+              {asset?.hasAudio && !asset.missing && onNormalizeAudio && (
+                <button type="button" onClick={onNormalizeAudio}>
+                  {ui("响度统一…", "Loudness normalization…")}
+                  {clip.audioGainDb !== undefined && ` · ${clip.audioGainDb.toFixed(1)} dB`}
+                </button>
+              )}
               <h3>{ui("声音淡入淡出", "Audio fades")}</h3>
               <NumberField
                 label={ui("声音淡入", "Audio fade in")}

@@ -1385,3 +1385,10 @@ kbd {
 .editor-workspace {min-width:0;}
 .player-panel {container-type:inline-size;}
 @container(max-width:420px){.player-controls{gap:0;padding-inline:6px}.player-controls .timecode{font-size:9px}.player-controls .transport{position:static;transform:none;margin-left:auto;gap:0}.player-controls .transport button{padding:3px}.player-controls .player-tools button{width:23px}}
+.speech-setup { display: grid; gap: 0.65rem; }
+.speech-path { overflow-wrap: anywhere; }
+.speech-checks { display: grid; gap: 0.5rem; padding-inline-start: 1.25rem; margin: 0; }
+.speech-checks span { display: block; }
+.player-preview-controls { display: flex; align-items: center; gap: 0.5rem; }
+.player-preview-controls button { padding: 0.15rem 0.45rem; }
+.player-preview-controls button[aria-pressed="true"] { color: var(--accent); }

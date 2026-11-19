@@ -1,12 +1,12 @@
 # 本地自动字幕与配音
 
-v0.6.0 Apple Silicon 预览版包含这些能力。历史 v0.5.0 不包含；初始源码验证和本次 DMG 验证分开记录，见 [发布验收](RELEASE_0.6.0.md)。
+本地自动字幕和配音自 v0.6.0 Apple Silicon 预览版起提供。下面的设置页和缓存切换是后续源码新增能力。 [v0.6.0 发布验收](RELEASE_0.6.0.md)
 
 ## 操作
 
-1. 打开 v0.6.0 应用（或从源码运行 `npm start`，首次先 `npm run build`），打开左侧 **字幕**。
+1. 首次使用可在 **设置 → 配置本地字幕** 检测 Python、Metal、本地模型和 FFmpeg/FFprobe。也可以从左侧 **字幕 → 自动识别字幕** 展开 **本地识别依赖与模型**。
 2. **自动识别字幕**：选择已有时间线音视频片段，或用 **选择本地音视频…** 导入文件。
-3. 展开 **本地识别依赖与模型**，选择已安装 `mlx-whisper` 的 Python 可执行文件。若未发现已缓存的 small 模型，选择包含 `config.json` 和 `weights.npz` 或 `weights.safetensors` 的本地模型目录。这里没有安装或下载按钮，不接受远程模型 ID。
+3. 选择已安装 `mlx-whisper` 的 Python 可执行文件，并从已缓存模型中选择一个，或选择含 `config.json` 和 `weights.npz` 或 `weights.safetensors` 的本地模型目录。可以重新检测或清除手动设置。
 4. 选择中文、English 或自动检测，再点 **生成并添加**。时间线片段使用实际入点/长度进行识别，按速度和位置映射字幕；完整源素材则和字幕一起加入播放头位置。字幕是普通可编辑文字轨道，可逐句修改、撤销、导出 SRT 或烧录到视频。
 5. **文字转语音**：输入文字，选择中文/英文、系统声音和语速，生成本地 WAV 并加入播放头位置的新音轨。每次上限 10,000 字符，80–400 词/分钟；中文实际速率以系统声音为准。
 
@@ -19,8 +19,8 @@ v0.6.0 Apple Silicon 预览版包含这些能力。历史 v0.5.0 不包含；初
 - 识别最长源时长 60 分钟。输入统一在本地转为 16 kHz 单声道 PCM。先去掉开头近静音并保留 80 ms 余量，识别后补回原偏移；词级对齐结果分为短字幕并按项目帧率量化。识别与时间戳仍需人工校对；噪声、音乐和静音可能影响结果。中文可能输出繁体，不强制转换字形。
 - Python worker 固定 `HF_HUB_OFFLINE=1`、`TRANSFORMERS_OFFLINE=1`、关闭 Hub telemetry，并拒绝 socket 连接。模型必须是本地路径；音频数组直接传给模型，不调用云识别。媒体解码沿用 `file,pipe` 协议白名单。
 - 本轮验收机器复用了已有 `mlx-whisper 0.4.3` 和 `mlx-community/whisper-small-mlx` 缓存：权重 **481,307,592 bytes / 459.01 MiB**，snapshot `45f3915923c7a79a5a5b5a7d909d39aeb0e5630e`。没有下载或安装任何模型/引擎。
-- 首次部署若没有依赖，需要另外安装引擎和下载权重；这一步需要网络、磁盘空间及用户自行批准。不要把“应用不下载”误解为模型不占空间。此实现只自动发现标准 Hugging Face 缓存中的 small 模型，不扫描其他项目里的 Python；运行时通过文件选择器配置。
-- 可用 `REACUT_SPEECH_PYTHON`、`REACUT_SPEECH_MODEL` 指定绝对路径，环境变量优先于保存设置。测试使用已有环境，不自动安装。
+- 自动检测仅查找仓库文档约定的 `~/.venvs/reacut-speech/bin/python`，及 Hugging Face 缓存里已经完整落盘的 tiny、base、small、medium 和 large-v3 MLX Whisper 模型。模型检查核对配置和权重文件，第一次识别时才加载权重。可使用 `HF_HUB_CACHE` 或 `HF_HOME` 指定已配置的本地缓存。
+- 可用 `REACUT_SPEECH_PYTHON`、`REACUT_SPEECH_MODEL` 指定绝对路径，环境变量优先于保存设置。应用的检测、配置及识别均使用本地文件。
 
 ## 首次配置（其他机器不会自带测试机的缓存）
 

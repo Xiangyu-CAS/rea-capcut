@@ -1,5 +1,6 @@
 import type { ProjectTemplate, TemplateSummary } from "./projectTemplates";
 import type { SpeechInfo, SpeechProgress, SpeechRequest, SpeechResult } from "./speech";
+import type { AudioAnalysisProgress, AudioAnalysisRequest, AudioAnalysisResult, AudioDucking } from "./audioMix";
 import type { AssistantEvent, AssistantMessage, AssistantProvider, AssistantProviderInfo, AssistantRequest } from "./assistantTypes";
 export type MediaKind = "video" | "audio" | "image";
 export type TrackKind = MediaKind | "text";
@@ -92,6 +93,8 @@ export interface Clip {
   sourceIn: number;
   speed: number;
   volume: number;
+  /** Gain measured on the clip's source range, separate from the volume fader. */
+  audioGainDb?: number;
   muted: boolean;
   transform: Transform;
   adjustments: Adjustments;
@@ -114,6 +117,8 @@ export interface Track {
   muted: boolean;
   hidden: boolean;
   locked: boolean;
+  /** Automation in project time, applied to the sum of this music track. */
+  audioDucking?: AudioDucking;
 }
 export interface Project {
   version: 1;
@@ -152,6 +157,7 @@ export interface DerivativeRequest {
   duration: number;
 }
 export interface DerivativeProgress { jobId: string; progress: number; message: string }
+export interface PreviewProxyProgress { jobId: string; path: string; url?: string; failed?: boolean }
 export interface AppSettings {
   ffmpegPath?: string;
   ffprobePath?: string;
@@ -189,9 +195,17 @@ export interface EditorAPI {
   onTemplateProgress: (callback: (event: DerivativeProgress) => void) => () => void;
   getSpeechInfo: () => Promise<SpeechInfo>;
   chooseSpeechDependency: (kind: "python" | "model") => Promise<SpeechInfo>;
+  selectCachedSpeechModel: (id: string) => Promise<SpeechInfo>;
+  resetSpeechDependencies: () => Promise<SpeechInfo>;
   generateSpeech: (jobId: string, project: Project, request: SpeechRequest) => Promise<SpeechResult>;
   cancelSpeech: (jobId: string) => Promise<void>;
   onSpeechProgress: (callback: (event: SpeechProgress) => void) => () => void;
+  analyzeAudio: (jobId: string, project: Project, request: AudioAnalysisRequest) => Promise<AudioAnalysisResult>;
+  cancelAudioAnalysis: (jobId: string) => Promise<void>;
+  onAudioAnalysisProgress: (callback: (event: AudioAnalysisProgress) => void) => () => void;
+  preparePreviewProxies: (jobId: string, paths: string[]) => Promise<void>;
+  cancelPreviewProxies: (jobId: string) => Promise<void>;
+  onPreviewProxyProgress: (callback: (event: PreviewProxyProgress) => void) => () => void;
   deriveMedia: (jobId: string, project: Project, clipId: string, request: DerivativeRequest) => Promise<MediaAsset>;
   cancelDerivative: (jobId: string) => Promise<void>;
   onDerivativeProgress: (callback: (event: DerivativeProgress) => void) => () => void;

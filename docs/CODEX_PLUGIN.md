@@ -40,6 +40,18 @@ sh scripts/install-plugin.sh --app /absolute/path/ReaCut.app
 
 Codex 可读取当前项目、导入指定素材、添加文字与片段、裁剪、分割、移动、调整画面/声音、播放、定位、撤销和重做。批量编辑需带当前 revision；你在界面中修改后，旧提案会被拒绝，防止覆盖新编辑。每次批量编辑都可一次撤销。
 
+## 从同一模板生成多支视频
+
+此流程需使用由同一份源码构建的应用与插件。
+
+1. 用 `reacut_templates` 列出内置模板和本机模板库，调用 `reacut_template_slots` 核对占位 ID、素材时长和锁轨状态。
+2. 用 `reacut_output_folder` 打开文件夹选择器。你选择的目录可在当前插件会话内用于后续保存和导出。
+3. 传当前 `revision` 给 `reacut_create_from_template`，指定 `source`、`templateId` 和所需替换。素材项用 `{slotId, path}`，文案项用 `{slotId, value}`。任一替换无效会保留当前项目。有效替换可以一次撤销。
+4. 用 `reacut_save` 保存可编辑的 `.reacut` 项目。用 `reacut_export_start` 启动 MP4 或 MOV 导出，并用 `reacut_export_status` 查询进度和结果。需要中止时用 `reacut_export_cancel`，再确认最终状态。
+5. 保存后可以直接用同一模板制作下一支视频。项目和视频分别使用不带扩展名的文件名。输出文件只在选定目录中新建，同名文件受到保护。
+
+导出使用启动时的项目快照。选择文件夹和导出任务都按会话隔离，重新连接后请重新选择目录。模板库由桌面版和插件共享。可移植项目仍可从编辑器界面收集素材或从已有工程打开。
+
 ## 当前限制
 
 - 采用与 [iPhone-use](https://github.com/zhongerxin/iPhone-use) 类似的 MCP App 实时画面桥接。侧栏约 6 fps，实际速度受宿主和窗口大小影响；这是交互画面，不是原帧率视频监看。声音由本机 ReaCut 播放。精细预览可显示桌面窗口。
@@ -66,7 +78,7 @@ npm run dist:mac:installer
 npm run plugin:pack
 ```
 
-DMG / 应用由 Electron Builder 生成；插件 ZIP 输出到 `release/ReaCut-plugin-0.6.0.zip`。ZIP 包含 portable `plugin.json` / `mcp.json`、Codex 兼容 manifest、skill、Python 启动器与安装脚本。编辑器和自包含 MCP App UI 随 DMG 分发，因此插件包不再复制视频引擎。
+DMG / 应用由 Electron Builder 生成。插件 ZIP 为 `release/ReaCut-plugin-<version>.zip`，包含 portable `plugin.json` / `mcp.json`、Codex 兼容 manifest、skill、Python 启动器与安装脚本。编辑器和自包含 MCP App UI 随 DMG 分发，因此插件包不再复制视频引擎。
 
 开发协议验收使用隔离数据目录。安装包验收可通过 `REACUT_TEST_APP=/absolute/path/ReaCut.app/Contents/MacOS/ReaCut npm run test:plugin` 指定实际程序。
 

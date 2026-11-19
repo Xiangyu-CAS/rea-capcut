@@ -1,10 +1,10 @@
 import path from 'node:path';
 import os from 'node:os';
 import { spawn } from 'node:child_process';
-import { access, mkdir, mkdtemp, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
+import { access, mkdir, mkdtemp, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
-import { importAssets, probeFile, runMediaTool } from './media';
-import { speechSource, validateCues, type SpeechInfo, type SpeechProgress, type SpeechRequest, type SpeechResult, type SpeechSettings, type SpeechVoice } from '../src/core/speech';
+import { findMediaTool, importAssets, probeFile, runMediaTool } from './media';
+import { speechSource, validateCues, type CachedSpeechModel, type SpeechDependencyCheck, type SpeechInfo, type SpeechProgress, type SpeechRequest, type SpeechResult, type SpeechSettings, type SpeechVoice } from '../src/core/speech';
 import type { Project } from '../src/core/types';
 
 // Always pass a local model directory and decoded PCM; neither the model loader nor FFmpeg can fetch URLs.
@@ -18,7 +18,11 @@ socket.socket.connect=no_network
 socket.create_connection=no_network
 import mlx_whisper, numpy as np, importlib
 if sys.argv[1]=='check':
-    print(json.dumps({'ready':True}),flush=True)
+    import mlx.core as mx
+    from importlib.metadata import version
+    if not mx.metal.is_available(): raise RuntimeError('No Metal device available for MLX.')
+    mx.eval(mx.array([1]) + 1)
+    print(json.dumps({'version':version('mlx-whisper')}),flush=True)
     sys.exit(0)
 model, audio, language = sys.argv[1:4]
 if not os.path.isdir(model): raise RuntimeError('Local model directory is missing')
@@ -86,32 +90,98 @@ export async function speechVoices(signal?:AbortSignal):Promise<SpeechVoice[]> {
   const result=await runSpeechProcess('/usr/bin/say',['-v','?'],signal,undefined,15000);
   return result.split('\n').flatMap(line=>{const m=line.match(/^(.+?)\s+([a-z]{2,3}_[A-Z]{2})\s+#/);return m?[{name:m[1].trim(),locale:m[2]}]:[];});
 }
-export async function localSpeechSettings(settings:SpeechSettings):Promise<SpeechSettings> {
-  const result={...settings};
-  result.python=process.env.REACUT_SPEECH_PYTHON || result.python;
-  result.model=process.env.REACUT_SPEECH_MODEL || result.model;
-  if(!result.model) {
-    const snapshots=path.join(os.homedir(),'.cache/huggingface/hub/models--mlx-community--whisper-small-mlx/snapshots');
-    try {const entries=await readdir(snapshots);for(const entry of entries.sort()){try {const folder=path.join(snapshots,entry);await modelBytes(folder);result.model=folder;break;} catch { /* Skip incomplete cached snapshots. */ }}} catch { /* No download. */ }
+const mlxSupported = () => process.platform === "darwin" && process.arch === "arm64";
+const supportedCaches = ["small", "base", "tiny", "medium", "large-v3"] as const;
+const modelDimensions = [
+  "n_mels", "n_audio_ctx", "n_audio_state", "n_audio_head", "n_audio_layer",
+  "n_vocab", "n_text_ctx", "n_text_state", "n_text_head", "n_text_layer",
+];
+
+async function modelBytes(folder: string): Promise<number> {
+  if (!path.isAbsolute(folder)) throw new Error("Choose a local MLX model folder.");
+  const configFile = path.join(folder, "config.json");
+  const config = await stat(configFile).catch(() => null);
+  if (!config?.isFile() || config.size <= 0 || config.size > 64 * 1024)
+    throw new Error("The model folder needs a readable config.json.");
+  const metadata = await readFile(configFile, "utf8").then(JSON.parse).catch(() => null);
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata) ||
+      modelDimensions.some(key => !Number.isSafeInteger(metadata[key]) || metadata[key] <= 0))
+    throw new Error("The model config.json is invalid.");
+  for (const name of ["weights.safetensors", "weights.npz"]) {
+    const weights = await stat(path.join(folder, name)).catch(() => null);
+    if (weights?.isFile() && weights.size > 0) return weights.size;
   }
-  return result;
+  throw new Error("The model folder needs weights.safetensors or weights.npz.");
 }
-async function modelBytes(folder:string):Promise<number> {
-  if(!path.isAbsolute(folder)) throw new Error('Choose a local MLX model folder (config.json and weights.npz / weights.safetensors).');
-  await access(path.join(folder,'config.json'));
-  for(const name of ['weights.safetensors','weights.npz']) {try {const s=await stat(path.join(folder,name));if(s.isFile()&&s.size>0) return s.size;}catch{/* Next format. */}}
-  throw new Error('Local model weights are missing; no files will be downloaded.');
+
+export async function cachedSpeechModels(cache?: string): Promise<(CachedSpeechModel & { folder: string })[]> {
+  const hfHome = process.env.HF_HOME;
+  const configured = cache ?? process.env.HF_HUB_CACHE ?? (hfHome && path.join(hfHome, "hub"));
+  const root = configured && path.isAbsolute(configured) ? configured : path.join(os.homedir(), ".cache", "huggingface", "hub");
+  const models: (CachedSpeechModel & { folder: string })[] = [];
+  for (const name of supportedCaches) {
+    const snapshots = path.join(root, `models--mlx-community--whisper-${name}-mlx`, "snapshots");
+    const entries = await readdir(snapshots, { withFileTypes: true }).catch(() => []);
+    for (const entry of entries.filter(entry => entry.isDirectory() && /^[a-f0-9]{40}$/i.test(entry.name))
+      .sort((a, b) => b.name.localeCompare(a.name)).slice(0, 16)) {
+      const folder = path.join(snapshots, entry.name);
+      try {
+        models.push({ id: `${name}:${entry.name}`, name: `Whisper ${name} (MLX)`, folder, bytes: await modelBytes(folder) });
+        break;
+      } catch { /* Only complete local snapshots are offered. */ }
+    }
+  }
+  return models;
 }
-export async function speechInfo(settings:SpeechSettings):Promise<SpeechInfo> {
-  const config=await localSpeechSettings(settings), voices=await speechVoices().catch(()=>[]);
-  try {
-    if(process.platform!=='darwin'||process.arch!=='arm64') throw new Error('MLX ASR requires Apple Silicon macOS.');
-    if(!config.python || !path.isAbsolute(config.python)) throw new Error('Choose an existing Python executable with mlx-whisper installed. No automatic installation.');
-    if(!config.model) throw new Error('Select an already downloaded MLX Whisper model folder.');
-    const bytes=await modelBytes(config.model);
-    await runSpeechProcess(config.python,['-c',whisperWorker,'check'],undefined,undefined,30000);
-    return {...config,ready:true,modelBytes:bytes,voices};
-  }catch(e){return {...config,ready:false,error:(e as Error).message,voices};}
+
+async function localSpeechSettings(settings: SpeechSettings, cachedModel?: string): Promise<SpeechSettings> {
+  const python = process.env.REACUT_SPEECH_PYTHON || settings.python;
+  const detectedPython = path.join(os.homedir(), ".venvs", "reacut-speech", "bin", "python");
+  return {
+    python: python || (await access(detectedPython).then(() => detectedPython, () => undefined)),
+    model: process.env.REACUT_SPEECH_MODEL || settings.model || cachedModel,
+  };
+}
+
+export async function speechInfo(settings: SpeechSettings): Promise<SpeechInfo> {
+  const cached = mlxSupported() ? await cachedSpeechModels() : [];
+  const config = await localSpeechSettings(settings, cached[0]?.folder);
+  const ready = { state: "ready" } as const;
+  let modelSize: number | undefined;
+  const python = async (): Promise<SpeechDependencyCheck> => {
+    if (!mlxSupported()) return { state: "unsupported", detail: "MLX ASR requires Apple Silicon macOS." };
+    if (!config.python || !path.isAbsolute(config.python))
+      return { state: "missing", detail: "Choose an existing Python environment with mlx-whisper installed." };
+    try {
+      const output = await runSpeechProcess(config.python, ["-I", "-B", "-c", whisperWorker, "check"], undefined, undefined, 60000);
+      const version = JSON.parse(output.trim().split("\n").at(-1) ?? "{}").version;
+      if (typeof version !== "string") throw new Error("Python did not return a valid MLX runtime check.");
+      return { ...ready, detail: `mlx-whisper ${version}` };
+    } catch (error) { return { state: "error", detail: String(error) }; }
+  };
+  const model = async (): Promise<SpeechDependencyCheck> => {
+    if (!config.model) return { state: "missing", detail: "Select an already downloaded MLX Whisper model folder." };
+    try {
+      modelSize = await modelBytes(config.model);
+      return ready;
+    } catch (error) { return { state: "error", detail: String(error) }; }
+  };
+  const [pythonCheck, modelCheck, media, voices] = await Promise.all([
+    python(), model(),
+    Promise.all([findMediaTool("ffmpeg"), findMediaTool("ffprobe")]).then(
+      (): SpeechDependencyCheck => ready,
+      (error): SpeechDependencyCheck => ({ state: "missing", detail: String(error) }),
+    ),
+    speechVoices().catch(() => []),
+  ]);
+  const failed = [pythonCheck, modelCheck, media].find(check => check.state !== "ready");
+  return {
+    ...config, ready: !failed, error: failed?.detail, modelBytes: modelSize, voices,
+    models: cached.map(({ folder: _, ...summary }) => summary), checks: { python: pythonCheck, model: modelCheck, media },
+    cachedModelId: cached.find(model => model.folder === config.model)?.id,
+    configured: Boolean(settings.python || settings.model),
+    overrides: { python: Boolean(process.env.REACUT_SPEECH_PYTHON), model: Boolean(process.env.REACUT_SPEECH_MODEL) },
+  };
 }
 export function generateSpeech(jobId:string,p:Project,request:SpeechRequest,settings:SpeechSettings,directory:string,progress:(p:SpeechProgress)=>void):Promise<SpeechResult> {
   if(typeof jobId!=='string'||!/^[a-zA-Z0-9-]{8,80}$/.test(jobId)) throw new Error('Invalid speech job.');
@@ -127,14 +197,16 @@ export function generateSpeech(jobId:string,p:Project,request:SpeechRequest,sett
       const wav=path.join(temp,'speech.wav');
       if(request.mode==='asr'){
         if(!['auto','zh','en'].includes(request.language)||typeof request.source!=='string') throw new Error('Invalid recognition language/source.');
-        const source=speechSource(p,request.source), config=await localSpeechSettings(settings);
+        const source=speechSource(p,request.source);
+        const models = !settings.model && !process.env.REACUT_SPEECH_MODEL && mlxSupported() ? await cachedSpeechModels() : [];
+        const config=await localSpeechSettings(settings, models[0]?.folder);
         if(process.platform!=='darwin'||process.arch!=='arm64'||!config.python||!path.isAbsolute(config.python)||!config.model) throw new Error('Configure local MLX Whisper and Python first.');
         await modelBytes(config.model);
         const probe=await probeFile(source.asset.path,signal);if(!probe.streams.some(s=>s.codec_type==='audio')) throw new Error('Source has no audio stream.');
         const before=await stat(source.asset.path);
         await runMediaTool('ffmpeg',['-v','error','-nostdin','-y','-ss',String(source.sourceIn),'-i',source.asset.path,'-t',String(source.duration),'-map','0:a:0','-vn','-ac','1','-ar','16000','-c:a','pcm_s16le',wav],3600000,1024*1024,{signal});
         report('recognize',0);let cues:unknown;
-        await runSpeechProcess(config.python,['-c',whisperWorker,config.model,wav,request.language],signal,line=>{
+        await runSpeechProcess(config.python,['-I','-B','-c',whisperWorker,config.model,wav,request.language],signal,line=>{
           try {const event=JSON.parse(line);if(Number.isFinite(event.progress)) report('recognize',Math.max(0,Math.min(1,event.progress)));if(event.cues) cues=event.cues;}catch{ /* Non-protocol runtime output. */ }
         },3600000);
         signal.throwIfAborted();const after=await stat(source.asset.path);if(before.size!==after.size||before.mtimeMs!==after.mtimeMs) throw new Error('Source changed during recognition.');

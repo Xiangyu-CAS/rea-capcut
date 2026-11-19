@@ -17,7 +17,13 @@ description: 在 Codex 右侧打开 ReaCut 本地视频编辑器，导入用户�
 2. 用 `reacut_import` 导入用户明确选定的绝对路径。未指定文件时省略参数打开文件选择器。不要遍历 Downloads 或私人草稿库。内置原创素材用 `reacut_catalog` 查 ID，再用 builtinId 导入。
 3. `reacut_edit` 接受工具描述中的白名单 actions 和刚读取的 revision。一次最多 40 项，整批校验后一次提交，一次 undo 可恢复。导入素材与添加时间线片段是两步。旧 revision 会被拒绝，重新读取后根据当前状态规划；不要盲目重放可能已执行的操作。
 4. `reacut_control` 播放、暂停、定位、撤销和重做；`reacut_screenshot` 返回当前编辑器截图。通过 functions.exec 转发时用 image(block)，不要打印 base64。
-5. 文字模板、调色、关键帧动效、转场以及保存/导出可直接在右侧界面操作。可用 computer-use 操作宿主提供的 MCP App；app-only frame/input 工具专供界面，不作为模型直接调用的后门。
+5. 文字模板、调色、关键帧动效、转场以及保存/导出可直接在右侧界面操作。可用 computer-use 操作宿主提供的 MCP App。App-only frame/input 工具专供界面。
+
+## 模板批量出片
+
+安装匹配源码的应用和插件后，用 `reacut_templates` 找到模板，再用 `reacut_template_slots` 确认占位 ID、类型和最短源时长。用 `reacut_create_from_template` 按当前 revision 创建独立工程，一次提交文案和用户明确选定的素材路径。切换到新模板前保存已有未保存改动。
+
+用 `reacut_output_folder` 让用户选择一次本机输出目录。用 `reacut_save` 保存工程，再用 `reacut_export_start` 启动导出。每次给出不带扩展名的新文件名。通过 `reacut_export_status` 确认进度、结果和成片路径。中止时调用 `reacut_export_cancel`，再查询最终状态。目录授权仅在当前插件会话内有效。
 
 继续完成用户已授权的工作，不把打开面板当作剪辑完成。编辑后检查状态和关键画面，导出后确认完成提示及输出文件。系统对话框需要用户选择时说明具体需求。插件每次连接使用独立恢复目录，`reacut_state.recoveryPath` 指向自动保存项目；重连后可打开该文件恢复，重要项目主动保存。插件与独立桌面版使用不同恢复目录；用 `.reacut` 文件交换项目，不会自动接管桌面未保存的项目。
 

@@ -41,7 +41,7 @@ export async function runMediaTool(
   args: string[],
   timeout = 60_000,
   limit = 16 * 1024 * 1024,
-  options: { signal?: AbortSignal; onOutput?: (text: string) => void } = {},
+  options: { signal?: AbortSignal; onOutput?: (text: string) => void; onDiagnostic?: (text: string) => void } = {},
 ): Promise<Buffer> {
   options.signal?.throwIfAborted();
   if (mediaShuttingDown) throw new Error("应用正在关闭。");
@@ -89,6 +89,7 @@ export async function runMediaTool(
       } else output.push(data);
     });
     child.stderr.on("data", (data) => {
+      options.onDiagnostic?.(String(data));
       diagnostic = (diagnostic + String(data)).slice(-12_000);
     });
     child.once("error", (error) => {
@@ -254,9 +255,28 @@ async function previewProxy(
   signal?: AbortSignal,
 ): Promise<string | undefined> {
   if (!needsPreviewProxy(file, asset, probe)) return;
+  return transcodePreview(file, asset.kind, cacheDir, hash, false, signal);
+}
+
+export async function performancePreviewProxy(file: string, cacheDir: string, signal: AbortSignal): Promise<string | undefined> {
+  const metadata = await stat(file);
+  if (!metadata.isFile()) throw new Error("Preview source is unavailable.");
+  const stream = (await probeFile(file, signal)).streams.find(stream => stream.codec_type === "video");
+  if (!stream?.width || !stream.height ||
+      (Math.max(stream.width, stream.height) <= 1920 && Math.min(stream.width, stream.height) <= 1080)) return;
+  const hash = createHash("sha256").update(`${file}:${metadata.size}:${metadata.mtimeMs}`).digest("hex").slice(0, 24);
+  await mkdir(cacheDir, { recursive: true });
+  return transcodePreview(file, "video", cacheDir, hash, true, signal);
+}
+
+async function transcodePreview(
+  file: string, kind: MediaAsset["kind"], cacheDir: string, hash: string,
+  performance: boolean, signal?: AbortSignal,
+): Promise<string> {
   const extension =
-    asset.kind === "image" ? "png" : asset.kind === "audio" ? "m4a" : "mp4";
-  const destination = path.join(cacheDir, `${hash}-preview-v1.${extension}`);
+    kind === "image" ? "png" : kind === "audio" ? "m4a" : "mp4";
+  const profile = performance ? "proxy-960-v1" : "preview-v1";
+  const destination = path.join(cacheDir, `${hash}-${profile}.${extension}`);
   try {
     await access(destination);
     return mediaURL(destination);
@@ -267,8 +287,8 @@ async function previewProxy(
   proxyTemporaries.add(temporary);
   try {
     const args = ["-v", "error", "-y", "-i", file];
-    if (asset.kind === "image") args.push("-frames:v", "1", temporary);
-    else if (asset.kind === "audio")
+    if (kind === "image") args.push("-frames:v", "1", temporary);
+    else if (kind === "audio")
       args.push(
         "-vn",
         "-c:a",
@@ -290,13 +310,16 @@ async function previewProxy(
         "-map",
         "0:a:0?",
         "-vf",
-        "scale=w=min(1920\\,iw):h=min(1080\\,ih):force_original_aspect_ratio=decrease:force_divisible_by=2",
+        performance
+          ? "scale=w=min(960\\,iw):h=min(960\\,ih):force_original_aspect_ratio=decrease:force_divisible_by=2"
+          : "scale=w=min(1920\\,iw):h=min(1080\\,ih):force_original_aspect_ratio=decrease:force_divisible_by=2",
         "-c:v",
         "libx264",
         "-preset",
         "veryfast",
         "-crf",
-        "23",
+        performance ? "25" : "23",
+        ...(performance ? ["-g", "24", "-bf", "0", "-fps_mode", "passthrough"] : []),
         "-pix_fmt",
         "yuv420p",
         "-c:a",
@@ -313,6 +336,7 @@ async function previewProxy(
       );
     }
     await runMediaTool("ffmpeg", args, 15 * 60_000, 16 * 1024 * 1024, { signal });
+    signal?.throwIfAborted();
     await rename(temporary, destination);
     return mediaURL(destination);
   } finally {
