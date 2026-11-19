@@ -2,8 +2,10 @@ import { createUpdateService } from "./updateCheck";
 import { listTemplates, libraryTemplate, readTemplate, writeTemplate } from "./projectTemplates";
 import { validateTemplate } from "../src/core/projectTemplates";
 import { TEMPLATE_EXAMPLES, buildTemplateExample } from "../src/core/templateExamples";
-import { speechInfo, generateSpeech, cancelSpeech, cancelAllSpeech, cleanSpeechTemporaries } from "./speech";
+import { speechInfo, cachedSpeechModels, generateSpeech, cancelSpeech, cancelAllSpeech, cleanSpeechTemporaries } from "./speech";
 import { speechSource, type SpeechSettings, type SpeechRequest } from "../src/core/speech";
+import { audioAnalysisSources, type AudioAnalysisRequest, type AudioAnalysisResult } from "../src/core/audioMix";
+import { analyzeAudio } from "./audioAnalysis";
 import { deriveMedia, cancelDerivative, cancelDerivatives } from "./derivatives";
 import {
   app,
@@ -15,6 +17,7 @@ import {
   shell,
 } from "electron";
 import { startPluginHost } from "./pluginHost";
+import { pluginOutputFolder, type PluginOutputFolder } from "./pluginOutputs";
 import { createReadStream } from "node:fs";
 import {
   access,
@@ -22,6 +25,7 @@ import {
   mkdir,
   readFile,
   rename,
+  rm,
   stat,
   writeFile,
 } from "node:fs/promises";
@@ -34,6 +38,7 @@ import { discoverAssistantProviders, startAssistantSession } from "./assistantBa
 import type { AssistantMessage, AssistantProvider, AssistantRequest } from "../src/core/assistantTypes";
 import {
   importAssets,
+  performancePreviewProxy,
   mediaURL,
   systemMediaInfo,
   systemFontFamilies,
@@ -56,9 +61,12 @@ import type {
   Project,
   RecentProject,
   ExportOptions,
+  ExportProgress,
 } from "../src/core/types";
 
 const pluginMode = process.argv.includes("--reacut-plugin");
+const templateRoot = path.join(process.env.REACUT_USER_DATA
+  ? path.resolve(process.env.REACUT_USER_DATA) : app.getPath("userData"), "project-templates");
 // A connected MCP server is a background app until its desktop window is shown.
 if (process.platform === "darwin") app.setActivationPolicy(pluginMode ? "accessory" : "regular");
 if (pluginMode && !process.env.REACUT_USER_DATA)
@@ -136,6 +144,9 @@ function validateCapcutToken(token: unknown): asserts token is string {
 const menuAction = (action: string) =>
   window?.webContents.send("menu-action", action);
 let speechSettings: SpeechSettings = {};
+let speechSettingsWrites = Promise.resolve();
+let audioAnalysisJob: { id: string; controller: AbortController; done: Promise<AudioAnalysisResult> } | undefined;
+let previewProxyJob: { id: string; controller: AbortController; done: Promise<void> } | undefined;
 const userFile = (name: string) => path.join(app.getPath("userData"), name);
 const cacheDir = () => userFile("thumbnails");
 let writeQueue = Promise.resolve();
@@ -144,6 +155,83 @@ async function atomicWrite(file: string, text: string) {
   const temporary = `${file}.${randomUUID()}.tmp`;
   await writeFile(temporary, text, "utf8");
   await rename(temporary, file);
+}
+
+async function updateSpeechSettings(patch: (settings: SpeechSettings) => SpeechSettings) {
+  const write = speechSettingsWrites.catch(() => {}).then(async () => {
+    const updated = patch(speechSettings);
+    await atomicWrite(userFile("speech-settings.json"), JSON.stringify(updated));
+    speechSettings = updated;
+  });
+  speechSettingsWrites = write;
+  await write;
+  return speechInfo(speechSettings);
+}
+
+function registerPluginOutputs() {
+  let folder: PluginOutputFolder | undefined;
+  let choosing = false;
+  const progress = new Map<string, ExportProgress>();
+  const destination = (name: unknown, extension: "reacut" | "mp4" | "mov") => {
+    if (!folder) throw new Error("Choose a batch output folder first.");
+    return folder.destination(name, extension);
+  };
+  const status = (id: string) => {
+    const event = progress.get(id);
+    if (!event) throw new Error("Unknown batch export job in this session.");
+    return event;
+  };
+  const checkAssets = (project: Project) => {
+    for (const asset of project.assets)
+      if (!allowedMedia.has(path.resolve(asset.path))) throw new Error("Project references an unauthorized asset.");
+  };
+  handle("plugin-output-folder", async () => {
+    if (choosing) throw new Error("The output folder dialog is already open.");
+    choosing = true;
+    try {
+      const result = await dialog.showOpenDialog(window!, {
+        title: nativeUI("选择批量出片文件夹", "Choose batch output folder"),
+        properties: ["openDirectory", "createDirectory"],
+      });
+      if (result.canceled || !result.filePaths[0]) return null;
+      folder = await pluginOutputFolder(result.filePaths[0]);
+      return folder.directory;
+    } finally { choosing = false; }
+  });
+  handle("plugin-save-output", async (input: unknown, name: unknown) => {
+    const project = validateProject(input);
+    checkAssets(project);
+    const output = await destination(name, "reacut");
+    const temporary = path.join(path.dirname(output.path), `.reacut-${randomUUID()}.tmp`);
+    try {
+      await writeFile(temporary, JSON.stringify(project, null, 2), { flag: "wx" });
+      await output.publish(temporary);
+    }
+    finally { await rm(temporary, { force: true }).catch(() => {}); }
+    savePaths.add(output.path);
+    await remember(project, output.path).catch(() => {});
+    return output.path;
+  });
+  handle("plugin-export-start", async (input: unknown, name: unknown, options: Omit<ExportOptions, "path">) => {
+    const project = validateProject(input);
+    checkAssets(project);
+    if (options?.format !== "mp4" && options?.format !== "mov") throw new Error("Choose MP4 or MOV.");
+    const output = await destination(name, options.format);
+    return startExport(project, { ...options, path: output.path }, event => {
+      progress.set(event.jobId, event);
+      if (event.status === "complete" && event.path) outputPaths.add(event.path);
+      if (progress.size > 100) {
+        const oldest = [...progress].find(([id, value]) => id !== event.jobId && ["complete", "cancelled", "error"].includes(value.status));
+        if (oldest) progress.delete(oldest[0]);
+      }
+    }, output);
+  });
+  handle("plugin-export-status", status);
+  handle("plugin-export-cancel", async (id: string) => {
+    status(id);
+    await cancelExport(id);
+    return status(id);
+  });
 }
 async function recent(): Promise<RecentProject[]> {
   try {
@@ -176,16 +264,14 @@ async function remember(project: Project, file: string) {
 }
 function authorizeAsset(asset: MediaAsset) {
   allowedMedia.add(path.resolve(asset.path));
-  for (const cachedURL of [asset.thumbnail, asset.previewUrl])
-    if (cachedURL?.startsWith("reacut-media:")) {
-      try {
-        const thumbnail = new URL(cachedURL).searchParams.get("path");
-        if (thumbnail && path.dirname(path.resolve(thumbnail)) === cacheDir())
-          allowedMedia.add(path.resolve(thumbnail));
-      } catch {
-        /* optional */
-      }
-    }
+  for (const url of [asset.thumbnail, asset.previewUrl]) authorizeCachedMedia(url);
+}
+function authorizeCachedMedia(url?: string) {
+  if (!url?.startsWith("reacut-media:")) return;
+  try {
+    const file = new URL(url).searchParams.get("path");
+    if (file && path.dirname(path.resolve(file)) === cacheDir()) allowedMedia.add(path.resolve(file));
+  } catch { /* An optional cache file is unavailable. */ }
 }
 async function hydrateProject(input: unknown): Promise<Project> {
   const p = validateProject(input);
@@ -300,32 +386,32 @@ function registerIPC() {
     uiLanguage = language;
     updateApplicationMenu();
   });
-  handle("template-list", () => listTemplates(userFile("project-templates")));
+  handle("template-list", () => listTemplates(templateRoot));
   handle("template-load", async (id: string, builtin: boolean) => {
     if (builtin) {
       const def=TEMPLATE_EXAMPLES.find(d=>d.id===id); if(!def) throw new Error("未知原创模板");
       const assets=[]; for(const mediaId of def.media) assets.push(await importBuiltinAsset(mediaId));
       return buildTemplateExample(id,assets);
     }
-    const t=await libraryTemplate(userFile("project-templates"),id);
+    const t=await libraryTemplate(templateRoot,id);
     t.project=await hydrateProject(t.project);return t;
   });
   handle("template-save", (jobId: string, input: unknown) => templateTask(jobId, async (signal,progress) => {
     const t=validateTemplate(input);
     for(const a of t.project.assets) if(!allowedMedia.has(path.resolve(a.path))) throw new Error("模板引用了未经导入的素材");
-    const root=userFile("project-templates");await mkdir(root,{recursive:true});
-    await writeTemplate(t,root,signal,progress);
+    await mkdir(templateRoot,{recursive:true});
+    await writeTemplate(t,templateRoot,signal,progress);
   }));
   handle("template-import", (jobId: string) => templateTask(jobId, async (signal,progress) => {
     const selected=await dialog.showOpenDialog(window!,{title:nativeUI("导入模板包", "Import template bundle"),properties:["openFile"],filters:[{name:nativeUI("ReaCut 模板", "ReaCut template"),extensions:["reacut-template"]}]});
     if(selected.canceled || !selected.filePaths[0]) return false;
     if(signal.aborted) throw new Error("已取消模板导入");
     const t=await readTemplate(selected.filePaths[0]);
-    const root=userFile("project-templates");await mkdir(root,{recursive:true});
-    await writeTemplate(t,root,signal,progress);return true;
+    await mkdir(templateRoot,{recursive:true});
+    await writeTemplate(t,templateRoot,signal,progress);return true;
   }));
   handle("template-export", (jobId: string, id: string) => templateTask(jobId, async (signal,progress) => {
-    const t=await libraryTemplate(userFile("project-templates"),id);
+    const t=await libraryTemplate(templateRoot,id);
     const selected=await dialog.showOpenDialog(window!,{title:nativeUI("选择模板包保存位置", "Choose template bundle location"),properties:["openDirectory","createDirectory"]});
     if(selected.canceled || !selected.filePaths[0]) return null;
     const result=await writeTemplate(t,selected.filePaths[0],signal,progress);outputPaths.add(result);return result;
@@ -339,11 +425,18 @@ function registerIPC() {
       properties: kind === "python" ? ["openFile"] : ["openDirectory"],
     });
     if (!result.canceled && result.filePaths[0]) {
-      speechSettings = { ...speechSettings, [kind]: result.filePaths[0] };
-      await atomicWrite(userFile("speech-settings.json"), JSON.stringify(speechSettings));
+      return updateSpeechSettings(settings => ({ ...settings, [kind]: result.filePaths[0] }));
     }
     return speechInfo(speechSettings);
   });
+  handle("speech-select-cached-model", async (id: unknown) => {
+    if (typeof id !== "string" || id.length > 80 || process.platform !== "darwin" || process.arch !== "arm64")
+      throw new Error("Invalid local speech model.");
+    const model = (await cachedSpeechModels()).find(entry => entry.id === id);
+    if (!model) throw new Error("Cached model is unavailable. Refresh the list.");
+    return updateSpeechSettings(settings => ({ ...settings, model: model.folder }));
+  });
+  handle("speech-reset-dependencies", () => updateSpeechSettings(() => ({})));
   handle("speech-generate", async (jobId: string, input: unknown, request: SpeechRequest) => {
     const project = validateProject(input), owner = window!.webContents;
     if (request?.mode === "asr") {
@@ -358,6 +451,48 @@ function registerIPC() {
     return result;
   });
   handle("speech-cancel", (jobId: string) => cancelSpeech(jobId));
+  handle("analyze-audio", async (jobId: string, input: unknown, request: AudioAnalysisRequest) => {
+    if (typeof jobId !== "string" || !/^[a-f\d-]{36}$/i.test(jobId) || audioAnalysisJob)
+      throw new Error("An audio analysis task is already running or its ID is invalid.");
+    const project = validateProject(input);
+    for (const { asset } of audioAnalysisSources(project, request))
+      if (!allowedMedia.has(path.resolve(asset.path))) throw new Error("Audio source is not authorized.");
+    const controller = new AbortController(), owner = window!.webContents;
+    const done = analyzeAudio(project, request, controller.signal, progress => {
+      if (!owner.isDestroyed()) owner.send("audio-analysis-progress", { jobId, progress });
+    });
+    audioAnalysisJob = { id: jobId, controller, done };
+    try { return await done; } finally { audioAnalysisJob = undefined; }
+  });
+  handle("cancel-audio-analysis", (id: string) => {
+    if (audioAnalysisJob?.id === id) audioAnalysisJob.controller.abort();
+  });
+  handle("prepare-preview-proxies", async (id: string, paths: string[]) => {
+    if (typeof id !== "string" || !/^[a-f\d-]{36}$/i.test(id) ||
+        !Array.isArray(paths) || paths.length > 10_000 ||
+        paths.some(file => typeof file !== "string" || !path.isAbsolute(file) || !allowedMedia.has(path.resolve(file))))
+      throw new Error("Preview proxies require imported local video files.");
+    const previous = previewProxyJob, owner = window!.webContents;
+    previous?.controller.abort();
+    const controller = new AbortController(), { signal } = controller;
+    const done = (async () => {
+      await previous?.done.catch(() => {});
+      for (const file of new Set(paths)) {
+        if (signal.aborted) return;
+        let url: string | undefined, failed = false;
+        try { url = await performancePreviewProxy(file, cacheDir(), signal); }
+        catch { failed = true; }
+        if (signal.aborted) return;
+        authorizeCachedMedia(url);
+        if (!owner.isDestroyed()) owner.send("preview-proxy-progress", { jobId: id, path: file, url, failed });
+      }
+    })();
+    previewProxyJob = { id, controller, done };
+    try { await done; } finally { if (previewProxyJob?.id === id) previewProxyJob = undefined; }
+  });
+  handle("cancel-preview-proxies", (id: string) => {
+    if (previewProxyJob?.id === id) previewProxyJob.controller.abort();
+  });
   handle("import-builtin-asset", importBuiltinAsset);
   handle("assistant-providers", () => discoverAssistantProviders(assistantOverrides));
   handle("assistant-choose-cli", async (provider: AssistantProvider) => {
@@ -589,6 +724,7 @@ function registerIPC() {
     );
   });
   handle("cancel-export", (jobId: string) => cancelExport(jobId));
+  if (pluginMode) registerPluginOutputs();
   handle("font-families", () => systemFontFamilies());
   handle("system-info", async () => ({
     version: app.getVersion(),
@@ -1039,6 +1175,17 @@ app.on("before-quit", (event) => {
     cancelAllExports(),
     cancelDerivatives(),
     cancelAllSpeech(),
+    speechSettingsWrites.catch(() => {}),
+    (async () => {
+      const job = previewProxyJob;
+      job?.controller.abort();
+      await job?.done.catch(() => {});
+    })(),
+    (async () => {
+      const job = audioAnalysisJob;
+      job?.controller.abort();
+      await job?.done.catch(() => {});
+    })(),
     cancelPortablePackages(),
     cancelTemplates(),
     shutdownMediaTasks(),

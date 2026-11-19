@@ -22,7 +22,7 @@ export function detachLinkedAudio(p: Project, clipId: string): { project: Projec
   if (locked(p, video)) throw new Error('请先解锁轨道');
   if (video.linkId) throw new Error('此片段已有画声关联，请先解除关联');
   const audio = { ...asset, id: id(), kind: 'audio' as const, name: asset.name + ' · 音频', width: 0, height: 0, thumbnail: undefined };
-  const track = p.tracks.find(t => t.kind === 'audio' && !t.locked) ?? createTrack('audio', '分离音频');
+  const track = p.tracks.find(t => t.kind === 'audio' && !t.locked && !t.audioDucking) ?? createTrack('audio', '分离音频');
   const linkId = id();
   const clip: Clip = { ...clone(video), id: id(), assetId: audio.id, trackId: track.id, name: audio.name, linkId,
     keyframes: video.keyframes.filter(k => k.property === 'volume').map(k => ({ ...clone(k), id: id() })) };

@@ -1,7 +1,7 @@
 import { firstChineseWindow } from "./ui-language";
 /** Actual system voices, cached Whisper inference, desktop editing, playback, restart and FFmpeg export. */
 import {_electron as electron,expect,type ElectronApplication,type Page} from '@playwright/test';
-import {mkdir,readFile,writeFile,stat,rm} from 'node:fs/promises';
+import {mkdir,readFile,writeFile,stat,rm,readdir,symlink} from 'node:fs/promises';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {createProject} from '../src/core/model';
@@ -16,6 +16,13 @@ const p=createProject('本地语音 · 中英文真实验收');p.width=320;p.hei
 const model=process.env.REACUT_SPEECH_MODEL??real.model;
 const python=process.env.REACUT_SPEECH_PYTHON;assert(python,'Set REACUT_SPEECH_PYTHON to an installed MLX Python.');
 const env=Object.fromEntries(Object.entries(process.env).filter((x):x is [string,string]=>x[1]!==undefined));env.REACUT_USER_DATA=path.join(out,'user-data');delete env.ELECTRON_RUN_AS_NODE;delete env.VITE_DEV_SERVER_URL;delete env.REACUT_SPEECH_PYTHON;delete env.REACUT_SPEECH_MODEL;
+const cachedId = '1'.repeat(40);
+const cache = path.join(out, 'model-cache');
+const cachedModel = path.join(cache, 'models--mlx-community--whisper-small-mlx', 'snapshots', cachedId);
+await mkdir(cachedModel, { recursive: true });
+for (const file of (await readdir(model)).filter(file => ['config.json', 'weights.npz', 'weights.safetensors'].includes(file)))
+  await symlink(path.join(model, file), path.join(cachedModel, file));
+env.HF_HUB_CACHE = cache;
 let app!:ElectronApplication,page!:Page;const errors:string[]=[],checks:string[]=[],network:string[]=[],levels:number[]=[];
 const bundle=process.env.REACUT_TEST_APP?path.resolve(process.env.REACUT_TEST_APP):undefined;
 let native:{packaged:boolean;version:string;path:string}|undefined;
@@ -45,8 +52,29 @@ async function open(mode:'asr'|'tts'){await page.getByRole('button',{name:mode==
 async function generate(d:ReturnType<typeof page.getByRole>){await d.getByRole('button',{name:'生成并添加',exact:true}).click();await expect(d).toHaveCount(0,{timeout:120000});}
 async function audible(t:number){await seek(t);await page.getByRole('button',{name:'播放',exact:true}).click();let rms=0;await expect.poll(async()=>{rms=await page.evaluate(()=>Math.max(0,...((window as any).__audioAudit??[]).filter((e:any)=>!e.element.paused).map((e:any)=>{const a=new Float32Array(e.analyser.fftSize);e.analyser.getFloatTimeDomainData(a);return Math.sqrt(a.reduce((s,v)=>s+v*v,0)/a.length);})));return rms;},{timeout:8000}).toBeGreaterThan(.01);levels.push(rms);await page.getByRole('button',{name:'暂停',exact:true}).click();}
 try{
- await launch();let d=await open('asr');await expect(d.getByRole('button',{name:'生成并添加',exact:true})).toBeDisabled();await d.locator('summary').click();await d.getByRole('button',{name:'选择 Python…',exact:true}).click();await expect(d.getByText('正在检查本地依赖…',{exact:true})).toHaveCount(0,{timeout:30000});await d.getByRole('button',{name:'选择模型文件夹…',exact:true}).click();await expect(d.getByText('正在检查本地依赖…',{exact:true})).toHaveCount(0,{timeout:30000});await d.getByRole('button',{name:'关闭',exact:true}).click();
- const config=JSON.parse(await readFile(path.join(out,'user-data/speech-settings.json'),'utf8'));assert.equal(config.python,python);assert.equal(config.model,model);checks.push('Missing dependency disables ASR; native Python/model selection persists without a download');
+ await launch();
+ let d=await open('asr');
+ await expect(d.getByRole('button',{name:'生成并添加',exact:true})).toBeDisabled();
+ await d.getByRole('button',{name:'关闭',exact:true}).click();
+ await page.locator('.titlebar-actions button:has(svg.lucide-settings2)').click();
+ await page.getByRole('button',{name:'配置本地字幕…',exact:true}).click();
+ d=page.getByRole('dialog',{name:'本地字幕设置'});
+ await expect(d.getByText('本地模型文件 · 就绪',{exact:true})).toBeVisible({timeout:60000});
+ await d.getByRole('button',{name:'选择 Python…',exact:true}).click();
+ await expect(d.getByText('Python 与 Metal · 就绪',{exact:true})).toBeVisible({timeout:60000});
+ await expect(d.getByText('FFmpeg / FFprobe · 就绪',{exact:true})).toBeVisible();
+ await expect(d.getByLabel('已缓存模型')).toHaveValue('small:'+cachedId);
+ await d.getByRole('button',{name:'选择模型文件夹…',exact:true}).click();
+ await expect(d.getByText(/MLX Whisper:/)).toContainText(model,{timeout:60000});
+ await d.getByLabel('已缓存模型').selectOption('small:'+cachedId);
+ await expect(d.getByText(/MLX Whisper:/)).toContainText(cachedModel,{timeout:60000});
+ await d.getByRole('button',{name:'重新检测',exact:true}).click();
+ await expect(d.getByRole('button',{name:'重新检测',exact:true})).toBeEnabled({timeout:60000});
+ await d.getByRole('button',{name:'返回设置',exact:true}).click();
+ await page.getByRole('button',{name:'完成',exact:true}).click();
+ const config=JSON.parse(await readFile(path.join(out,'user-data/speech-settings.json'),'utf8'));
+ assert.equal(config.python,python);assert.equal(config.model,cachedModel);
+ checks.push('Settings detects MLX/Metal, media tools and cached models; native selection and cache switching persist offline');
  // Cancel a genuine long system-voice task before any timeline edit.
  d=await open('tts');await d.getByLabel('配音文字',{exact:true}).fill('取消语音测试。'.repeat(1000));await d.getByRole('button',{name:'生成并添加',exact:true}).click();await d.getByRole('button',{name:'取消语音任务',exact:true}).click();await expect(d.getByRole('button',{name:'关闭',exact:true})).toBeEnabled({timeout:30000});await d.getByRole('button',{name:'关闭',exact:true}).click();assert.equal((await save()).clips.length,0);checks.push('Cancelling a real TTS task leaves the project unchanged');
  let chinese='',english='',zhEnd=0;

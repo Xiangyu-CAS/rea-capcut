@@ -1,6 +1,8 @@
 import UpdateDialog from "./components/UpdateDialog";
 import TemplateDialog from "./components/TemplateDialog";
 import SpeechDialog from "./components/SpeechDialog";
+import SpeechSetup from "./components/SpeechSetup";
+import AudioMixDialog from "./components/AudioMixDialog";
 import DerivativeDialog from "./components/DerivativeDialog";
 import { version as appVersion } from "../package.json";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -32,6 +34,8 @@ import {
   X,
 } from "lucide-react";
 import { useEditorStore } from "./editor/store";
+import { usePreviewProxies } from "./editor/usePreviewProxies";
+import { setPluginProjectReady } from "./editor/pluginBridge";
 import {
   clone,
   createTrack,
@@ -70,7 +74,7 @@ import { useUITranslation, translateUI, useTranslation, useLanguageStore, type L
 import { createEditorProject } from "./editor/localizedDefaults";
 import { localizeMessage } from "./i18n/messages";
 import "./styles.css";
-type Modal = "updates" | "templates" | "reverse" | "freeze" | "package" | "export" | "settings" | "shortcuts" | "about" | "capcut" | null;
+type Modal = "updates" | "templates" | "reverse" | "freeze" | "package" | "export" | "settings" | "shortcuts" | "about" | "capcut" | "normalize" | "duck" | "speech-setup" | null;
 type PendingCapcutImport = {
   selection: CapcutImportSelection;
   capturedProject: Project;
@@ -466,6 +470,7 @@ async function browserAssets(files: File[]): Promise<MediaAsset[]> {
 export default function App() {
   const ui = useUITranslation();
   const s = useEditorStore();
+  const previewProxies = usePreviewProxies(s.project);
   const [speechMode, setSpeechMode] = useState<"asr" | "tts" | null>(null);
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [sourceAssetId, setSourceAssetId] = useState<string | null>(null);
@@ -606,6 +611,9 @@ export default function App() {
   useEffect(() => {
     window.editorAPI?.setDirty(s.dirty);
   }, [s.dirty]);
+  useEffect(() => {
+    if (window.reacutPlugin) setPluginProjectReady(initialized && !recover);
+  }, [initialized, recover]);
   useEffect(() => {
     if (!initialized || recover || !window.editorAPI) return;
     const timer = setTimeout(() => {
@@ -783,7 +791,7 @@ export default function App() {
       if (target.closest("input,textarea,select,[contenteditable=true]"))
         return;
       if (modal || speechMode || recover) {
-        if (e.key === "Escape" && modal !== "templates" && modal !== "export" && modal !== "package" && modal !== "reverse" && modal !== "freeze") {
+        if (e.key === "Escape" && modal !== "templates" && modal !== "export" && modal !== "package" && modal !== "reverse" && modal !== "freeze" && modal !== "normalize" && modal !== "duck") {
           setModal(null);
         }
         return;
@@ -1246,6 +1254,7 @@ export default function App() {
           })}
         /> : <Player
           project={s.project}
+          proxies={previewProxies}
           selectedIds={s.selectedIds}
           playhead={s.playhead}
           playing={s.playing}
@@ -1260,6 +1269,7 @@ export default function App() {
           playhead={s.playhead}
           onUpdate={(patch) => active && s.updateClip(active.id, patch)}
           onProjectUpdate={s.updateProject}
+          onNormalizeAudio={window.editorAPI && !activeTrack?.locked ? () => { s.setPlaying(false); setModal("normalize"); } : undefined}
         />}
       </EditorWorkspace>
       <div className="timeline-pane">
@@ -1330,6 +1340,7 @@ export default function App() {
           onMagneticChange={s.setMagnetic}
           onDuplicate={s.duplicate}
           onAddText={s.addText}
+          onDuckAudio={window.editorAPI ? () => { s.setPlaying(false); setModal("duck"); } : undefined}
           onUndo={s.undo}
           onRedo={s.redo}
           canUndo={s.past.length > 0}
@@ -1382,6 +1393,7 @@ export default function App() {
         </div>
       )}
       {speechMode && <SpeechDialog mode={speechMode} onClose={() => setSpeechMode(null)} />}
+      {(modal === "normalize" || modal === "duck") && <AudioMixDialog mode={modal} onClose={() => setModal(null)} />}
       {(modal === "reverse" || modal === "freeze") && <DerivativeDialog mode={modal} onClose={() => setModal(null)} />}
       {modal === "templates" && <TemplateDialog onClose={() => setModal(null)} onCreate={(base, replaced) => {
         if (!confirmReplace()) return false;
@@ -1483,6 +1495,12 @@ export default function App() {
         </ModalShell>
       )}
       {modal === "updates" && <UpdateDialog autoCheck onClose={() => setModal(null)} />}
+      {modal === "speech-setup" && (
+        <ModalShell title={ui("本地字幕设置", "Local caption setup")} onClose={() => setModal("settings")}>
+          <div className="modal-body"><SpeechSetup /></div>
+          <footer><button onClick={() => setModal("settings")}>{ui("返回设置", "Back to settings")}</button></footer>
+        </ModalShell>
+      )}
       {modal === "settings" && (
         <ModalShell title={t("settings.title")} onClose={() => setModal(null)}>
           <div className="modal-body">
@@ -1537,6 +1555,16 @@ export default function App() {
                 {t("settings.engine.chooseFfprobe")}
               </button>
             </div>
+            {window.editorAPI && <>
+              <h3>{ui("预览性能", "Preview performance")}</h3>
+              <label className="settings-proxy-toggle">
+                <input type="checkbox" checked={previewProxies.enabled} onChange={previewProxies.toggle} />
+                <span>{ui("代理模式", "Proxy mode")}</span>
+              </label>
+              <p className="muted small">{ui("为时间线里的高清素材生成较小的预览文件。导出使用原素材。", "Makes smaller preview files for high-resolution timeline media. Exports use the original files.")}</p>
+              <h3>{ui("本地字幕", "Local captions")}</h3>
+              <button onClick={() => setModal("speech-setup")}>{ui("配置本地字幕…", "Configure local captions…")}</button>
+            </>}
             <h3>{t("settings.recentProjects")}</h3>
             {recent.length === 0 ? (
               <p className="muted small">{t("settings.recentProjects.empty")}</p>

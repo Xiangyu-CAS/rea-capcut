@@ -1,4 +1,5 @@
 import { EASINGS, easingProgress } from "./easing";
+import { validateAudioDucking } from "./audioMix";
 import type {
   Clip,
   MediaAsset,
@@ -505,6 +506,10 @@ export function validateProject(input: unknown): Project {
     choice(t.kind, ["video", "audio", "image", "text"], "轨道类型");
     for (const field of ["muted", "hidden", "locked"] as const)
       bool(t[field], `轨道 ${field}`);
+    if (t.audioDucking !== undefined) {
+      if (t.kind !== "audio") fail("背景音乐轨道类型");
+      validateAudioDucking(t.audioDucking);
+    }
   }
   for (const raw of rawClips) {
     const c = object(raw, "片段");
@@ -524,6 +529,7 @@ export function validateProject(input: unknown): Project {
       speed = num(c.speed, "速度", 0.1, 8);
     if (start + duration > 86400) fail("时间线时长（最长 24 小时）");
     num(c.volume, "音量", 0, 4);
+    if (c.audioGainDb !== undefined) num(c.audioGainDb, "响度增益", -36, 24);
     bool(c.muted, "片段静音");
     for (const field of [
       "fadeIn",

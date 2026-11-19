@@ -1,4 +1,4 @@
-import { EASINGS, easingExpression } from "../src/core/easing";
+import { EASINGS } from "../src/core/easing";
 import { spawn, type ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import {
@@ -17,7 +17,6 @@ import type {
   Clip,
   ExportOptions,
   ExportProgress,
-  Keyframe,
   MediaAsset,
   Project,
   ShapeMask,
@@ -26,7 +25,10 @@ import { fadeWindow } from "../src/core/model";
 import { resolveExportRange } from "../src/core/exportRange";
 import { colorAdjustmentFilters } from "../src/core/color";
 import { applyShapeMask, getCropPixels } from "../src/core/visual";
-import { findMediaTool } from "./media";
+import { findMediaTool, runMediaTool } from "./media";
+import { clipAudioFilters, trackDuckingFilter } from "./audioFilters";
+import { keyframeExpression, number } from "./filterExpressions";
+import { validateAudioDucking } from "../src/core/audioMix";
 
 interface ExportJob {
   id: string;
@@ -43,7 +45,6 @@ const finite = (value: number, name: string): number => {
   if (!Number.isFinite(value)) throw new Error(`${name} 必须是有限数值。`);
   return value;
 };
-const number = (value: number): string => Number(value.toFixed(6)).toString();
 const color = (value: string): string => {
   if (/^#[\da-f]{6}([\da-f]{2})?$/i.test(value)) return `0x${value.slice(1)}`;
   if (/^(black|white|red|green|blue|transparent)$/i.test(value))
@@ -51,47 +52,7 @@ const color = (value: string): string => {
   throw new Error(`不支持的颜色 ${value}，请使用 #RRGGBB 或 #RRGGBBAA。`);
 };
 
-/** Keyframe time is in clip-local timeline seconds, including after a speed change. */
-export function keyframeExpression(
-  clip: Clip,
-  property: Keyframe["property"],
-  fallback: number,
-  clock = "t",
-): string {
-  const points = clip.keyframes
-    .filter((k) => k.property === property)
-    .sort((a, b) => a.time - b.time);
-  if (!points.length) return number(fallback);
-  const unique = points.filter(
-    (p, i) => i === points.length - 1 || points[i + 1].time !== p.time,
-  );
-  let expression = number(unique[unique.length - 1].value);
-  for (let i = unique.length - 2; i >= 0; i--) {
-    const left = unique[i];
-    const right = unique[i + 1];
-    let progress = `((${clock}-${number(left.time)})/${number(right.time - left.time)})`;
-    progress = easingExpression(right, progress);
-    const interpolation = `(${number(left.value)}+(${number(right.value - left.value)})*${progress})`;
-    expression = `if(lt(${clock},${number(right.time)}),${interpolation},${expression})`;
-  }
-  return `if(lt(${clock},${number(unique[0].time)}),${number(unique[0].value)},${expression})`;
-}
-
-function tempoFilters(speed: number): string[] {
-  const filters: string[] = [];
-  let remaining = speed;
-  while (remaining > 2) {
-    filters.push("atempo=2");
-    remaining /= 2;
-  }
-  while (remaining < 0.5) {
-    filters.push("atempo=0.5");
-    remaining /= 0.5;
-  }
-  if (Math.abs(remaining - 1) > 0.000001)
-    filters.push(`atempo=${number(remaining)}`);
-  return filters;
-}
+export { keyframeExpression } from "./filterExpressions";
 
 function validate(project: Project, options: ExportOptions): number {
   if (!project.clips.length) throw new Error("时间线为空，请添加素材再导出。");
@@ -153,6 +114,8 @@ function validate(project: Project, options: ExportOptions): number {
       clip.volume > 4
     )
       throw new Error(`片段 ${clip.name} 的时间、速度或音量超出支持范围。`);
+    if (clip.audioGainDb !== undefined && (!Number.isFinite(clip.audioGainDb) || clip.audioGainDb < -36 || clip.audioGainDb > 24))
+      throw new Error("Invalid loudness gain.");
     for (const name of [
       "fadeIn",
       "fadeOut",
@@ -411,10 +374,13 @@ export async function createExportArguments(
   const rx = options.width / project.width;
   const ry = options.height / project.height;
   const audios: string[] = [];
+  let audioCount = 0;
   let input = 0;
   let layer = 0;
   // The first track is visually uppermost, just as it is in the editor track list.
   for (const track of [...project.tracks].reverse()) {
+    if (track.audioDucking) validateAudioDucking(track.audioDucking);
+    const trackAudios: string[] = [];
     for (const clip of project.clips
       .filter((c) => c.trackId === track.id)
       .sort((a, b) => a.start - b.start)) {
@@ -619,44 +585,36 @@ export async function createExportArguments(
         layer++;
       }
       if (audible) {
-        const filters = [
-          `atrim=start=0:duration=${number(clip.duration * clip.speed)}`,
-          "asetpts=PTS-STARTPTS",
-          ...tempoFilters(clip.speed),
-          "aresample=48000",
-          "aformat=sample_fmts=fltp:channel_layouts=stereo",
-          `atrim=duration=${number(clip.duration)}`,
-        ];
-        const volume = keyframeExpression(clip, "volume", clip.volume);
-        filters.push(`volume='${volume}':eval=frame`);
-        const fade = fadeWindow(clip, "audio");
-        const fadeOffset =
-          fade.fadeIn > 0 || fade.fadeOut > 0 ? Math.max(0, fade.offset) : 0;
-        const fadeDelay = Math.max(0, -fade.offset);
-        if (fadeOffset > 0)
-          filters.push(`asetpts=PTS+${number(fadeOffset)}/TB`);
-        if (fade.fadeIn > 0)
-          filters.push(
-            `afade=t=in:st=${number(fadeDelay)}:d=${number(fade.fadeIn)}`,
-          );
-        if (fade.fadeOut > 0)
-          filters.push(
-            `afade=t=out:st=${number(fade.duration - fade.fadeOut + fadeDelay)}:d=${number(fade.fadeOut)}`,
-          );
-        if (fadeOffset > 0)
-          filters.push(`asetpts=PTS-${number(fadeOffset)}/TB`);
+        const filters = clipAudioFilters(clip);
         filters.push(`adelay=${Math.round(clip.start * 1000)}:all=1`);
-        graph.push(`[${index}:a:0]${filters.join(",")}[audio${audios.length}]`);
-        audios.push(`[audio${audios.length}]`);
+        const label = `[audio${audioCount++}]`;
+        graph.push(`[${index}:a:0]${filters.join(",")}${label}`);
+        trackAudios.push(label);
       }
     }
+    if (!trackAudios.length) continue;
+    const ducking = trackDuckingFilter(track);
+    if (ducking) {
+      const label = `[audio${audioCount++}]`;
+      const mix = trackAudios.length === 1 ? "" : `amix=inputs=${trackAudios.length}:duration=longest:dropout_transition=0:normalize=0,`;
+      graph.push(`${trackAudios.join("")}${mix}${ducking}${label}`);
+      audios.push(label);
+    } else audios.push(...trackAudios);
   }
   graph.push(`[base${layer}]${options.range ? `trim=start=${number(range.start)}:end=${number(range.end)},setpts=PTS-STARTPTS,` : ""}format=yuv420p[vout]`);
   if (audios.length)
     graph.push(
       `${audios.join("")}amix=inputs=${audios.length}:duration=longest:dropout_transition=0:normalize=0,apad,atrim=duration=${number(duration)},alimiter=limit=1:level=false${options.range ? `,atrim=start=${number(range.start)}:end=${number(range.end)},asetpts=PTS-STARTPTS` : ""}[aout]`,
     );
-  args.push("-filter_complex", graph.join(";"), "-map", "[vout]");
+  const filterGraph = graph.join(";");
+  if (Buffer.byteLength(filterGraph) > 16_000) {
+    const file = path.join(directory, "filters.txt");
+    await writeFile(file, filterGraph);
+    const version = await runMediaTool("ffmpeg", ["-version"], 10000, 64 * 1024);
+    const major = Number(/^ffmpeg version (?:n)?(\d+)\./m.exec(version.toString())?.[1]);
+    args.push(major <= 6 ? "-filter_complex_script" : "-/filter_complex", file);
+  } else args.push("-filter_complex", filterGraph);
+  args.push("-map", "[vout]");
   if (audios.length)
     args.push(
       "-map",
@@ -703,6 +661,7 @@ export async function startExport(
   project: Project,
   options: ExportOptions,
   onProgress: (progress: ExportProgress) => void,
+  destination?: { verify: () => Promise<void>; publish: (temporary: string) => Promise<void> },
 ): Promise<{ jobId: string }> {
   if (exportsShuttingDown) throw new Error("应用正在关闭。");
   validate(project, options);
@@ -719,7 +678,8 @@ export async function startExport(
   );
   if (sourceIdentities.includes(outputIdentity))
     throw new Error("导出文件不能覆盖工程的源素材，请选择其他位置。");
-  await mkdir(path.dirname(options.path), { recursive: true });
+  if (destination) await destination.verify();
+  else await mkdir(path.dirname(options.path), { recursive: true });
   if (exportsShuttingDown) throw new Error("应用正在关闭。");
   const jobId = randomUUID();
   const directory = await mkdtemp(path.join(tmpdir(), "reacut-export-"));
@@ -776,6 +736,7 @@ export async function startExport(
         return;
       }
       emit("rendering", 0);
+      await destination?.verify();
       if (job.cancelled) {
         emit("cancelled", 0);
         return;
@@ -816,7 +777,8 @@ export async function startExport(
       }
       // Once the atomic replacement starts, cancellation cannot safely undo it.
       job.committing = true;
-      await rename(job.temporaryOutput, options.path);
+      if (destination) await destination.publish(job.temporaryOutput);
+      else await rename(job.temporaryOutput, options.path);
       emit("complete", 1);
     } catch (error) {
       emit(

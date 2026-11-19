@@ -3,7 +3,7 @@ import {mkdtemp,mkdir,writeFile,readdir,rm} from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import {randomUUID} from 'node:crypto';
-import {generateSpeech,cancelSpeech,cleanSpeechTemporaries,runSpeechProcess} from '../electron/speech';
+import {cachedSpeechModels,generateSpeech,cancelSpeech,cleanSpeechTemporaries,runSpeechProcess} from '../electron/speech';
 import {createProject} from '../src/core/model';
 describe('speech worker boundaries',()=>{
  it('rejects malformed requests and serializes/cancels jobs before work',async()=>{
@@ -26,5 +26,21 @@ describe('speech worker boundaries',()=>{
  it('bounds process runtime and surfaces a missing executable',async()=>{
   await expect(runSpeechProcess(process.execPath,['-e','setInterval(()=>{},1000)'],undefined,undefined,30)).rejects.toThrow(/timed out/);
   await expect(runSpeechProcess(path.join(os.tmpdir(),'reacut-nonexistent-executable'),[])).rejects.toThrow();
+ });
+ it('offers complete known cache entries and skips invalid configurations and missing weights', async () => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'reacut-speech-cache-'));
+  const config = Object.fromEntries(['n_mels', 'n_audio_ctx', 'n_audio_state', 'n_audio_head', 'n_audio_layer',
+    'n_vocab', 'n_text_ctx', 'n_text_state', 'n_text_head', 'n_text_layer'].map(key => [key, 1]));
+  try {
+   for (const [model, revision, metadata, weight] of [
+    ['small', '1', config, true], ['small', '2', {}, true], ['base', '3', config, false], ['unrelated', '4', config, true],
+   ] as const) {
+    const folder = path.join(dir, `models--mlx-community--whisper-${model}-mlx`, 'snapshots', revision.repeat(40));
+    await mkdir(folder, { recursive: true });
+    await writeFile(path.join(folder, 'config.json'), JSON.stringify(metadata));
+    if (weight) await writeFile(path.join(folder, 'weights.npz'), 'fixture metadata only');
+   }
+   expect((await cachedSpeechModels(dir)).map(model => model.id)).toEqual(['small:' + '1'.repeat(40)]);
+  } finally { await rm(dir, { recursive: true, force: true }); }
  });
 });

@@ -1,5 +1,7 @@
 import { useUITranslation } from "../i18n";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { dbGain, duckingEnvelope, duckingGain } from "../core/audioMix";
+import type { usePreviewProxies } from "../editor/usePreviewProxies";
 import {
   Maximize,
   Pause,
@@ -25,6 +27,7 @@ import {
 import { useEditorStore } from "../editor/store";
 interface PlayerProps {
   project: Project;
+  proxies: ReturnType<typeof usePreviewProxies>;
   selectedIds: string[];
   playhead: number;
   playing: boolean;
@@ -39,9 +42,11 @@ interface Source {
   gain?: GainNode;
   decodedTime?: number;
   frameCallback?: number;
+  performanceProxy?: boolean;
 }
 export default function Player({
   project,
+  proxies,
   selectedIds,
   playhead,
   playing,
@@ -51,12 +56,16 @@ export default function Player({
   onUpdateClip,
 }: PlayerProps) {
   const ui = useUITranslation();
+  const { urls: proxyURLs, discard: discardProxy } = proxies;
   const canvasRef = useRef<HTMLCanvasElement>(null),
     hostRef = useRef<HTMLDivElement>(null);
   const sources = useRef(new Map<string, Source>()),
     audioContext = useRef<AudioContext | null>(null);
-  const current = useRef({ project, playhead, playing });
-  current.current = { project, playhead, playing };
+  const ducking = useMemo(() => new Map(project.tracks.flatMap(track =>
+    track.audioDucking ? [[track.id, duckingEnvelope(track.audioDucking)] as const] : [],
+  )), [project.tracks]);
+  const current = useRef({ project, playhead, playing, ducking });
+  current.current = { project, playhead, playing, ducking };
   const [muted, setMuted] = useState(false),
     [errors, setErrors] = useState<string[]>([]),
     [viewScale, setViewScale] = useState(1),
@@ -89,7 +98,8 @@ export default function Player({
       const asset = project.assets.find((a) => a.id === clip.assetId);
       if (!asset || asset.missing) continue;
       desired.add(clip.id);
-      const url = asset.previewUrl ?? asset.url,
+      const fastProxy = asset.kind === "video" ? proxyURLs.get(asset.path) : undefined;
+      const url = fastProxy ?? asset.previewUrl ?? asset.url,
         existing = sources.current.get(clip.id);
       if (existing?.url === url) continue;
       if (existing && existing.element instanceof HTMLMediaElement) {
@@ -113,15 +123,18 @@ export default function Player({
         if (element instanceof HTMLVideoElement) element.playsInline = true;
       } else element.crossOrigin = "anonymous";
       element.src = url;
-      const source: Source = { element, url };
+      const source: Source = { element, url, performanceProxy: Boolean(fastProxy) };
       element.addEventListener(
         "error",
-        () =>
+        () => {
+          if (sources.current.get(clip.id) !== source) return;
+          if (fastProxy) { discardProxy(asset.path); return; }
           setErrors((previous) =>
             previous.includes(asset.name)
               ? previous
               : [...previous, asset.name],
-          ),
+          );
+        },
         { once: true },
       );
       if (element instanceof HTMLVideoElement) {
@@ -149,7 +162,7 @@ export default function Player({
         source.gain?.disconnect();
         sources.current.delete(clipId);
       }
-  }, [project.assets, project.clips]);
+  }, [project.assets, project.clips, proxyURLs, discardProxy]);
   useEffect(
     () => () => {
       for (const source of sources.current.values()) {
@@ -160,6 +173,8 @@ export default function Player({
           )
             source.element.cancelVideoFrameCallback(source.frameCallback);
           source.element.pause();
+          source.element.removeAttribute("src");
+          source.element.load();
         }
         source.gain?.disconnect();
       }
@@ -264,6 +279,9 @@ export default function Player({
               ? 0
               : evaluated.volume;
           gain *= evaluateFade(clip, local, "audio");
+          if (clip.audioGainDb) gain *= dbGain(clip.audioGainDb);
+          const duck = state.ducking.get(track.id);
+          if (duck) gain *= duckingGain(duck, paintTime);
           if (source?.gain) {
             source.gain.gain.value = gain;
             media.volume = 1;
@@ -309,10 +327,11 @@ export default function Player({
               (media instanceof HTMLVideoElement && media.readyState < 2) ||
               (media instanceof HTMLImageElement && !media.complete)
             )) {
+              const previewLimit = source?.performanceProxy ? 960 : 1920;
               const previewScale = Math.min(
                 1,
-                1920 / asset.width,
-                1920 / asset.height,
+                previewLimit / asset.width,
+                previewLimit / asset.height,
               );
               const layer = imagePreviewLayer(
                 clip,
@@ -347,9 +366,23 @@ export default function Player({
     <section className="player-panel panel" aria-label={ui("播放器", "Player")}>
       <div className="panel-heading">
         <span> {ui("播放器", "Player")} </span>
-        <span className="muted small">
-          {project.width} × {project.height} · {project.fps} fps
-        </span>
+        <div className="player-preview-controls">
+          {proxies.active && <span className="muted small" role="status">
+            {proxies.processed < proxies.total
+              ? ui(`生成代理 ${proxies.processed}/${proxies.total}`, `Proxies ${proxies.processed}/${proxies.total}`)
+              : proxies.failed
+                ? ui(`${proxies.failed} 个代理不可用`, `${proxies.failed} proxies unavailable`)
+                : ui(`代理就绪 ${proxies.urls.size}/${proxies.total}`, `Proxies ready ${proxies.urls.size}/${proxies.total}`)}
+          </span>}
+          {window.editorAPI?.preparePreviewProxies && <button
+            type="button"
+            title={ui("使用低分辨率代理预览，导出使用原素材", "Preview with smaller proxies. Export uses the original source.")}
+            aria-label={ui("代理模式", "Proxy mode")}
+            aria-pressed={proxies.enabled}
+            onClick={proxies.toggle}
+          >{ui("代理", "Proxy")}</button>}
+          <span className="muted small">{project.width} × {project.height} · {project.fps} fps</span>
+        </div>
       </div>
       <div className="player-stage" ref={hostRef}>
         <canvas

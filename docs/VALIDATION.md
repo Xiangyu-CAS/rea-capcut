@@ -1,5 +1,33 @@
 # 本机验证记录
 
+## 剪映操作对照与 macOS 构建验收（2026-11-19）
+
+- 以已有剪映 macOS 11.0.12922 的 REA 受控窗口观察核对音频页签及代理模式。CapCut 公开说明补充了多片段响度统一、性能设置内的代理开关及自动字幕的来源和语言选择。ReaCut 自行实现音量测量、压低包络、离线语音和 Codex 批量出片，剪映内部算法与云端服务的行为未验证。 [既有 REA 观察](research/REA_FINDINGS.md) · [批量响度](https://www.capcut.com/tools/loudness-normalization) · [代理设置](https://www.capcut.com/help/video-quality-change-after-exporting) · [自动字幕](https://www.capcut.com/help/how-to-recognise-subtitles)
+- 本地 macOS arm64 应用通过 `codesign --verify --deep --strict`。`app.asar` SHA-256 为 `f2c778980cf1393fb7ee264c81ee060704ec6465324bcacaf63e98852e766ca7`。从包内提取了主进程、preload 和渲染器的三个 JS 文件，逐字节核对构建输出后用 REA 建图。保留的证据为 `ev_9b2797decdea84b099fdf3ea1de61705f119a41aa06efdeb64dc3fc19c84f146`。图中定位了 preload 的 `analyze-audio`、`prepare-preview-proxies`、`speech-generate` 和 `plugin-export-start` IPC 字面入口。静态图覆盖部分调用关系，实际行为另用 Electron 验收。
+- 同一打包应用在清空 `PATH` 后通过双片段响度统一、单次撤销重做、重启、背景音乐压低和实际 AAC 导出。两段之外的音乐片段未被统一，导出的背景音乐在检测区间压低 12.13 dB。包内离线中英文语音识别、字幕编辑及含配音的 H.264/AAC 导出通过。Codex 模板双项目批量出片用源码构建验证，已打包应用另通过 Python stdio 启动器、工具发现、编辑和导出对话框验证。`npm run check` 的 530 项单测和 6 项 Python 启动器测试均通过。
+- 三轨 4K 合成工程在打包应用中通过设置开关、查看 3840 像素源素材时后台生成代理、返回时间线播放三个 960 像素代理，以及播放器关闭代理后设置同步的验收。切换至代理用时约 2.3 秒；原素材与代理的拖动延迟中位数为 254.5 ms 与 32 ms，Chromium 丢帧为 564/898 与 0/816。4 秒 3840×2160 导出用同一工程的原素材单独运行 FFmpeg 核验。
+
+## 声音、模板出片与预览代理（2026-11-19，源码）
+
+- `npm run check` 通过，包含类型检查、45 个测试文件的 530 项测试和生产构建。
+- 声音验收使用纯音和静音构造两段人声活动，其中一段来自重叠的裁剪片段。测得 −28.27 LUFS，选 −16 LUFS 后应用 +12.27 dB。另用高峰值素材核对 −1.5 dBTP 限制。检查了取消和静音拒绝、保存重开、撤销重做及源文件 SHA-256。Web Audio 的音乐增益为 1 → 0.251 → 1，真实 AAC 导出的背景音乐频率分量压低 12.13 dB。
+- 隐藏 Electron 窗口的本地 stdio MCP 跑通同模板的两个独立项目。验收覆盖稳定占位、短素材和过时版本拒绝、一次撤销、目录选择取消、同名保护、任务查询与取消。实际输出 4 秒 H.264/AAC MP4 与 12 秒 MOV，并检查了取消后的临时文件清理。
+- 使用实际 MLX Whisper small 权重及 macOS 系统声音。设置页检测 Python、Metal、媒体工具和缓存模型，手动选择与切换缓存后重启仍可用。中英文语音识别、片段时间戳、取消、SRT 和含字幕/配音的 24 秒视频导出通过。识别使用本机缓存权重和隔离的 Python 环境。
+
+### 三轨 4K 对照
+
+Apple M4、macOS 26.6.2、Electron 44.7.0、FFmpeg 9.0.2。三份不同的 8 秒 3840×2160 / 30 fps H.264 合成视频同时显示，均应用基础亮度调整。交替测量原素材 → 代理 → 代理 → 原素材，每种模式拖动 16 次，播放两次约 4.5 秒。拖动耗时从真实指针移动到三个媒体元素报告目标附近的解码帧。丢帧采用 Chromium 播放器计数，累计三个媒体元素。
+
+| 指标 | 原素材 | 最长边 960 像素代理 |
+| --- | ---: | ---: |
+| 拖动延迟中位数（P95） | 250 ms（429 ms） | 32 ms（67 ms） |
+| Chromium 丢帧 / 总帧 | 577 / 897 | 0 / 816 |
+| 大于 50 ms 的播放器回调间隔 | 82 | 0 |
+
+首次建立三个代理并切换播放源用时约 2.0 秒。使用同样的三轨合成图导出 4 秒 4K，标准 libx264 用时 14.42 秒，VideoToolbox 试验用时 13.30 秒。编码质量参数不同，这里只比较耗时。此次优先交付改善播放和拖动的预览代理。正式导出采用原素材和现有 H.264/AAC 编码。
+
+先运行 `npm run build`，再运行 `npx tsx tests/audio-mix-electron.ts`、`npm run test:plugin`、`npm run test:speech` 和 `npx tsx tests/benchmark-4k-electron.ts` 可复现。性能脚本在 `.test-output/benchmark-4k-electron/` 记录原始测量。验证范围为 macOS arm64 源码及本地 MCP 协议。界面操作参照已有 REA 受控记录和 CapCut 公开资料。 [声音参考](AUDIO_MIX.md#功能参考) · [CapCut 代理模式](https://www.capcut.com/resource/pc-professional-video-editor)
+
 ## 可复用工程模板（2026-10-25，未发布源码）
 
 - `npm run check`：类型检查、36 个文件 / **411 项测试**及生产构建通过；新增 17 项模板语义/文件边界测试、三套示例的实际 FFmpeg 导出。模板包补充原创资源许可后，17 项文件/语义测试、构建和新增桌面流程再次通过。
