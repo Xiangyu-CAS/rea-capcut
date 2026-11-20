@@ -29,6 +29,8 @@ try {
     expect(text, `${label} library`).not.toMatch(/[\u3400-\u9fff]/);
   }
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await expect(page.getByRole('combobox', { name: 'Language', exact: true })).toHaveValue('system');
+  await expect(page.getByRole('option', { name: 'Follow System' })).toHaveText('Follow System');
   await page.getByRole('combobox', { name: 'Language', exact: true }).selectOption('zh-CN');
   await expect(page.getByRole('combobox', { name: '语言 / Language' })).toHaveValue('zh-CN');
   await page.getByRole('button', { name: '完成', exact: true }).click();
@@ -37,17 +39,25 @@ try {
   await expect(page.getByRole('button', { name: '设置 / Settings', exact: true })).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
   await page.getByRole('button', { name: '设置 / Settings', exact: true }).click();
-  await page.getByRole('combobox', { name: '语言 / Language' }).selectOption('en');
+  await page.getByRole('combobox', { name: '语言 / Language' }).selectOption({ label: '跟随系统' });
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await page.getByRole('button', { name: 'Done', exact: true }).click();
   await page.reload();
   await expect(page.getByRole('button', { name: 'Settings', exact: true })).toBeVisible();
   // Keyboard discoverability and repeated open/close must not trap navigation.
   await page.keyboard.press('Control+,');
-  await expect(page.getByRole('combobox', { name: 'Language', exact: true })).toBeVisible();
+  await expect(page.getByRole('combobox', { name: 'Language', exact: true })).toHaveValue('system');
   await page.getByRole('button', { name: 'Close dialog' }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, 'languages', { configurable: true, value: ['fr-FR', 'zh-CN'] });
+    window.dispatchEvent(new Event('languagechange'));
+  });
+  await expect(page.getByRole('button', { name: '设置 / Settings', exact: true })).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  await expect(page.getByRole('banner').getByRole('textbox')).toHaveValue('Untitled project');
   expect(errors).toEqual([]);
-  console.log('English libraries, first-launch detection, Chinese switch, saved reload, Settings shortcut and dismissal passed.');
+  console.log('English libraries, default system mode, manual choice, return to system, saved reload and language-change event passed.');
 } finally {
   await browser.close();
   await server.close();

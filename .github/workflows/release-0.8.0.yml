@@ -1,15 +1,11 @@
-name: Publish 0.7.1 preview
-# One explicitly authorized release, not an ongoing automatic release policy.
-on:
-  push:
-    branches: [main]
-    paths:
-      - package.json
-      - .github/workflows/release-0.7.1.yml
+name: Publish 0.8.0 preview
+on: workflow_dispatch
 permissions:
   contents: read
+env:
+  RELEASE_VERSION: '0.8.0'
 concurrency:
-  group: release-v0.7.1
+  group: release-v0.8.0
   cancel-in-progress: false
 jobs:
   release:
@@ -35,21 +31,23 @@ jobs:
         run: |
           set -euo pipefail
           test "$(uname -m)" = arm64
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           import assert from 'node:assert/strict';
           assert.equal(process.arch, 'arm64');
+          const version = process.env.RELEASE_VERSION;
           for (const file of ['package.json', 'package-lock.json', 'plugin/plugin.json', 'plugin/.codex-plugin/plugin.json', 'plugin/protocol.json']) {
             const data = JSON.parse(fs.readFileSync(file));
-            assert.equal(data.version, '0.7.1', file);
-            if (file === 'package-lock.json') assert.equal(data.packages[''].version, '0.7.1');
+            assert.equal(data.version, version, file);
+            if (file === 'package-lock.json') assert.equal(data.packages[''].version, version);
           }
           NODE
-          if gh api "repos/$GITHUB_REPOSITORY/releases/tags/v0.7.1" > /tmp/existing-release.json 2> /tmp/release-error; then
+          if gh api "repos/$GITHUB_REPOSITORY/releases/tags/v$RELEASE_VERSION" > /tmp/existing-release.json 2> /tmp/release-error; then
             echo 'Release already exists; refusing to overwrite it.' >&2; exit 1
           fi
           grep -q 'HTTP 404' /tmp/release-error
-          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v0.7.1" > /tmp/existing-tag.json 2> /tmp/tag-error; then
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v$RELEASE_VERSION" > /tmp/existing-tag.json 2> /tmp/tag-error; then
             echo 'Tag already exists; refusing to retarget it.' >&2; exit 1
           fi
           grep -q 'HTTP 404' /tmp/tag-error
@@ -66,9 +64,10 @@ jobs:
         run: npm run check
       - name: Desktop workflow regressions against pinned tools
         run: npm run check:desktop
-      - name: Browser update flows
+      - name: Browser language and update flows
         run: |
           npx playwright install chromium
+          npm run test:i18n
           npx tsx tests/update-browser.ts
       - run: python3 tests/plugin-launcher.py
       - run: npm run licenses
@@ -77,15 +76,17 @@ jobs:
       - name: Verify and extract the actual DMG
         run: |
           set -euo pipefail
-          hdiutil verify release/ReaCut-0.7.1-arm64.dmg
-          mkdir -p .test-output/release-0.7.1/{mount,extracted}
-          mount="$PWD/.test-output/release-0.7.1/mount"
-          hdiutil attach -readonly -nobrowse -mountpoint "$mount" release/ReaCut-0.7.1-arm64.dmg
+          dmg="release/ReaCut-$RELEASE_VERSION-arm64.dmg"
+          validation="$PWD/.test-output/release-$RELEASE_VERSION"
+          hdiutil verify "$dmg"
+          mkdir -p "$validation"/{mount,extracted}
+          mount="$validation/mount"
+          hdiutil attach -readonly -nobrowse -mountpoint "$mount" "$dmg"
           trap 'hdiutil detach "$mount"' EXIT
-          ditto "$mount/ReaCut.app" .test-output/release-0.7.1/extracted/ReaCut.app
-          app="$PWD/.test-output/release-0.7.1/extracted/ReaCut.app"
+          app="$validation/extracted/ReaCut.app"
+          ditto "$mount/ReaCut.app" "$app"
           codesign --verify --deep --strict "$app"
-          test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$app/Contents/Info.plist")" = 0.7.1
+          test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$app/Contents/Info.plist")" = "$RELEASE_VERSION"
           test "$(lipo -archs "$app/Contents/MacOS/ReaCut")" = arm64
           RELEASE_APP="$app" node --input-type=module <<'NODE'
           import { extractFile } from '@electron/asar';
@@ -100,49 +101,60 @@ jobs:
       - run: npm run demo
       - run: npm run test:package
       - run: npx tsx tests/i18n-electron.ts
-      - name: Packaged update entry and explicit public API check
-        env:
-          REACUT_TEST_LIVE_UPDATES: '1'
+      - name: Packaged editing and plugin workflows
+        run: |
+          npx tsx tests/audio-mix-electron.ts
+          npx tsx tests/advanced-editing-electron.ts
+          plugin_dir="$PWD/.test-output/release-$RELEASE_VERSION/plugin"
+          mkdir -p "$plugin_dir"
+          ditto -x -k "release/ReaCut-plugin-$RELEASE_VERSION.zip" "$plugin_dir"
+          REACUT_TEST_LAUNCHER="$plugin_dir/reacut-plugin-$RELEASE_VERSION/plugin/scripts/launch.py" \
+            REACUT_TEST_APP="$REACUT_TEST_APP/Contents/MacOS/ReaCut" npm run test:plugin
+      - name: Packaged update entry with synthetic API responses
         run: npx tsx tests/update-electron.ts
       - name: Assemble source, license and checksum assets
         run: |
           set -euo pipefail
           cp LICENSE release/LICENSE.txt
           cp THIRD_PARTY_NOTICES.md release/THIRD_PARTY_NOTICES.md
-          tar -czf release/ReaCut-0.7.1-media-tool-sources.tar.gz -C media-tools/darwin-arm64 sources licenses manifest.json
+          tar -czf "release/ReaCut-$RELEASE_VERSION-media-tool-sources.tar.gz" -C media-tools/darwin-arm64 sources licenses manifest.json
           cd release
-          test -s ReaCut-0.7.1-arm64.dmg
-          test -s ReaCut-0.7.1-arm64-mac.zip
-          test -s ReaCut-plugin-0.7.1.zip
-          shasum -a 256 ReaCut-0.7.1-arm64.dmg ReaCut-0.7.1-arm64-mac.zip ReaCut-plugin-0.7.1.zip ReaCut-0.7.1-media-tool-sources.tar.gz LICENSE.txt THIRD_PARTY_NOTICES.md > SHA256SUMS.txt
+          test -s "ReaCut-$RELEASE_VERSION-arm64.dmg"
+          unzip -tq "ReaCut-$RELEASE_VERSION-arm64-mac.zip"
+          unzip -tq "ReaCut-plugin-$RELEASE_VERSION.zip"
+          shasum -a 256 "ReaCut-$RELEASE_VERSION-arm64.dmg" "ReaCut-$RELEASE_VERSION-arm64-mac.zip" "ReaCut-plugin-$RELEASE_VERSION.zip" "ReaCut-$RELEASE_VERSION-media-tool-sources.tar.gz" LICENSE.txt THIRD_PARTY_NOTICES.md > SHA256SUMS.txt
           shasum -a 256 -c SHA256SUMS.txt
       - name: Create draft, upload and publish this preview
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh release create v0.7.1 --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --draft --prerelease --title 'ReaCut v0.7.1 Preview — Manual update checks' --notes-file docs/RELEASE_NOTES_0.7.1.md \
-            release/ReaCut-0.7.1-arm64.dmg release/ReaCut-0.7.1-arm64-mac.zip release/ReaCut-plugin-0.7.1.zip release/ReaCut-0.7.1-media-tool-sources.tar.gz release/LICENSE.txt release/THIRD_PARTY_NOTICES.md release/SHA256SUMS.txt
-          gh release edit v0.7.1 --repo "$GITHUB_REPOSITORY" --draft=false --prerelease --latest=false
+          gh release create "v$RELEASE_VERSION" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --draft --prerelease --title "ReaCut v$RELEASE_VERSION Preview — Timeline and audio editing" --notes-file "docs/RELEASE_NOTES_$RELEASE_VERSION.md" \
+            "release/ReaCut-$RELEASE_VERSION-arm64.dmg" "release/ReaCut-$RELEASE_VERSION-arm64-mac.zip" "release/ReaCut-plugin-$RELEASE_VERSION.zip" "release/ReaCut-$RELEASE_VERSION-media-tool-sources.tar.gz" release/LICENSE.txt release/THIRD_PARTY_NOTICES.md release/SHA256SUMS.txt
+          gh release edit "v$RELEASE_VERSION" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease --latest=false
       - name: Verify public download bytes
         run: |
           set -euo pipefail
-          mkdir -p .test-output/release-0.7.1/download
-          cd .test-output/release-0.7.1/download
-          base="https://github.com/$GITHUB_REPOSITORY/releases/download/v0.7.1"
+          mkdir -p ".test-output/release-$RELEASE_VERSION/download"
+          cd ".test-output/release-$RELEASE_VERSION/download"
+          base="https://github.com/$GITHUB_REPOSITORY/releases/download/v$RELEASE_VERSION"
+          dmg="ReaCut-$RELEASE_VERSION-arm64.dmg"
           curl --fail --location --retry 3 "$base/SHA256SUMS.txt" -o SHA256SUMS.txt
-          curl --fail --location --retry 3 "$base/ReaCut-0.7.1-arm64.dmg" -o ReaCut-0.7.1-arm64.dmg
-          grep ' ReaCut-0.7.1-arm64.dmg$' SHA256SUMS.txt | shasum -a 256 -c -
+          curl --fail --location --retry 3 "$base/$dmg" -o "$dmg"
+          awk -v file="$dmg" '$2 == file' SHA256SUMS.txt | shasum -a 256 -c -
           cmp SHA256SUMS.txt "$GITHUB_WORKSPACE/release/SHA256SUMS.txt"
       - name: Retain release validation evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: release-0.7.1-validation
+          name: release-0.8.0-validation
           path: |
             .test-output/package-electron/evidence.json
             .test-output/i18n-electron/evidence.json
             .test-output/i18n-electron/english-desktop.png
+            .test-output/audio-mix-electron/evidence.json
+            .test-output/advanced-editing-electron/evidence.json
+            .test-output/plugin-electron/evidence.json
             .test-output/update-electron/*.png
             .test-output/update-electron/evidence.json
             .test-output/update-browser/*.png

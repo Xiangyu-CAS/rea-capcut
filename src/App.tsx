@@ -74,7 +74,7 @@ import { TextLibrary, TransitionLibrary } from "./components/CreativeLibrary";
 import { addTextPreset, applyTransition, type TextPreset, type TransitionId } from "./core/creativePresets";
 import Player from "./components/Player";
 import Inspector from "./components/Inspector";
-import { useUITranslation, translateUI, useTranslation, useLanguageStore, type Language, type TranslationKey } from "./i18n";
+import { useUITranslation, translateUI, useTranslation, useLanguageStore, type LanguagePreference, type TranslationKey } from "./i18n";
 import { createEditorProject } from "./editor/localizedDefaults";
 import { localizeMessage } from "./i18n/messages";
 import "./styles.css";
@@ -602,6 +602,7 @@ export default function App() {
   const active = s.project.clips.find((c) => c.id === s.selectedIds[0]);
   const activeTrack = s.project.tracks.find((t) => t.id === active?.trackId);
   const { t, language } = useTranslation();
+  const languagePreference = useLanguageStore((s) => s.preference);
   const setLanguage = useLanguageStore((s) => s.setLanguage);
   const refreshSystem = async () => {
     if (window.editorAPI) setSystem(await window.editorAPI.getSystemInfo());
@@ -1556,10 +1557,11 @@ export default function App() {
               <p className="muted small">{t("settings.language.description")}</p>
               <select
                 aria-label={ui("语言 / Language", t("settings.language"))}
-                value={language}
-                onChange={(e) => setLanguage(e.target.value as Language)}
+                value={languagePreference}
+                onChange={(e) => setLanguage(e.target.value as LanguagePreference)}
                 style={{ marginTop: "0.5rem", marginBottom: "1rem" }}
               >
+                <option value="system">{t("settings.language.system")}</option>
                 <option value="zh-CN">{t("settings.language.zh-CN")}</option>
                 <option value="en">{t("settings.language.en")}</option>
                 <option value="tr">{t("settings.language.tr")}</option>

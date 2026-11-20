@@ -4,10 +4,12 @@ Open **Settings** in the top-right toolbar (shown as **设置 / Settings** in
 Chinese), or press **Cmd/Ctrl+,**. The **Language / 语言** selector applies
 immediately and the choice is saved locally for the next launch.
 
-On a fresh profile ReaCut uses the first supported OS/browser language (Chinese,
-English or Turkish), falling back to English. An existing explicit preference
-always wins. If local preference storage is unavailable, switching still works
-for the current session.
+**Follow System** is selected on a fresh profile. ReaCut uses the first supported
+language in the OS/browser preference list (Chinese, English or Turkish), with
+English as the fallback. Upgrades keep previously saved language choices. Select
+**Follow System** to return to automatic selection at any time. ReaCut reads the
+language list on startup and whenever the browser reports a language change.
+If preference storage is unavailable, the choice applies for the current session.
 
 ## Coverage and content boundaries
 
@@ -49,11 +51,12 @@ npx tsx tests/i18n-electron.ts    # after build; needs Electron/display
 Unit/React DOM tests cover dictionary parity, preference precedence and storage
 failures, reactive language switching, all Inspector tabs, library metadata,
 subtitle/dialog controls, known diagnostics and user-content preservation.
-Browser checks cover all library tabs, discoverable Settings, Chinese/English
-switching and reload persistence; Electron checks cover native menus/pickers,
-invalid locale rejection and process-restart persistence. Legacy Chinese UI
+Browser checks cover all library tabs, discoverable Settings, switching between
+manual and system choices, reload persistence and language-change events.
+Electron checks cover native menus and pickers, invalid locale rejection, and
+process restarts with different system preferences on macOS. Legacy Chinese UI
 workflows select Chinese explicitly, independently of the CI host locale.
 
-The fix for issue #6 is included in the v0.7.0 preview release. The v0.6.0
-attachments are not replaced. Downloading the new release does not automatically
-update an existing installation; no in-app updater is included.
+The English coverage fix for issue #6 shipped in v0.7.0. The **Follow System**
+setting ships with v0.8.0 Preview. Use [Check for Updates](MANUAL_UPDATES.md) to
+find the matching installer and replace the application manually.
