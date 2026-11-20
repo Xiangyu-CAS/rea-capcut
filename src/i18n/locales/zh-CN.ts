@@ -73,6 +73,7 @@ const dictionary = {
   "settings.title": "设置与最近项目",
   "settings.language": "语言",
   "settings.language.description": "选择界面语言",
+  "settings.language.system": "跟随系统",
   "settings.language.zh-CN": "简体中文",
   "settings.language.en": "English",
   "settings.language.tr": "Türkçe",

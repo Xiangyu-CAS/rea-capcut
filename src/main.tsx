@@ -12,7 +12,10 @@ function syncLanguage() {
   void window.editorAPI?.setUILanguage?.(language).catch(console.error);
 }
 syncLanguage();
-useLanguageStore.subscribe(syncLanguage);
+useLanguageStore.subscribe((state, previous) => {
+  if (state.language !== previous.language) syncLanguage();
+});
+window.addEventListener("languagechange", useLanguageStore.getState().refreshSystemLanguage);
 void document.fonts
   .load('16px \"Noto Sans SC\"')
   .catch(() => [])

@@ -75,6 +75,7 @@ export const en: Record<TranslationKey, string> = {
   "settings.title": "Settings & recent projects",
   "settings.language": "Language",
   "settings.language.description": "Choose the interface language",
+  "settings.language.system": "Follow System",
   "settings.language.zh-CN": "简体中文",
   "settings.language.en": "English",
   "settings.language.tr": "Türkçe",
