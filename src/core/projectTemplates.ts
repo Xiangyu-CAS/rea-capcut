@@ -46,6 +46,7 @@ export function validateTemplate(input: unknown): ProjectTemplate {
   )
     throw new Error("模板封面须为有限大小的 PNG");
   const project = validateProject(t.project);
+  if (project.otherTimelines?.length) throw new Error("Templates contain one timeline.");
   if (!Array.isArray(t.slots) || t.slots.length > 200)
     throw new Error("模板最多包含 200 个占位");
   const keys = new Set<string>(),
@@ -90,6 +91,8 @@ export function validateTemplate(input: unknown): ProjectTemplate {
 }
 export function defaultTemplate(project: Project, cover = ""): ProjectTemplate {
   const p = validateProject(project);
+  delete p.activeTimeline;
+  delete p.otherTimelines;
   // A template only distributes media actually used by its timeline.
   p.assets = p.assets.filter((a) => p.clips.some((c) => c.assetId === a.id));
   const slots: TemplateSlot[] = [

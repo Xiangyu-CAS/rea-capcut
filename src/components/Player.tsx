@@ -1,6 +1,7 @@
 import { useUITranslation } from "../i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { dbGain, duckingEnvelope, duckingGain } from "../core/audioMix";
+import { sourceOffsetAt, speedAt } from "../core/speedCurve";
 import type { usePreviewProxies } from "../editor/usePreviewProxies";
 import {
   Maximize,
@@ -261,11 +262,11 @@ export default function Player({
           if (state.playing && !source?.gain) initializeAudio();
           // Chromium seeks at microsecond precision. Nudge exact frame boundaries
           // inside the intended frame instead of rounding down to its predecessor.
-          const target = clip.sourceIn + local * clip.speed + 0.000001;
+          const target = clip.sourceIn + sourceOffsetAt(clip, local) + 0.000001;
           if (
             Number.isFinite(media.duration) &&
             Math.abs(media.currentTime - target) >
-              (state.playing ? 0.15 : 0.00001)
+              (state.playing ? (clip.speedCurve ? 0.07 : 0.15) : 0.00001)
           ) {
             try {
               media.currentTime = Math.min(target, media.duration);
@@ -273,7 +274,9 @@ export default function Player({
               /* Source metadata loading. */
             }
           }
-          media.playbackRate = clip.speed;
+          const rate = speedAt(clip, local);
+          if (Math.abs(media.playbackRate - rate) > 0.0001)
+            media.playbackRate = rate;
           let gain =
             track.muted || clip.muted || localMuted.current
               ? 0

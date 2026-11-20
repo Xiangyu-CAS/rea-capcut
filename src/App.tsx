@@ -42,6 +42,7 @@ import {
   formatTime,
   id,
   projectDuration,
+  validateProject,
 } from "./core/model";
 import type {
   CapcutImportSelection,
@@ -54,7 +55,8 @@ import type {
 } from "./core/types";
 import { detachLinkedAudio } from "./core/timelineEdits";
 import { parseSubtitles, stringifySubtitles } from "./core/subtitles";
-import { importCapcutDraft } from "./core/capcutImport";
+import { importCapcutDraft, importCapcutTimelines, type CapcutImportResult } from "./core/capcutImport";
+import { MAX_PROJECT_TIMELINES } from "./core/projectTimelines";
 import SubtitlePanel from "./components/SubtitlePanel";
 import PackageDialog from "./components/PackageDialog";
 import { resolveExportRange, selectedClipRange } from "./core/exportRange";
@@ -64,6 +66,8 @@ import type { BuiltinAsset } from "./core/builtinAssets";
 import MediaLibrary from "./components/MediaLibrary";
 import SourcePreview from "./components/SourcePreview";
 import EditorWorkspace from "./components/EditorWorkspace";
+import TimelineTabs from "./components/TimelineTabs";
+import BeatTools from "./components/BeatTools";
 import Timeline from "./components/Timeline";
 import EffectsPanel from "./components/EffectsPanel";
 import { TextLibrary, TransitionLibrary } from "./components/CreativeLibrary";
@@ -149,11 +153,14 @@ function ExportDialog({
       fps: project.fps,
       quality: "standard",
       format: "mp4",
+      encoder: "software",
     }),
     [progress, setProgress] = useState<ExportProgress | null>(null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const [scope, setScope] = useState("all");
+  const [videoToolbox, setVideoToolbox] = useState(false);
+  const exportName = project.otherTimelines?.length ? `${project.name} - ${project.activeTimeline?.name}` : project.name;
   const [rangeStart, setRangeStart] = useState("0"), [rangeEnd, setRangeEnd] = useState(String(projectDuration(project)));
   const selectedRange = selectedClipRange(project, selectedIds);
   const rangeOptions = scope === "all" ? undefined : scope === "selected" ? selectedRange : { start: Number(rangeStart), end: Number(rangeEnd) };
@@ -175,10 +182,17 @@ function ExportDialog({
       }),
     [],
   );
+  useEffect(() => {
+    let subscribed = true;
+    void window.editorAPI?.getExportEncoders?.().then(result => {
+      if (subscribed) setVideoToolbox(result.videoToolbox);
+    }).catch(() => {});
+    return () => { subscribed = false; };
+  }, []);
   const choose = async () => {
     try {
       const path = await window.editorAPI?.chooseExportPath(
-        project.name,
+        exportName,
         options.format,
       );
       if (path) setOptions((p) => ({ ...p, path }));
@@ -200,7 +214,7 @@ function ExportDialog({
       if (!path) {
         path =
           (await window.editorAPI.chooseExportPath(
-            project.name,
+            exportName,
             options.format,
           )) ?? "";
         if (!path) return;
@@ -334,6 +348,16 @@ function ExportDialog({
               <option value="mov">MOV · H.264 / AAC</option>
             </select>
           </label>
+          {videoToolbox && <label>
+            {ui("H.264 编码器", "H.264 encoder")}
+            <select aria-label={ui("H.264 编码器", "H.264 encoder")} value={options.encoder}
+              disabled={exporting} onChange={event => setOptions(previous => ({
+                ...previous, encoder: event.target.value as ExportOptions["encoder"],
+              }))}>
+              <option value="software">{ui("软件编码", "Software encoding")}</option>
+              <option value="videotoolbox">{ui("硬件编码 · VideoToolbox", "Hardware encoding · VideoToolbox")}</option>
+            </select>
+          </label>}
         </div>
         <p className="field-hint">
           {ui("导出原始素材和所有可见画面轨道，按音频设置混音。无需登录或上传。", "Renders original media and all visible video tracks, with audio mixed using your settings. No sign-in or upload required.")}</p>
@@ -341,6 +365,7 @@ function ExportDialog({
           <div
             className={`export-progress ${status === "complete" ? "is-complete" : ""}`}
           >
+            {progress.encoderFallback && <p role="status">{ui("硬件编码不可用，已切换到软件编码。", "Hardware encoding unavailable. Using software encoding.")}</p>}
             <div>
               <span>
                 {status === "complete"
@@ -495,6 +520,7 @@ export default function App() {
   const [timelineHeight, setTimelineHeight] = useState(() =>
     Math.max(220, Math.min(420, window.innerHeight * 0.34)),
   );
+  const [beatSnapping, setBeatSnapping] = useState(false);
   const timelineResize = useRef<{ y: number; height: number } | null>(null);
   const resizeTimeline = (height: number) =>
     setTimelineHeight(
@@ -949,16 +975,22 @@ export default function App() {
   const finishCapcutImport = async (
     pending: PendingCapcutImport,
     timelineId?: string,
+    all = false,
   ) => {
     if (!window.editorAPI) return;
     capcutBusyRef.current = true;
     setCapcutBusy(true);
     try {
-      const result = await window.editorAPI.readCapcutDraft(
-        pending.selection.token,
-        timelineId,
-      );
-      const imported = importCapcutDraft(result.text, { name: result.name });
+      let imported: CapcutImportResult, warnings: string[];
+      if (all) {
+        const result = await window.editorAPI.readCapcutTimelines(pending.selection.token);
+        imported = importCapcutTimelines(result.drafts, pending.selection.name, timelineId);
+        warnings = result.warnings;
+      } else {
+        const result = await window.editorAPI.readCapcutDraft(pending.selection.token, timelineId);
+        imported = importCapcutDraft(result.text, { name: result.name });
+        warnings = result.warnings;
+      }
       const loaded: MediaAsset[] = [];
       for (const asset of imported.project.assets) {
         try {
@@ -982,7 +1014,7 @@ export default function App() {
         return;
       imported.project.assets = loaded;
       s.setProject(imported.project);
-      notify([...new Set([...result.warnings, ...imported.warnings])].join(" "));
+      notify([...new Set([...warnings, ...imported.warnings])].join(" "));
     } finally {
       await window.editorAPI
         .discardCapcutProject(pending.selection.token)
@@ -1313,6 +1345,13 @@ export default function App() {
             timelineResize.current = null;
           }}
         />
+        <TimelineTabs
+          key={s.project.id}
+          project={s.project}
+          onOpen={s.openTimeline}
+          onCreate={(name, defaultName, duplicate) => void safe(() => s.createTimeline(name, defaultName, duplicate))}
+          onRename={s.renameTimeline}
+        />
         <Timeline
           project={s.project}
           selectedIds={s.selectedIds}
@@ -1341,6 +1380,8 @@ export default function App() {
           onDuplicate={s.duplicate}
           onAddText={s.addText}
           onDuckAudio={window.editorAPI ? () => { s.setPlaying(false); setModal("duck"); } : undefined}
+          beatSnapping={beatSnapping}
+          beatTools={<BeatTools snapping={beatSnapping} setSnapping={setBeatSnapping} notify={notify} />}
           onUndo={s.undo}
           onRedo={s.redo}
           canUndo={s.past.length > 0}
@@ -1414,7 +1455,7 @@ export default function App() {
           <div className="modal-body">
             <p>
               <strong>{capcutImport.selection.name}</strong>{" "}
-              {ui("包含多条时间线，请选择要导入的内容。", "contains multiple timelines. Choose one to import.")}</p>
+              {ui("包含多条时间线。可导入一条或合并到同一个 ReaCut 工程。", "contains multiple timelines. Import one or keep them together in one ReaCut project.")}</p>
             <label>
               {ui("时间线", "Timeline")}<select
                 aria-label={ui("剪映时间线", "CapCut timeline")}
@@ -1441,6 +1482,10 @@ export default function App() {
           <footer>
             <button disabled={capcutBusy} onClick={cancelCapcutImport}>
               {ui("取消", "Cancel")}</button>
+            {capcutImport.selection.timelines.length <= MAX_PROJECT_TIMELINES && <button
+              disabled={capcutBusy}
+              onClick={() => void safe(() => finishCapcutImport(capcutImport, capcutTimelineId, true))}
+            >{ui("导入全部时间线", "Import all timelines")}</button>}
             <button
               className="primary"
               disabled={capcutBusy || !capcutTimelineId}
@@ -1680,7 +1725,7 @@ export default function App() {
     const current = useEditorStore.getState();
     if (current.project.id !== projectId) return;
     if (current.project.assets.some((a) => a.id === asset.id))
-      current.commit({
+      current.commit(validateProject({
         ...current.project,
         assets: current.project.assets.map((a) =>
           a.path === asset.path
@@ -1695,6 +1740,6 @@ export default function App() {
               }
             : a,
         ),
-      });
+      }));
   }
 }

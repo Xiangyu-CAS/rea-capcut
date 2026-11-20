@@ -16,7 +16,8 @@ export function derivativePlan(p: Project, clipId: string, r: DerivativeRequest)
   if (r.mode === 'reverse') {
     if (clip.duration > 3600) throw new Error('单次倒放最多 60 分钟，请先分割片段');
     if (members.some(c => { const a = p.assets.find(a => a.id === c.assetId); return a?.path !== asset.path ||
-      c.sourceIn !== clip.sourceIn || c.speed !== clip.speed || c.duration !== clip.duration || c.start !== clip.start; }))
+      c.sourceIn !== clip.sourceIn || c.speed !== clip.speed || c.duration !== clip.duration || c.start !== clip.start ||
+      JSON.stringify(c.speedCurve) !== JSON.stringify(clip.speedCurve); }))
       throw new Error('关联片段源范围不同，请先解除关联再倒放');
   } else {
     const time = snapToFrame(r.time, p.fps);
@@ -40,7 +41,7 @@ export function applyDerivative(p: Project, clipId: string, r: DerivativeRequest
     if (audio) next.assets.push(audio);
     next.clips = next.clips.map(c => !ids.has(c.id) ? c : { ...c,
       assetId: p.assets.find(a => a.id === c.assetId)?.kind === 'audio' ? audio!.id : asset.id,
-      name: c.name + ' · 倒放', sourceIn: 0, speed: 1, muted: r.audio === 'mute' || c.muted,
+      name: c.name + ' · 倒放', sourceIn: 0, speed: 1, speedCurve: undefined, muted: r.audio === 'mute' || c.muted,
     });
     return { project: validateProject(next), clipId };
   }

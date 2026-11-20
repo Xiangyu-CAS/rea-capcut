@@ -1,6 +1,8 @@
 import type { ProjectTemplate, TemplateSummary } from "./projectTemplates";
 import type { SpeechInfo, SpeechProgress, SpeechRequest, SpeechResult } from "./speech";
 import type { AudioAnalysisProgress, AudioAnalysisRequest, AudioAnalysisResult, AudioDucking } from "./audioMix";
+import type { SpeedPoint } from "./speedCurve";
+import type { BeatAnalysis } from "./beats";
 import type { AssistantEvent, AssistantMessage, AssistantProvider, AssistantProviderInfo, AssistantRequest } from "./assistantTypes";
 export type MediaKind = "video" | "audio" | "image";
 export type TrackKind = MediaKind | "text";
@@ -17,6 +19,7 @@ export interface MediaAsset {
   hasAudio: boolean;
   thumbnail?: string;
   waveform?: number[];
+  beats?: BeatAnalysis;
   missing?: boolean;
   previewUrl?: string;
   previewError?: string;
@@ -91,7 +94,9 @@ export interface Clip {
   start: number;
   duration: number;
   sourceIn: number;
+  /** Average playback rate. For a curve it is the area under its normalized speed profile. */
   speed: number;
+  speedCurve?: SpeedPoint[];
   volume: number;
   /** Gain measured on the clip's source range, separate from the volume fader. */
   audioGainDb?: number;
@@ -120,20 +125,31 @@ export interface Track {
   /** Automation in project time, applied to the sum of this music track. */
   audioDucking?: AudioDucking;
 }
-export interface Project {
-  version: 1;
-  id: string;
-  name: string;
+export interface TimelineContent {
   width: number;
   height: number;
   fps: number;
   background: string;
-  assets: MediaAsset[];
   tracks: Track[];
   clips: Clip[];
+}
+export interface TimelineLabel {
+  id: string;
+  name: string;
+  index: number;
+}
+export interface ProjectTimeline extends TimelineLabel, TimelineContent {}
+export interface Project extends TimelineContent {
+  version: 1;
+  id: string;
+  name: string;
+  assets: MediaAsset[];
+  activeTimeline?: TimelineLabel;
+  otherTimelines?: ProjectTimeline[];
   createdAt: string;
   updatedAt: string;
 }
+export type ExportEncoder = "software" | "videotoolbox";
 export interface ExportOptions {
   range?: { start: number; end: number };
   path: string;
@@ -142,6 +158,7 @@ export interface ExportOptions {
   fps: number;
   quality: "draft" | "standard" | "high";
   format: "mp4" | "mov";
+  encoder?: ExportEncoder;
 }
 export interface ExportProgress {
   jobId: string;
@@ -149,6 +166,8 @@ export interface ExportProgress {
   status: "preparing" | "rendering" | "complete" | "error" | "cancelled";
   message?: string;
   path?: string;
+  encoder?: ExportEncoder;
+  encoderFallback?: boolean;
 }
 export interface DerivativeRequest {
   mode: "reverse" | "freeze";
@@ -181,6 +200,11 @@ export interface CapcutImportSelection {
   recommendedTimelineId?: string;
   requiresTimelineChoice: boolean;
   warnings: string[];
+}
+export interface CapcutTimelineDraft {
+  id: string;
+  name: string;
+  text: string;
 }
 export interface EditorAPI {
   checkForUpdates: () => Promise<import("./updateTypes").UpdateCheckResult>;
@@ -245,6 +269,7 @@ export interface EditorAPI {
     project: Project,
     options: ExportOptions,
   ) => Promise<{ jobId: string }>;
+  getExportEncoders: () => Promise<{ videoToolbox: boolean }>;
   cancelExport: (jobId: string) => Promise<void>;
   onExportProgress: (callback: (event: ExportProgress) => void) => () => void;
   getSystemInfo: () => Promise<{
@@ -265,6 +290,7 @@ export interface EditorAPI {
     token: string,
     timelineId?: string,
   ) => Promise<{ text: string; name: string; warnings: string[] }>;
+  readCapcutTimelines: (token: string) => Promise<{ drafts: CapcutTimelineDraft[]; warnings: string[] }>;
   discardCapcutProject: (token: string) => Promise<void>;
   writeTextFile: (text: string, name: string) => Promise<string | null>;
   revealPath: (path: string) => Promise<void>;

@@ -15,6 +15,7 @@ import {
   validateProject,
 } from "../core/model";
 import { linkedIds, moveLinked, speedLinked, slipLinked, placeAsset, trimLinked, splitLinked, unlinkClips, type PlacementMode } from "../core/timelineEdits";
+import { activateTimeline, addProjectTimeline, projectUsesAsset, renameProjectTimeline } from "../core/projectTimelines";
 import type { Subtitle } from "../core/subtitles";
 interface EditorState {
   project: Project;
@@ -36,6 +37,9 @@ interface EditorState {
   transactionOpen: boolean;
   transactionRecorded: boolean;
   updateProject: (patch: Partial<Project>) => void;
+  openTimeline: (id: string) => void;
+  createTimeline: (name: string, defaultName: string, duplicate: boolean) => void;
+  renameTimeline: (name: string) => void;
   addAssets: (assets: MediaAsset[]) => void;
   removeAsset: (assetId: string) => void;
   addAssetClip: (assetId: string, start?: number, trackId?: string, range?: { sourceIn: number; duration: number }) => void;
@@ -110,10 +114,11 @@ function patchClip(
     Object.prototype.hasOwnProperty.call(rest, "audioFadeOut")
   )
     rest.audioFadeWindow = undefined;
-  if (rest.speed !== undefined) {
-    p = speedLinked(p, clipId, rest.speed);
+  if (rest.speed !== undefined || rest.speedCurve !== undefined) {
+    p = speedLinked(p, clipId, rest.speed ?? original.speed, rest.speedCurve);
     delete rest.speed;
   }
+  delete rest.speedCurve;
   if (rest.start !== undefined) { p = moveLinked(p, [clipId], rest.start - original.start); delete rest.start; }
   if (rest.sourceIn !== undefined) { p = slipLinked(p, clipId, rest.sourceIn); delete rest.sourceIn; }
   if (!Object.keys(rest).length) return p;
@@ -175,6 +180,23 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     });
   },
   updateProject: (patch) => get().commit({ ...get().project, ...clone(patch) }),
+  openTimeline: (id) => {
+    const current = get().project;
+    const project = activateTimeline(current, id);
+    if (project !== current) set({
+      project, selectedIds: [], playhead: 0, playing: false,
+      transactionOpen: false, transactionRecorded: false,
+    });
+  },
+  createTimeline: (name, defaultName, duplicate) => {
+    const state = get();
+    const next = addProjectTimeline(state.project, name, defaultName, duplicate);
+    if (next === state.project) return;
+    state.endTransaction();
+    state.commit(validateProject(next));
+    set({ selectedIds: [], playhead: 0, playing: false });
+  },
+  renameTimeline: (name) => get().commit(renameProjectTimeline(get().project, name)),
   addAssets: (assets) => {
     const p = get().project,
       paths = new Set(p.assets.map((a) => a.path)),
@@ -189,7 +211,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
   removeAsset: (assetId) => {
     const p = get().project;
-    if (p.clips.some((c) => c.assetId === assetId))
+    if (projectUsesAsset(p, assetId))
       throw new Error("素材仍被时间线使用，请先删除对应片段");
     get().commit({ ...p, assets: p.assets.filter((a) => a.id !== assetId) });
   },
@@ -467,31 +489,39 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setMagnetic: (magnetic) => set({ magnetic }),
   undo: () => {
     const s = get();
-    if (s.past.length)
+    if (s.past.length) {
+      const id = s.project.activeTimeline?.id ?? s.project.id;
+      const project = activateTimeline(clone(s.past[s.past.length - 1]), id);
       set({
-        project: clone(s.past[s.past.length - 1]),
+        project,
         past: s.past.slice(0, -1),
         future: [clone(s.project), ...s.future],
         dirty: true,
         selectedIds: [],
+        playhead: (project.activeTimeline?.id ?? project.id) === id ? s.playhead : 0,
         playing: false,
         transactionOpen: false,
         transactionRecorded: false,
       });
+    }
   },
   redo: () => {
     const s = get();
-    if (s.future.length)
+    if (s.future.length) {
+      const id = s.project.activeTimeline?.id ?? s.project.id;
+      const project = activateTimeline(clone(s.future[0]), id);
       set({
-        project: clone(s.future[0]),
+        project,
         past: [...s.past, clone(s.project)].slice(-150),
         future: s.future.slice(1),
         dirty: true,
         selectedIds: [],
+        playhead: (project.activeTimeline?.id ?? project.id) === id ? s.playhead : 0,
         playing: false,
         transactionOpen: false,
         transactionRecorded: false,
       });
+    }
   },
   markSaved: (path) => set({ path, dirty: false }),
 }));

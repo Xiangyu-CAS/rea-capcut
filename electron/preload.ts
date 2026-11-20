@@ -79,6 +79,7 @@ const api: EditorAPI = {
   openRecentProject: (path) => ipcRenderer.invoke("open-recent-project", path),
   chooseExportPath: (name, format) =>
     ipcRenderer.invoke("choose-export-path", name, format),
+  getExportEncoders: () => ipcRenderer.invoke("export-encoders"),
   exportProject: (project, options) =>
     ipcRenderer.invoke("export-project", project, options),
   cancelExport: (jobId) => ipcRenderer.invoke("cancel-export", jobId),
@@ -95,6 +96,7 @@ const api: EditorAPI = {
     ipcRenderer.invoke("choose-capcut-project", mode),
   readCapcutDraft: (token, timelineId) =>
     ipcRenderer.invoke("read-capcut-draft", token, timelineId),
+  readCapcutTimelines: (token) => ipcRenderer.invoke("read-capcut-timelines", token),
   discardCapcutProject: (token) =>
     ipcRenderer.invoke("discard-capcut-project", token),
   writeTextFile: (text, name) =>

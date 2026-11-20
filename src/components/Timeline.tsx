@@ -36,8 +36,11 @@ import {
   ZoomOut,
 } from "lucide-react";
 import type { Clip, Project, Track, TrackKind } from "../core/types";
+import type { ReactNode } from "react";
 import { linkedIds, trimLinked } from "../core/timelineEdits";
 import { snapToFrame } from "../core/model";
+import { sourceOffsetAt, timelineOffsetAt } from "../core/speedCurve";
+import { clipBeatTimes, projectBeatTimes } from "../core/beats";
 import "./Timeline.css";
 
 export interface TimelineProps {
@@ -66,6 +69,8 @@ export interface TimelineProps {
   onDuplicate?: () => void;
   onAddText?: () => void;
   onDuckAudio?: () => void;
+  beatSnapping?: boolean;
+  beatTools?: ReactNode;
   onUndo?: () => void;
   onRedo?: () => void;
   canUndo?: boolean;
@@ -147,7 +152,7 @@ export function waveformSamples(
     return Array.from({ length: count }, () => 0);
   return Array.from({ length: count }, (_, i) => {
     const at =
-      clip.sourceIn + (i / Math.max(1, count - 1)) * clip.duration * clip.speed;
+      clip.sourceIn + sourceOffsetAt(clip, (i / Math.max(1, count - 1)) * clip.duration);
     const index = Math.max(
       0,
       Math.min(
@@ -207,6 +212,7 @@ export default function Timeline(props: TimelineProps) {
   const [deleteTrackId, setDeleteTrackId] = useState<string | null>(null);
   const [trackMenu, setTrackMenu] = useState(false);
   const [viewportWidth, setViewportWidth] = useState(800);
+  const [scrollLeft, setScrollLeft] = useState(0);
   const [localSnap, setLocalSnap] = useState(true);
   const [localMagnetic, setLocalMagnetic] = useState(false);
   const snapping = props.snapping ?? localSnap;
@@ -420,16 +426,17 @@ export default function Timeline(props: TimelineProps) {
     return project.tracks[index < 0 ? project.tracks.length - 1 : index];
   };
   const snap = (time: number, excluded: string[], offset = 0) => {
-    const candidates = [
+    const position = time + offset;
+    const radius = 8 / pps;
+    const candidates = snapping ? [
       0,
       playhead,
       ...project.clips
         .filter((c) => !excluded.includes(c.id))
         .flatMap((c) => [c.start, c.start + c.duration]),
-    ];
-    const value = snapping
-      ? snapTimelineTime(time + offset, candidates, 8 / pps) - offset
-      : time;
+    ] : [];
+    if (props.beatSnapping) candidates.push(...projectBeatTimes(project, position - radius, position + radius, excluded));
+    const value = snapTimelineTime(position, candidates, radius) - offset;
     setSnapLine(Math.abs(value - time) > 0.0001 ? value + offset : null);
     return value;
   };
@@ -520,10 +527,10 @@ export default function Timeline(props: TimelineProps) {
         const asset = project.assets.find((a) => a.id === clip.assetId);
         if (asset && asset.kind !== "image") {
           if (trim === "start")
-            time = Math.max(clip.start - clip.sourceIn / clip.speed, time);
+            time = Math.max(clip.start + timelineOffsetAt(clip, -clip.sourceIn), time);
           else
             time = Math.min(
-              clip.start + (asset.duration - clip.sourceIn) / clip.speed,
+              clip.start + timelineOffsetAt(clip, asset.duration - clip.sourceIn),
               time,
             );
         }
@@ -762,6 +769,7 @@ export default function Timeline(props: TimelineProps) {
           >
             <SlidersHorizontal size={16} />
           </button>}
+          {props.beatTools}
         </div>
         <div className="tl-toolbar-end">
           <span className="tl-duration">
@@ -818,7 +826,7 @@ export default function Timeline(props: TimelineProps) {
             {ui("适配", "Fit")}</button>
         </div>
       </div>
-      <div className="tl-scroll" ref={scrollRef}>
+      <div className="tl-scroll" ref={scrollRef} onScroll={event => setScrollLeft(event.currentTarget.scrollLeft)}>
         <div
           className="tl-content"
           style={{
@@ -1135,7 +1143,8 @@ export default function Timeline(props: TimelineProps) {
                           )}
                           {clip.linkId && <Link2 size={12} aria-label={ui("画声关联", "Linked video and audio")} />}
                           <span>{clip.name}</span>
-                          {clip.speed !== 1 && <b>{clip.speed}×</b>}
+                          {clip.speedCurve ? <b>{ui("曲线变速", "Speed curve")}</b> : clip.speed !== 1 && <b>{clip.speed}×</b>}
+                          {asset?.beats && <b>{asset.beats.bpm} BPM</b>}
                           {(clip.muted || track.muted) && <VolumeX size={12} />}
                         </div>
                         {track.kind === "text" && (
@@ -1168,6 +1177,12 @@ export default function Timeline(props: TimelineProps) {
                               ))}
                             </div>
                           )}
+                        {asset?.beats && (
+                          <div className="tl-beat-markers" aria-hidden="true">
+                            {clipBeatTimes(clip, asset, (scrollLeft - 8) / pps, (scrollLeft + viewportWidth) / pps)
+                              .map(time => <i className="tl-beat-marker" key={time} style={{ left: (time - clip.start) * pps }} />)}
+                          </div>
+                        )}
                         {clip.fadeIn > 0 && (
                           <div
                             className="tl-fade-in"

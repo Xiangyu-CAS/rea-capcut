@@ -4,9 +4,10 @@ import {
   type AudioAnalysisRequest, type AudioAnalysisResult, type AudioInterval, type LoudnessMeasurement,
 } from "../src/core/audioMix";
 import type { Project } from "../src/core/types";
-import { clipAudioFilters, sourceAudioFilters } from "./audioFilters";
+import { clipAudioEffects, clipAudioGraph } from "./audioFilters";
 import { number } from "./filterExpressions";
 import { runMediaTool } from "./media";
+import { analyzeBeats } from "./beatAnalysis";
 
 function complementSilence(log: string, start: number, duration: number): AudioInterval[] {
   const regions: AudioInterval[] = [];
@@ -29,6 +30,9 @@ export async function analyzeAudio(
   project: Project, request: AudioAnalysisRequest, signal: AbortSignal,
   report: (progress: number) => void,
 ): Promise<AudioAnalysisResult> {
+  if (request?.mode === "beats") {
+    return { mode: "beats", analysis: await analyzeBeats(project, request.assetId, signal, report) };
+  }
   const sources = audioAnalysisSources(project, request);
   const total = sources.reduce((duration, { clip }) => duration + clip.duration, 0);
   const intervals: AudioInterval[] = [];
@@ -39,15 +43,16 @@ export async function analyzeAudio(
     const before = await stat(asset.path);
     if (!before.isFile()) throw new Error("Audio source is unavailable.");
     const filters = request.mode === "normalize"
-      ? [...sourceAudioFilters(clip), `loudnorm=I=${number(request.targetLufs)}:TP=-1.5:LRA=11:print_format=json`]
-      : [...clipAudioFilters(clip), `apad=whole_dur=${number(clip.duration)}`,
+      ? [`loudnorm=I=${number(request.targetLufs)}:TP=-1.5:LRA=11:print_format=json`]
+      : [...clipAudioEffects(clip), `apad=whole_dur=${number(clip.duration)}`,
         `silencedetect=noise=${number(request.options.thresholdDb)}dB:d=0.18`];
     let diagnostic = "", progressText = "";
     report(completed / total);
     await runMediaTool("ffmpeg", [
       "-hide_banner", "-nostdin", "-nostats", "-v", "info",
-      "-ss", number(clip.sourceIn), "-t", number(clip.duration * clip.speed), "-i", asset.path, "-map", "0:a:0",
-      "-af", filters.join(","), "-vn", "-sn", "-dn",
+      "-ss", number(clip.sourceIn), "-t", number(clip.duration * clip.speed), "-i", asset.path,
+      "-filter_complex", clipAudioGraph(clip, "0:a:0", "measured", filters).join(";"),
+      "-map", "[measured]", "-vn", "-sn", "-dn",
       "-progress", "pipe:1", "-f", "null", "-",
     ], 15 * 60_000, 2 * 1024 * 1024, {
       signal,
