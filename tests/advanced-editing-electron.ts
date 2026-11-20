@@ -178,12 +178,24 @@ try {
   await expect(page.locator(".tl-beat-marker").first()).toBeVisible();
   await beatSnap.click();
   await expect(beatSnap).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: "时间线吸附", exact: true }).click();
-  const videoBounds = (await clip(videoId).boundingBox())!;
-  await page.mouse.move(videoBounds.x + 32, videoBounds.y + 25);
+  const ordinarySnap = page.getByRole("button", { name: "时间线吸附", exact: true });
+  await ordinarySnap.click();
+  await expect(ordinarySnap).toHaveAttribute("aria-pressed", "false");
+  const target = clip(videoId);
+  await target.click({ position: { x: 36, y: 26 } });
+  await expect(target).toHaveAttribute("aria-pressed", "true");
+  const notice = page.getByRole("button", { name: "关闭提示", exact: true });
+  if (await notice.isVisible()) await notice.click();
+  const videoBounds = (await target.boundingBox())!;
+  const dragX = videoBounds.x + 38, dragY = videoBounds.y + 26;
+  const dragBy = videoBounds.width * 0.2 / original.clips.find(clip => clip.id === videoId)!.duration;
+  await page.mouse.move(dragX, dragY);
   await page.mouse.down();
-  await page.mouse.move(videoBounds.x + 44, videoBounds.y + 25);
-  await page.mouse.up();
+  try {
+    await page.mouse.move(dragX + dragBy, dragY, { steps: 4 });
+    await expect(target).toHaveClass(/is-dragging/);
+    await expect(page.locator(".tl-snap-line")).toBeVisible();
+  } finally { await page.mouse.up(); }
   assert.equal((await save()).clips.find(clip => clip.id === videoId)?.start, Math.round(beat.times[0] * 30) / 30);
   await undo();
   await clip(videoId).click({ position: { x: 24, y: 25 } });
@@ -208,10 +220,13 @@ try {
   await point.scrollIntoViewIfNeeded();
   const pointBounds = (await point.boundingBox())!;
   const x = pointBounds.x + pointBounds.width / 2, y = pointBounds.y + pointBounds.height / 2;
+  const oldPointTitle = await point.getAttribute("title");
   await page.mouse.move(x, y);
   await page.mouse.down();
-  await page.mouse.move(x, y + 8, { steps: 3 });
-  await page.mouse.up();
+  try {
+    await page.mouse.move(x, y + 8, { steps: 3 });
+    await expect(point).not.toHaveAttribute("title", oldPointTitle!);
+  } finally { await page.mouse.up(); }
   const dragged = (await save()).clips.find(clip => clip.id === videoId)!;
   assert(dragged.speedCurve![1].rate < 2);
   await undo();
