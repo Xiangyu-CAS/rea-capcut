@@ -60,15 +60,29 @@ function detectBeats(pcm: Buffer, signal: AbortSignal): BeatAnalysis {
   }
   if (quality < onsets.reduce((sum, item) => sum + item.weight, 0) * 0.14)
     throw new Error("No regular beat was detected.");
+  // Prefer the shorter period only when consecutive onsets support it almost
+  // as strongly as the slower pair. Weak offbeats alone do not double tempo.
+  const half = Math.round(lag / 2);
+  if (half >= 28) {
+    const shorter = [half - 1, half, half + 1].filter(candidate => candidate >= 28)
+      .reduce((best, candidate) => period[candidate] > period[best] ? candidate : best, half);
+    if (period[shorter] >= period[lag] * 0.84) lag = shorter;
+  }
+  const before = period[lag - 1], after = period[lag + 1];
+  const sharpness = 2 * period[lag] - before - after;
+  const shift = sharpness > 0 ? Math.max(-0.5, Math.min(0.5, (after - before) / (2 * sharpness))) : 0;
+  const step = Math.max(28, Math.min(120, lag + shift));
   const phaseScores = new Float32Array(lag);
-  for (const { frame, weight } of onsets)
+  for (const { frame, weight } of onsets) {
+    const phase = Math.round(frame % step);
     for (let d = -3; d <= 3; d++)
-      phaseScores[(frame + lag + d) % lag] += weight * (1 - Math.abs(d) / 4);
+      phaseScores[(phase + lag + d) % lag] += weight * (1 - Math.abs(d) / 4);
+  }
   let phase = phaseScores.indexOf(Math.max(...phaseScores));
   const times: number[] = [];
   let cursor = 0;
   const tolerance = Math.max(3, Math.round(lag * 0.12));
-  for (; phase < count && times.length < MAX_BEAT_MARKS; phase += lag) {
+  for (; phase < count && times.length < MAX_BEAT_MARKS; phase += step) {
     while (cursor < onsets.length && onsets[cursor].frame < phase - tolerance) cursor++;
     let best: (typeof onsets)[number] | undefined;
     for (let i = cursor; i < onsets.length && onsets[i].frame <= phase + tolerance; i++) {
@@ -77,10 +91,10 @@ function detectBeats(pcm: Buffer, signal: AbortSignal): BeatAnalysis {
     if (!best) continue;
     times.push(best.frame / hopsPerSecond);
     // Follow small tempo drift without abandoning the estimated meter.
-    phase += Math.round((best.frame - phase) / 2);
+    phase += (best.frame - phase) / 2;
   }
   if (times.length < 4) throw new Error("No regular beat was detected.");
-  return { bpm: Math.round(60 * hopsPerSecond / lag * 10) / 10, times };
+  return { bpm: Math.round(60 * hopsPerSecond / step * 10) / 10, times };
 }
 
 export async function analyzeBeats(project: Project, assetId: string, signal: AbortSignal, report: (progress: number) => void) {
