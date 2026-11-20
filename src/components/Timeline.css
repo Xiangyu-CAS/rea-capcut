@@ -350,6 +350,14 @@
   background: #9cdabb;
   border-radius: 1px;
 }
+.tl-beat-markers {
+  position: absolute;
+  pointer-events: none;
+  inset: auto 0 4px;
+  height: 10px;
+  overflow: hidden;
+}
+.tl-beat-marker { position: absolute; width: 2px; height: 100%; background: #ffd58a; }
 .tl-clip-video .tl-waveform {
   height: 12px;
   bottom: 2px;

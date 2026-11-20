@@ -1,4 +1,6 @@
-import type { Clip, MediaAsset, Project, TrackKind } from "./types";
+import type { CapcutTimelineDraft, Clip, CropRect, Keyframe, MediaAsset, Project, ProjectTimeline, TrackKind } from "./types";
+import { MAX_PROJECT_TIMELINES, MAX_TIMELINE_NAME, timelineContent, timelineLabel } from "./projectTimelines";
+import { averageSpeed, validateSpeedCurve } from "./speedCurve";
 import {
   createProject,
   createTrack,
@@ -27,6 +29,43 @@ const seconds = (v: unknown) => number(v) / 1_000_000;
 const bounded = (v: unknown, low: number, high: number, fallback: number) =>
   Math.max(low, Math.min(high, number(v, fallback)));
 const identityUrl = (path: string) => path;
+
+export function importCapcutTimelines(drafts: CapcutTimelineDraft[], name: string, activeId?: string): CapcutImportResult {
+  if (drafts.length < 1 || drafts.length > MAX_PROJECT_TIMELINES)
+    throw new Error("Invalid number of CapCut timelines.");
+  const project = createProject(name);
+  const sharedMedia = new Map<string, MediaAsset>();
+  const warnings = new Set<string>();
+  const timelines: ProjectTimeline[] = drafts.map((draft, index) => {
+    const converted = importCapcutDraft(draft.text, { name: draft.name });
+    for (const warning of converted.warnings) warnings.add(warning);
+    const references = new Map<string, string>();
+    for (const asset of converted.project.assets) {
+      const key = JSON.stringify([asset.kind, asset.path]);
+      const shared = sharedMedia.get(key);
+      if (shared) shared.duration = Math.max(shared.duration, asset.duration);
+      else sharedMedia.set(key, asset);
+      references.set(asset.id, shared?.id ?? asset.id);
+    }
+    const timeline = timelineContent(converted.project);
+    return {
+      ...timeline,
+      id: draft.id, index,
+      name: draft.name.trim().slice(0, MAX_TIMELINE_NAME) || `Timeline ${index + 1}`,
+      clips: timeline.clips.map(clip => clip.assetId ? { ...clip, assetId: references.get(clip.assetId)! } : clip),
+    };
+  });
+  const active = timelines.find(timeline => timeline.id === activeId) ?? timelines[0];
+  return {
+    project: validateProject({
+      ...project, ...timelineContent(active),
+      activeTimeline: timelineLabel(active),
+      otherTimelines: timelines.filter(timeline => timeline !== active),
+      assets: [...sharedMedia.values()],
+    }),
+    warnings: [...warnings],
+  };
+}
 
 /** Experimental, lossy conversion of decoded tracks/materials JSON.
  * Desktop envelope decoding is handled before this platform-neutral converter. */
@@ -162,7 +201,7 @@ export function importCapcutDraft(
     return asset;
   };
   let originalCanvas: { width: number; height: number } | undefined;
-  const positions = new Map<Clip, { x: number; y: number }>();
+  const segments = new Map<Clip, { x: number; y: number; metadata: ObjectValue }>();
   const inferredDurations = new Set<string>();
   const trackLayers = new Map<string, number>();
   const unmappedSettings = new Set<string>();
@@ -247,12 +286,29 @@ export function importCapcutDraft(
       const speedMaterial = refs
         .map((ref) => materialById.get(ref))
         .find((m) => m?.category === "speeds");
-      const speed = number(
+      let speed = number(
         speedMaterial?.data.speed,
         asset?.kind === "image" || !asset
           ? 1
           : seconds(source.duration) / duration || 1,
       );
+      const curve = object(speedMaterial?.data.curve_speed);
+      if (Object.keys(curve).length || array(speedMaterial?.data.curve_speed).length) {
+        try {
+          if (!asset || asset.kind === "image") throw new Error();
+          const points = validateSpeedCurve(array(curve.speed_points).map(raw => {
+            const point = object(raw);
+            return { position: point.x, rate: point.y };
+          }));
+          const average = averageSpeed(points);
+          if (seconds(source.duration) <= 0 || Math.abs(seconds(source.duration) - duration * average) > 0.08)
+            throw new Error();
+          clip.speedCurve = points;
+          speed = average;
+        } catch {
+          warn("部分变速曲线无法验证源范围，已保留基础速度。");
+        }
+      }
       if (speed < 0.1 || speed > 8) {
         warn(`片段速度 ${speed} 超出 0.1–8 倍范围，已跳过。`);
         continue;
@@ -298,35 +354,28 @@ export function importCapcutDraft(
       if (number(scale.y, number(scale.x, 1)) !== number(scale.x, 1))
         warn("非等比缩放导入为统一缩放，画面可能改变。");
       if (kind === "text") {
-        const text = parseText(material.data.content);
-        if (text === undefined || text.length > 20000) {
+        const text = parseText(material.data);
+        if (text === undefined || text.text.length > 20000) {
           warn("无法解析文字内容的片段已跳过。");
           continue;
         }
-        clip.text!.text = text;
-        clip.name = text.slice(0, 30) || "文字";
+        clip.text = { ...clip.text!, ...text };
+        clip.name = text.text.slice(0, 30) || "文字";
         warn(
-          "文字内容已保留；剪映字体、花字、样式和排版未映射，使用 ReaCut 默认样式。",
+          "文字保留内容及支持的基础样式；字体、花字和富文本排版使用 ReaCut 样式。",
         );
       }
       if (segment.reverse === true) warn("倒放未支持，该片段按正向播放。");
-      if (
-        array(segment.common_keyframes).length ||
-        Object.keys(object(segment.keyframes)).length
-      )
-        warn("剪映关键帧未映射，保留片段的静态参数。");
       for (const ref of refs) {
         const extra = materialById.get(ref);
         if (extra && extra.category !== "speeds")
           unmappedSettings.add(settingNames[extra.category] ?? "其他附加效果");
-        if (
-          extra?.category === "speeds" &&
-          array(extra.data.curve_speed).length
-        )
-          warn("曲线变速未支持，仅保留基础速度。");
       }
-      if (Object.keys(object(material.data.crop)).length)
-        warn("剪映裁切信息未映射，使用完整素材画面。");
+      if (asset && Object.keys(object(material.data.crop)).length) {
+        const crop = parseCrop(object(material.data.crop));
+        if (crop) clip.crop = crop;
+        else warn("部分裁切无法转成矩形，相关片段使用完整素材画面。");
+      }
       // Only accepted visual segments may establish an unspecified canvas.
       // Library-only materials and rejected clips must not affect its size.
       if (!hasCanvasDimensions && !originalCanvas && kind === "video" && asset) {
@@ -342,7 +391,7 @@ export function importCapcutDraft(
         )
           originalCanvas = { width, height };
       }
-      positions.set(clip, { x: number(position.x), y: number(position.y) });
+      segments.set(clip, { x: number(position.x), y: number(position.y), metadata: segment });
       project.clips.push(clip);
     }
   }
@@ -359,9 +408,10 @@ export function importCapcutDraft(
       );
     }
   }
-  for (const [clip, position] of positions) {
+  for (const [clip, position] of segments) {
     clip.transform.x = bounded((position.x * project.width) / 2, -1e9, 1e9, 0);
     clip.transform.y = bounded((-position.y * project.height) / 2, -1e9, 1e9, 0);
+    clip.keyframes = importBasicKeyframes(position.metadata, clip, project, warn);
   }
   // Native higher track_render_index is drawn above lower values. ReaCut's
   // first track is the top layer; source array order is the fallback.
@@ -376,13 +426,79 @@ export function importCapcutDraft(
   return { project: validateProject(project), warnings };
 }
 
-function parseText(content: unknown): string | undefined {
+function parseText(material: ObjectValue): (Partial<NonNullable<Clip["text"]>> & { text: string }) | undefined {
+  const { content } = material;
   if (typeof content !== "string") return undefined;
-  if (!content.trim().startsWith("{")) return content;
-  try {
-    const value = object(JSON.parse(content));
-    return typeof value.text === "string" ? value.text : undefined;
-  } catch {
-    return undefined;
+  let text = content, style: ObjectValue = {};
+  if (content.trim().startsWith("{")) {
+    try {
+      const value = object(JSON.parse(content));
+      if (typeof value.text !== "string") return undefined;
+      text = value.text;
+      const runs = array(value.styles);
+      const run = object(runs[0]);
+      const [start, end] = array(run.range);
+      if (runs.length === 1 && (run.range === undefined || (start === 0 && end === text.length)))
+        style = run;
+    } catch { return undefined; }
   }
+  const result: Partial<NonNullable<Clip["text"]>> & { text: string } = { text };
+  const solid = object(object(object(style.fill).content).solid);
+  const rgb = array(solid.color);
+  if (rgb.length >= 3 && rgb.slice(0, 3).every(value => typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 1)) {
+    result.color = "#" + rgb.slice(0, 3).map(value => Math.round(Number(value) * 255).toString(16).padStart(2, "0")).join("");
+  } else if (/^#[0-9a-f]{6}$/i.test(string(material.text_color))) result.color = string(material.text_color);
+  if (typeof style.bold === "boolean") result.bold = style.bold;
+  if (material.alignment === 0) result.align = "left";
+  if (material.alignment === 1) result.align = "center";
+  if (material.alignment === 2) result.align = "right";
+  const size = number(style.size, number(material.font_size));
+  if (size > 0) result.fontSize = Math.max(1, Math.min(1000, size * 72 / 15));
+  return result;
+}
+
+function parseCrop(crop: ObjectValue): CropRect | undefined {
+  const x = number(crop.upper_left_x, NaN), y = number(crop.upper_left_y, NaN);
+  const right = number(crop.lower_right_x, NaN), bottom = number(crop.lower_right_y, NaN);
+  if (![x, y, right, bottom].every(value => Number.isFinite(value) && value >= 0 && value <= 1) ||
+      right - x < 0.01 || bottom - y < 0.01) return;
+  const corners = { upper_right_x: right, upper_right_y: y, lower_left_x: x, lower_left_y: bottom };
+  if (Object.entries(corners).some(([name, expected]) =>
+    crop[name] !== undefined && Math.abs(number(crop[name], Infinity) - expected) > 1e-6)) return;
+  return { x, y, width: right - x, height: bottom - y };
+}
+
+const keyProperties: Record<string, Keyframe["property"]> = {
+  KFTypePositionX: "x", KFTypePositionY: "y",
+  KFTypeScaleX: "scale", UNIFORM_SCALE: "scale",
+  KFTypeRotation: "rotation", KFTypeAlpha: "opacity", KFTypeVolume: "volume",
+};
+
+function importBasicKeyframes(segment: ObjectValue, clip: Clip, project: Project, warn: (message: string) => void): Keyframe[] {
+  const converted = new Map<string, Keyframe>();
+  let partial = Object.keys(object(segment.keyframes)).length > 0;
+  for (const raw of array(segment.common_keyframes)) {
+    const lane = object(raw);
+    const type = string(lane.property_type);
+    const property = Object.hasOwn(keyProperties, type) ? keyProperties[type] : undefined;
+    if (!property) { partial = true; continue; }
+    for (const entry of array(lane.keyframe_list)) {
+      const key = object(entry), time = seconds(key.time_offset);
+      let value = number(array(key.values)[0], NaN);
+      if (typeof key.time_offset !== "number" || !Number.isFinite(key.time_offset) ||
+          time < 0 || time > clip.duration || !Number.isFinite(value) || converted.size >= 400) {
+        partial = true;
+        continue;
+      }
+      if (property === "x") value *= project.width / 2;
+      if (property === "y") value *= -project.height / 2;
+      if (property === "scale") value = Math.max(0.000001, Math.min(10, value));
+      if (property === "opacity" || property === "volume") value = Math.max(0, Math.min(property === "opacity" ? 1 : 4, value));
+      if (Math.abs(value) > 1e9) { partial = true; continue; }
+      if (key.curveType !== undefined && key.curveType !== "Line") partial = true;
+      converted.set(`${property}:${time}`, { id: id(), time, property, value, easing: "linear" });
+    }
+  }
+  if (partial) warn("部分关键帧或插值方式未映射；已转换的关键帧使用线性插值。");
+  return [...converted.values()];
 }

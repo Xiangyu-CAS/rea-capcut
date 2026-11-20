@@ -15,6 +15,7 @@ import path from "node:path";
 import { createCanvas } from "@napi-rs/canvas";
 import type {
   Clip,
+  ExportEncoder,
   ExportOptions,
   ExportProgress,
   MediaAsset,
@@ -26,7 +27,8 @@ import { resolveExportRange } from "../src/core/exportRange";
 import { colorAdjustmentFilters } from "../src/core/color";
 import { applyShapeMask, getCropPixels } from "../src/core/visual";
 import { findMediaTool, runMediaTool } from "./media";
-import { clipAudioFilters, trackDuckingFilter } from "./audioFilters";
+import { clipAudioEffects, clipAudioGraph, trackDuckingFilter } from "./audioFilters";
+import { videoTimeFilter } from "./speedFilters";
 import { keyframeExpression, number } from "./filterExpressions";
 import { validateAudioDucking } from "../src/core/audioMix";
 
@@ -60,6 +62,8 @@ function validate(project: Project, options: ExportOptions): number {
     throw new Error("导出格式必须为 MP4 或 MOV。");
   if (!["draft", "standard", "high"].includes(options.quality))
     throw new Error("未知导出质量。");
+  if (options.encoder !== undefined && !["software", "videotoolbox"].includes(options.encoder))
+    throw new Error("Unknown H.264 encoder.");
   for (const [value, name] of [
     [options.width, "宽度"],
     [options.height, "高度"],
@@ -273,6 +277,27 @@ function validate(project: Project, options: ExportOptions): number {
   return duration;
 }
 
+let encoderProbe: Promise<boolean> | undefined;
+export async function videoToolboxAvailable(): Promise<boolean> {
+  if (process.platform !== "darwin") return false;
+  if (encoderProbe) return encoderProbe;
+  encoderProbe = runMediaTool("ffmpeg", [
+    "-v", "error", "-nostdin", "-f", "lavfi", "-i", "color=c=black:s=128x128:r=30",
+    "-frames:v", "1", "-an", "-c:v", "h264_videotoolbox", "-allow_sw", "0", "-f", "null", "-",
+  ], 8000, 32 * 1024).then(() => true, () => false);
+  try { return await encoderProbe; } finally { encoderProbe = undefined; }
+}
+
+function videoEncoderArguments(options: ExportOptions): string[] {
+  if (options.encoder === "videotoolbox") {
+    const bitsPerPixel = { draft: 0.065, standard: 0.11, high: 0.18 }[options.quality];
+    const bitrate = Math.max(250, Math.round(options.width * options.height * options.fps * bitsPerPixel / 1000));
+    return ["-c:v", "h264_videotoolbox", "-allow_sw", "0", "-b:v", `${bitrate}k`];
+  }
+  return ["-c:v", "libx264", "-preset", { draft: "ultrafast", standard: "medium", high: "slow" }[options.quality],
+    "-crf", { draft: "28", standard: "22", high: "17" }[options.quality]];
+}
+
 async function renderText(
   clip: Clip,
   directory: string,
@@ -421,7 +446,7 @@ export async function createExportArguments(
           keepSeekPredecessor
             ? `trim=end=${number(clip.duration * clip.speed)}`
             : `trim=start=0:duration=${number(still ? clip.duration : clip.duration * clip.speed)}`,
-          `setpts=${keepSeekPredecessor ? "PTS" : "(PTS-STARTPTS)"}/${still ? "1" : number(clip.speed)}`,
+          videoTimeFilter(clip, keepSeekPredecessor, still),
           // A frame becomes eligible only at its source PTS. Rounding its new
           // output tick up preserves the preceding frame between source PTSs,
           // matching browser seeking instead of selecting a future frame.
@@ -585,11 +610,11 @@ export async function createExportArguments(
         layer++;
       }
       if (audible) {
-        const filters = clipAudioFilters(clip);
+        const filters = clipAudioEffects(clip);
         filters.push(`adelay=${Math.round(clip.start * 1000)}:all=1`);
-        const label = `[audio${audioCount++}]`;
-        graph.push(`[${index}:a:0]${filters.join(",")}${label}`);
-        trackAudios.push(label);
+        const label = `audio${audioCount++}`;
+        graph.push(...clipAudioGraph(clip, `${index}:a:0`, label, filters));
+        trackAudios.push(`[${label}]`);
       }
     }
     if (!trackAudios.length) continue;
@@ -625,20 +650,7 @@ export async function createExportArguments(
       options.quality === "draft" ? "128k" : "192k",
     );
   args.push(
-    "-c:v",
-    "libx264",
-    "-preset",
-    options.quality === "draft"
-      ? "ultrafast"
-      : options.quality === "high"
-        ? "slow"
-        : "medium",
-    "-crf",
-    options.quality === "draft"
-      ? "28"
-      : options.quality === "high"
-        ? "17"
-        : "22",
+    ...videoEncoderArguments(options),
     "-pix_fmt",
     "yuv420p",
     "-r",
@@ -703,6 +715,9 @@ export async function startExport(
     finished,
   };
   jobs.set(jobId, job);
+  let encoder: ExportEncoder = options.encoder ?? "software";
+  let encoderFallback = encoder === "videotoolbox" && process.platform !== "darwin";
+  if (encoderFallback) encoder = "software";
   const emit = (
     status: ExportProgress["status"],
     progress: number,
@@ -717,6 +732,7 @@ export async function startExport(
           : 0,
         message,
         ...(status === "complete" ? { path: options.path } : {}),
+        ...(options.encoder ? { encoder, encoderFallback } : {}),
       });
     } catch {
       /* A disconnected renderer must not interrupt output cleanup. */
@@ -724,23 +740,17 @@ export async function startExport(
   };
   emit("preparing", 0);
   void (async () => {
-    try {
+    const render = async () => {
       const args = await createExportArguments(
         project,
-        options,
+        { ...options, encoder },
         directory,
         job.temporaryOutput,
       );
-      if (job.cancelled) {
-        emit("cancelled", 0);
-        return;
-      }
-      emit("rendering", 0);
+      if (job.cancelled) return;
       await destination?.verify();
-      if (job.cancelled) {
-        emit("cancelled", 0);
-        return;
-      }
+      if (job.cancelled) return;
+      emit("rendering", 0);
       await new Promise<void>((resolve, reject) => {
         const child = spawn(executable, args, {
           shell: false,
@@ -771,6 +781,19 @@ export async function startExport(
             reject(new Error(`FFmpeg 导出失败：${diagnostic.trim() || code}`));
         });
       });
+    };
+    try {
+      try {
+        await render();
+      } catch (error) {
+        if (job.cancelled || encoder !== "videotoolbox" ||
+            !/videotoolbox|VTCompressionSession/i.test(String(error))) throw error;
+        await rm(job.temporaryOutput, { force: true });
+        encoder = "software";
+        encoderFallback = true;
+        emit("preparing", 0);
+        if (!job.cancelled) await render();
+      }
       if (job.cancelled) {
         emit("cancelled", 0);
         return;

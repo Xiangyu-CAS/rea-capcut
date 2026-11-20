@@ -1,5 +1,7 @@
 import type { Clip, Project } from './types';
 import { clone, createClip, createTrack, changeClipSpeed, id, snapToFrame, splitClip, trimClip, validateProject } from './model';
+import { averageSpeed, validateSpeedCurve, type SpeedPoint } from './speedCurve';
+import { projectBeatTimes } from './beats';
 
 export type PlacementMode = 'insert' | 'overwrite' | 'overlay';
 const end = (c: Clip) => c.start + c.duration;
@@ -69,6 +71,21 @@ export function splitLinked(p: Project, ids: string[], time: number): Project {
   return p;
 }
 
+export function splitAtBeats(project: Project, ids: string[]): Project {
+  const targets = new Set(linkedIds(project, ids));
+  const members = project.clips.filter(clip => targets.has(clip.id));
+  if (!members.length) return project;
+  if (members.some(clip => locked(project, clip))) throw new Error("Unlock the selected tracks before cutting on beats.");
+  const first = Math.min(...members.map(clip => clip.start));
+  const last = Math.max(...members.map(end));
+  const beats = [...new Set(projectBeatTimes(project, first, last).map(time => snapToFrame(time, project.fps)))];
+  const cuts = beats.filter(time => members.some(clip => time > clip.start && time < end(clip)));
+  if (cuts.length > 600) throw new Error("Select a shorter range to cut on up to 600 beats.");
+  let next = project;
+  for (const time of cuts.sort((a, b) => b - a)) next = splitLinked(next, [...targets], time);
+  return next === project ? project : validateProject(next);
+}
+
 // A retained interval uses the same boundary anchors and fade windows as manual trimming.
 function retain(p: Project, c: Clip, from: number, to: number): Clip | undefined {
   if (to - from < 1 / p.fps - 1e-8) return undefined;
@@ -134,11 +151,13 @@ export function moveLinked(p: Project, ids: string[], delta: number, trackId?: s
     trackId: target && (c.text ? target.kind === 'text' : p.assets.some(a => a.id === c.assetId && (a.kind === target.kind || (a.kind === 'image' && target.kind === 'video')))) ? target.id : c.trackId,
   }) };
 }
-export function speedLinked(p: Project, clipId: string, speed: number): Project {
+export function speedLinked(p: Project, clipId: string, speed: number, curve?: SpeedPoint[]): Project {
   const ids = new Set(linkedIds(p, [clipId]));
   const members = p.clips.filter(c => ids.has(c.id));
-  if (members.some(c => locked(p, c))) return p;
-  for (const c of members) p = changeClipSpeed(p, c.id, speed);
+  const rate = curve ? averageSpeed(validateSpeedCurve(curve)) : speed;
+  if (members.some(c => locked(p, c) || c.start + c.duration * c.speed / rate > 86400 ||
+      (curve && !p.assets.some(asset => asset.id === c.assetId && asset.kind !== 'image')))) return p;
+  for (const c of members) p = changeClipSpeed(p, c.id, rate, curve);
   return p;
 }
 export function slipLinked(p: Project, clipId: string, sourceIn: number): Project {

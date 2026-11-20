@@ -28,13 +28,13 @@ export default function AudioMixDialog({ mode, onClose }: { mode: Mode; onClose:
   const [options, setOptions] = useState(() => existing ?? DEFAULT_DUCKING);
   const [reuseRegions, setReuseRegions] = useState(true);
   const [targetLufs, setTarget] = useState(-23);
-  const [measured, setMeasured] = useState<{ project: Project; request: AudioAnalysisRequest; result: AudioAnalysisResult }>();
+  const [measured, setMeasured] = useState<{ project: Project; request: Exclude<AudioAnalysisRequest, { mode: "beats" }>; result: AudioAnalysisResult }>();
   const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState("");
   const job = useRef<string | null>(null);
   const cancelled = useRef(false);
   const alive = useRef(false);
-  const request: AudioAnalysisRequest = mode === "normalize"
+  const request: Exclude<AudioAnalysisRequest, { mode: "beats" }> = mode === "normalize"
     ? { mode, clipIds: audioClips.map(clip => clip.id), targetLufs }
     : { mode, voiceTrackId: voiceId, musicTrackId: musicId, options };
   const sameClips = (ids: readonly string[]) =>

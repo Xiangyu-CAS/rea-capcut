@@ -1314,11 +1314,14 @@ kbd {
 }
 
 .timeline-pane {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
   position: relative;
   min-height: 0;
   height: 100%;
 }
+.timeline-pane > .tl { flex: 1; height: auto; min-height: 0; }
 .timeline-resize {
   position: absolute;
   left: 0;
@@ -1393,6 +1396,13 @@ kbd {
 .player-preview-controls button { padding: 0.15rem 0.45rem; }
 .player-preview-controls button[aria-pressed="true"] { color: var(--accent); }
 .settings-proxy-toggle { display: flex; align-items: center; gap: 8px; }
+.timeline-tabs, .timeline-tab-list, .timeline-tabs form { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.timeline-tabs { flex-shrink: 0; min-height: 30px; padding: 2px 8px; border-bottom: 1px solid var(--border); }
+.timeline-tab-list { overflow-x: auto; scrollbar-width: thin; }
+.timeline-tabs button { flex: none; padding: 3px 7px; line-height: 1.25; }
+.timeline-tab-list button { overflow: hidden; text-overflow: ellipsis; max-width: 220px; white-space: nowrap; }
+.timeline-tab-list button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.timeline-tabs input { min-width: 0; width: 160px; }
 .audio-measurements { max-height: 13rem; overflow: auto; padding-left: 1.25rem; }
 .audio-measurements li + li { margin-top: 0.5rem; }
 .audio-measurements strong { display: block; overflow-wrap: anywhere; }

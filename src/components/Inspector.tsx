@@ -1,5 +1,6 @@
 import { useUITranslation } from "../i18n";
 import KeyframeCurveEditor from "./KeyframeCurveEditor";
+import SpeedCurveEditor from "./SpeedCurveEditor";
 import { useEffect, useState } from "react";
 import {
   AlignCenter,
@@ -787,7 +788,7 @@ export default function Inspector({
                 {[0.25, 0.5, 1, 1.5, 2, 4].map((speed) => (
                   <button
                     key={speed}
-                    className={clip.speed === speed ? "active" : ""}
+                    className={!clip.speedCurve && clip.speed === speed ? "active" : ""}
                     onClick={() => onUpdate({ speed })}
                   >
                     {speed}×
@@ -796,6 +797,8 @@ export default function Inspector({
               </div>
               <p className="field-hint">
                 {ui("更改变速会保留源素材范围并调整片段时长。音频保持音高。", "Changing speed preserves the source range and adjusts clip duration. Audio pitch is preserved.")}</p>
+              {asset && !asset.missing && asset.kind !== "image" &&
+                <SpeedCurveEditor key={clip.id} clip={clip} onUpdate={onUpdate} />}
               <h3>{ui("时间范围", "Time range")}</h3>
               <NumberField
                 label={ui("开始时间", "Start time")}

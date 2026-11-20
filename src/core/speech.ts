@@ -1,6 +1,7 @@
 import type { MediaAsset, Project } from './types';
 import { clone, createClip, createTrack, snapToFrame } from './model';
 import type { Subtitle } from './subtitles';
+import { timelineOffsetAt } from './speedCurve';
 export type SpeechLanguage = 'auto' | 'zh' | 'en';
 export interface SpeechSettings { python?: string; model?: string }
 export interface SpeechVoice { name: string; locale: string }
@@ -53,9 +54,10 @@ export function applySpeech(p: Project, request: SpeechRequest, result: SpeechRe
       next.tracks.push(track); next.clips.push(createClip(source.asset,track.id,start,p.fps));
     }
     const track = createTrack('text',names.captions); next.tracks.unshift(track);
+    const position = (offset: number) => start + (source.clip ? timelineOffsetAt(source.clip, offset) : offset);
     for (const cue of cues) {
-      const clip = createClip(undefined,track.id,start+cue.start/source.speed,p.fps);
-      clip.duration = Math.max(1/p.fps,snapToFrame(start+cue.end/source.speed,p.fps)-clip.start);
+      const clip = createClip(undefined,track.id,position(cue.start),p.fps);
+      clip.duration = Math.max(1/p.fps,snapToFrame(position(cue.end),p.fps)-clip.start);
       clip.name=cue.text; clip.text={...clip.text!,text:wrapCaption(cue.text,p.width/(p.height*.05)*.8),fontSize:p.height*.05}; clip.transform.y=p.height*.36;
       next.clips.push(clip); selected.push(clip.id);
     }

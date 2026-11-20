@@ -1,5 +1,12 @@
 # 本机验证记录
 
+## 多时间线、节拍、曲线变速与硬件导出（2026-11-20）
+
+- `npm run check` 完成类型检查、46 个测试文件的 537 项单测和生产构建。实际 FFmpeg 回归逐帧核对了非整帧入点下的曲线取帧，核对了两段声音事件经曲线变速后的位置，并注入编码器初始化失败以验证软件回退及成片发布。
+- 本地 macOS arm64 包在清空 `PATH` 后打开合成剪映草稿。320×180 和 180×320 时间线共用两份素材并各自导出 H.264/AAC。新建、复制、节拍吸附、按拍分割和曲线拖动均验证了撤销或保存行为。8 秒合成音轨检出 120 BPM 和 16 个拍点，重开后保留拍点和曲线。已保存工程切换时间线保持「项目就绪」。旧的桌面保存、重链接、单时间线导入、声音处理和 Codex 批量出片回归通过。测试文件选择与关闭确认由隔离测试进程接管。
+- 同一 6 秒 1920×1080、30 fps 合成工程交替导出两次。标准画质软件 H.264 用时 1.23–1.24 秒，VideoToolbox H.264 用时 0.93 秒。两者相对源画面的 SSIM 分别为 0.99606 和 0.99556，文件大小分别为 4.73 MB 和 5.20 MB。数据只覆盖这台机器和该合成工程。内置 FFmpeg 另完成一秒 HEVC/hvc1 探测。
+- 参考已有剪映时间线 REA 记录和 Concat v0.2.12 的公开源代码。对本次签名通过的 ReaCut 包提取三个 JS 文件，经逐字节比对后用 REA 建图。包内 `app.asar` SHA-256 为 `ac6a729a9c47d964e26b0a69ed7b666ea2e6d5be60d2b899a0e637d9391545f1`，图谱证据为 `ev_384c6e21425a3bec50cb41636a1ba5536ca9d73a6a0df8c8766e3dd51dfc7c2c`，定位到 `read-capcut-timelines`、`analyze-audio` 和 `export-encoders` 的 preload 入口。静态图覆盖部分调用关系，运行结果由桌面测试核对。 [剪映 REA 记录](research/REA_FINDINGS.md#已观察事实) · [Concat 草稿转换](https://github.com/jub0t/Concat/blob/v0.2.12/src/crates/concat-project/src/capcut.rs) · [Concat 节拍流程](https://github.com/jub0t/Concat/blob/v0.2.12/src/crates/concat/src/studio/beats.rs)
+
 ## 剪映操作对照与 macOS 构建验收（2026-11-19）
 
 - 以已有剪映 macOS 11.0.12922 的 REA 受控窗口观察核对音频页签及代理模式。CapCut 公开说明补充了多片段响度统一、性能设置内的代理开关及自动字幕的来源和语言选择。ReaCut 自行实现音量测量、压低包络、离线语音和 Codex 批量出片，剪映内部算法与云端服务的行为未验证。 [既有 REA 观察](research/REA_FINDINGS.md) · [批量响度](https://www.capcut.com/tools/loudness-normalization) · [代理设置](https://www.capcut.com/help/video-quality-change-after-exporting) · [自动字幕](https://www.capcut.com/help/how-to-recognise-subtitles)

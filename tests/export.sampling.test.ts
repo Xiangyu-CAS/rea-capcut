@@ -1,12 +1,13 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { mkdtemp, rm } from "node:fs/promises";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
 import { createClip, createProject } from "../src/core/model";
-import type { MediaAsset } from "../src/core/types";
-import { runMediaTool } from "../electron/media";
+import type { ExportOptions, ExportProgress, MediaAsset, Project } from "../src/core/types";
+import { findMediaTool, runMediaTool } from "../electron/media";
 import { startExport } from "../electron/export";
+import { averageSpeed, sourceOffsetAt, timelineOffsetAt, type SpeedPoint } from "../src/core/speedCurve";
 
 const width = 32, height = 32, frameBytes = width * height * 3;
 let directory: string;
@@ -84,12 +85,23 @@ afterAll(async () => {
   await rm(directory, { recursive: true, force: true });
 });
 
+async function render(project: Project, options: ExportOptions): Promise<ExportProgress> {
+  return new Promise<ExportProgress>((resolve, reject) => {
+    void startExport(project, options, progress => {
+      if (progress.status === "complete") resolve(progress);
+      if (progress.status === "error" || progress.status === "cancelled")
+        reject(new Error(progress.message ?? progress.status));
+    }).catch(reject);
+  });
+}
+
 async function exportAndIdentify(
   sample: FrameSource,
   outputFps: number,
   speed: number,
   sourceIn: number,
   duration: number,
+  speedCurve?: SpeedPoint[],
 ): Promise<{ actual: number[]; expected: number[] }> {
   const project = createProject("source-frame-hold-test");
   project.width = width;
@@ -99,18 +111,10 @@ async function exportAndIdentify(
   project.assets = [sample.asset];
   project.clips = [{
     ...createClip(sample.asset, project.tracks.find(track => track.kind === "video")!.id, 0, outputFps),
-    speed, sourceIn, duration,
+    speed, sourceIn, duration, speedCurve,
   }];
   const file = path.join(directory, `output-${randomUUID()}.mp4`);
-  await new Promise<void>((resolve, reject) => {
-    void startExport(project, {
-      path: file, width, height, fps: outputFps, quality: "high", format: "mp4",
-    }, progress => {
-      if (progress.status === "complete") resolve();
-      if (progress.status === "error" || progress.status === "cancelled")
-        reject(new Error(progress.message ?? progress.status));
-    }).catch(reject);
-  });
+  await render(project, { path: file, width, height, fps: outputFps, quality: "high", format: "mp4" });
   const decoded = await rawFrames(file);
   const count = decoded.length / frameBytes;
   expect(count).toBe(Math.round(duration * outputFps));
@@ -127,7 +131,7 @@ async function exportAndIdentify(
     const nearest = Math.min(...distances);
     expect(nearest).toBeLessThan(150);
     actual.push(distances.indexOf(nearest));
-    const sourceTime = sourceIn + output / outputFps * speed;
+    const sourceTime = sourceIn + sourceOffsetAt(project.clips[0], output / outputFps);
     let preceding = 0;
     for (let input = 0; input < sample.timestamps.length; input++) {
       if (sample.timestamps[input] > sourceTime + 1e-8) break;
@@ -139,6 +143,73 @@ async function exportAndIdentify(
 }
 
 describe("actual export source-frame sampling", () => {
+  it("holds fractional-seek source frames under an accelerating and decelerating curve", async () => {
+    const points = [{ position: 0, rate: 0.5 }, { position: 0.4, rate: 2 }, { position: 1, rate: 0.8 }];
+    const result = await exportAndIdentify(await source(30), 30, averageSpeed(points), 0.217, 2, points);
+    expect(result.actual).toEqual(result.expected);
+  });
+  it("places audible events on the expected timeline at both ends of a speed ramp", async () => {
+    const input = path.join(directory, "curved-audio.wav");
+    await runMediaTool("ffmpeg", ["-v", "error", "-f", "lavfi", "-i",
+      "aevalsrc='(between(t,0.8,1.05)+between(t,2.9,3.15))*0.7*sin(2*PI*440*t)':s=48000:d=4",
+      "-c:a", "pcm_s16le", input]);
+    const project = createProject("Speed ramp audio");
+    project.width = project.height = 64;
+    const asset: MediaAsset = {
+      id: randomUUID(), name: "Pulses", path: input, url: input, kind: "audio",
+      width: 0, height: 0, duration: 4, fps: 0, hasAudio: true,
+    };
+    project.assets = [asset];
+    const clip = createClip(asset, project.tracks.find(track => track.kind === "audio")!.id, 0, 30);
+    clip.sourceIn = 0.2;
+    clip.duration = 3;
+    clip.speedCurve = [{ position: 0, rate: 0.5 }, { position: 1, rate: 1.7 }];
+    clip.speed = averageSpeed(clip.speedCurve);
+    project.clips = [clip];
+    const output = path.join(directory, "curved-audio.mp4");
+    await render(project, { path: output, width: 64, height: 64, fps: 30, quality: "standard", format: "mp4" });
+    const pcm = await runMediaTool("ffmpeg", ["-v", "error", "-i", output, "-vn", "-ac", "1", "-ar", "48000",
+      "-c:a", "pcm_f32le", "-f", "f32le", "pipe:1"]);
+    const energy = (time: number) => {
+      let sum = 0;
+      const start = Math.round(time * 48000);
+      for (let i = start; i < start + 2400; i++) sum += pcm.readFloatLE(i * 4) ** 2;
+      return Math.sqrt(sum / 2400);
+    };
+    expect(energy(timelineOffsetAt(clip, 0.9 - clip.sourceIn))).toBeGreaterThan(0.15);
+    expect(energy(timelineOffsetAt(clip, 3.0 - clip.sourceIn))).toBeGreaterThan(0.15);
+    expect(energy(timelineOffsetAt(clip, 1.9 - clip.sourceIn))).toBeLessThan(0.01);
+  });
+
+  it.runIf(process.platform === "darwin")("falls back after encoder initialization failure and publishes software output", async () => {
+    const media = await source(30);
+    const ffmpeg = await findMediaTool("ffmpeg");
+    const wrapper = path.join(directory, "simulated-encoder-failure");
+    await writeFile(wrapper, `#!/bin/sh
+for argument do
+  if [ "$argument" = "h264_videotoolbox" ]; then
+    printf '%s\\n' 'h264_videotoolbox: cannot initialize encoder' >&2
+    exit 1
+  fi
+done
+exec '${ffmpeg.replace(/'/g, "'\\''")}' "$@"
+`, { mode: 0o700 });
+    const project = createProject("Encoder fallback");
+    project.width = project.height = 32;
+    project.assets = [media.asset];
+    const clip = createClip(media.asset, project.tracks[1].id, 0, 30);
+    clip.duration = 1;
+    project.clips = [clip];
+    const output = path.join(directory, "encoder-recovery.mp4");
+    vi.stubEnv("REACUT_FFMPEG", wrapper);
+    try {
+      const completion = await render(project, {
+        path: output, width: 32, height: 32, fps: 30, quality: "standard", format: "mp4", encoder: "videotoolbox",
+      });
+      expect(completion).toMatchObject({ encoder: "software", encoderFallback: true, path: output });
+    } finally { vi.unstubAllEnvs(); }
+    expect((await rawFrames(output)).length / frameBytes).toBe(30);
+  });
   it.each([
     { label: "1.5x fractional positions", sourceFps: 30, outputFps: 30, speed: 1.5, sourceIn: 0, duration: 2 },
     { label: "0.5x slow motion", sourceFps: 30, outputFps: 30, speed: 0.5, sourceIn: 0, duration: 2 },

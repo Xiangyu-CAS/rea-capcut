@@ -52,6 +52,8 @@ See the [feature matrix](docs/FEATURE_MATRIX.md) for detailed support and limita
 
 Current source adds [loudness normalization and background-music ducking](docs/AUDIO_MIX.md), template-based [batch export from Codex](docs/CODEX_PLUGIN.md#从同一模板生成多支视频), guided local caption setup, and a lower-resolution preview proxy switch.
 
+Current source also supports multiple timelines per project, group import of supported Jianying drafts, local beat editing, speed curves and optional macOS VideoToolbox H.264 export. [Editing guide](docs/USER_GUIDE.md) · [Draft import coverage](docs/CAPCUT_INTEROP.md)
+
 ## Getting started
 
 **Interface language:** open **Settings** (shown as **设置 / Settings** in Chinese), then **Language**, or press **Cmd/Ctrl+,**. The choice is saved locally. Current source detects the system language on first launch, with English as fallback; the broader English interface fix is included in the v0.7.0 preview. [Language coverage and tests](docs/LOCALIZATION.md).

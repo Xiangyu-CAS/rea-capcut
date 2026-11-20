@@ -2,8 +2,11 @@ import path from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { access, mkdir, mkdtemp, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { derivativePlan } from '../src/core/derivativeEdits';
+import { sourceOffsetAt } from '../src/core/speedCurve';
 import type { DerivativeProgress, DerivativeRequest, MediaAsset, Project } from '../src/core/types';
 import { importAssets, probeFile, runMediaTool } from './media';
+import { clipAudioGraph } from './audioFilters';
+import { videoTimeFilter } from './speedFilters';
 
 const jobs = new Map<string, { controller: AbortController; done: Promise<MediaAsset> }>();
 export function cancelDerivative(id: string) { jobs.get(id)?.controller.abort(); }
@@ -54,10 +57,11 @@ export function deriveMedia(jobId: string, p: Project, clipId: string, request: 
       if (!width || !height || !Number.isFinite(pixelBudget) || pixelBudget > 4096 * 2160 || Math.max(width, height, displayWidth) > 8192) throw new Error('当前衍生媒体支持最高 4096×2160 像素量，请先缩小素材');
       const sourceDuration = (Number(v?.duration) || Number(probe.format.duration));
       if (!Number.isFinite(sourceDuration) || clip.sourceIn + clip.duration * clip.speed > sourceDuration + .05) throw new Error('片段超出实际源素材时长');
-      const sourceTime = clip.sourceIn + (time - clip.start) * clip.speed;
+      const sourceTime = clip.sourceIn + sourceOffsetAt(clip, time - clip.start);
       const audio = request.mode === 'reverse' && request.audio === 'reverse' && probe.streams.some(s => s.codec_type === 'audio');
       const key = createHash('sha256').update(JSON.stringify(['derivative-v2', asset.path, info.size, info.mtimeMs, request.mode,
-        request.mode === 'freeze' ? sourceTime : [clip.sourceIn, clip.duration, clip.speed, audio], p.fps])).digest('hex');
+        request.mode === 'freeze' ? sourceTime : [clip.sourceIn, clip.duration, clip.speed, audio,
+          ...(clip.speedCurve ? [clip.speedCurve] : [])], p.fps])).digest('hex');
       await mkdir(directory, { recursive: true });
       const destination = path.join(directory, key + (request.mode === 'freeze' ? '.png' : '.mp4'));
       let cached = false;
@@ -72,10 +76,14 @@ export function deriveMedia(jobId: string, p: Project, clipId: string, request: 
         } else {
           // Normalize speed/PTS once. Compressed disk intermediates avoid buffering the entire clip in RAM.
           const forward = path.join(temporary, 'forward.nut');
+          const audioInput = !audio ? ['-an'] : clip.speedCurve
+            ? ['-filter_complex', clipAudioGraph(clip, '0:a:0', 'retimed', []).join(';'), '-map', '[retimed]']
+            : ['-map', '0:a:0', '-af', [`atrim=start=0:duration=${number(clip.duration * clip.speed)}`,
+              'asetpts=PTS-STARTPTS', ...tempo(clip.speed), 'apad', `atrim=duration=${number(clip.duration)}`].join(',')];
           await run(['-ss', number(clip.sourceIn), '-noaccurate_seek', '-i', asset.path,
-            '-map', '0:v:0', ...(audio ? ['-map', '0:a:0'] : ['-an']),
-            '-vf', `trim=end=${number(clip.duration * clip.speed)},setpts=PTS/${number(clip.speed)},fps=${p.fps}:round=up:start_time=0,tpad=stop_mode=clone:stop_duration=1,trim=end_frame=${frames},scale=w=ceil(iw*sar/2)*2:h=ceil(ih/2)*2,setsar=1`,
-            ...(audio ? ['-af', [`atrim=start=0:duration=${number(clip.duration * clip.speed)}`, 'asetpts=PTS-STARTPTS', ...tempo(clip.speed), 'apad', `atrim=duration=${number(clip.duration)}`].join(','), '-c:a', 'pcm_s16le', '-ar', '48000', '-ac', '2'] : []),
+            '-map', '0:v:0', ...audioInput,
+            '-vf', `trim=end=${number(clip.duration * clip.speed)},${videoTimeFilter(clip, true)},fps=${p.fps}:round=up:start_time=0,tpad=stop_mode=clone:stop_duration=1,trim=end_frame=${frames},scale=w=ceil(iw*sar/2)*2:h=ceil(ih/2)*2,setsar=1`,
+            ...(audio ? ['-c:a', 'pcm_s16le', '-ar', '48000', '-ac', '2'] : []),
             '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '16', '-pix_fmt', 'yuv420p', '-t', number(clip.duration), forward], 0, .4, clip.duration, '准备倒放素材');
           // At most 96 MiB of decoded RGBA-equivalent frames, and at most 2 seconds per block.
           const block = Math.max(1, Math.min(Math.floor(p.fps * 2), Math.floor(96 * 1024 * 1024 / (pixelBudget * 4))));

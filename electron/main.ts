@@ -6,6 +6,7 @@ import { speechInfo, cachedSpeechModels, generateSpeech, cancelSpeech, cancelAll
 import { speechSource, type SpeechSettings, type SpeechRequest } from "../src/core/speech";
 import { audioAnalysisSources, type AudioAnalysisRequest, type AudioAnalysisResult } from "../src/core/audioMix";
 import { analyzeAudio } from "./audioAnalysis";
+import { beatSource } from "../src/core/beats";
 import { deriveMedia, cancelDerivative, cancelDerivatives } from "./derivatives";
 import {
   app,
@@ -45,11 +46,12 @@ import {
   shutdownMediaTasks,
   registerBundledFont,
 } from "./media";
-import { startExport, cancelExport, cancelAllExports } from "./export";
+import { startExport, cancelExport, cancelAllExports, videoToolboxAvailable } from "./export";
 import { resolvePortableDocument, startPortablePackage, cancelPortablePackage, cancelPortablePackages, savePortableDocument } from "./portableProject";
 import { setBundledMediaToolsDirectory } from "./mediaTools";
 import { validateProject } from "../src/core/model";
 import { decodeCapcutDraft } from "./capcutCodec";
+import { MAX_PROJECT_TIMELINES } from "../src/core/projectTimelines";
 import {
   discoverSelectedCapcutProject,
   readSelectedCapcutTimeline,
@@ -57,6 +59,7 @@ import {
 } from "./capcutProjectIO";
 import type {
   CapcutImportSelection,
+  CapcutTimelineDraft,
   MediaAsset,
   Project,
   RecentProject,
@@ -140,6 +143,22 @@ function validateCapcutToken(token: unknown): asserts token is string {
     !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(token)
   )
     throw new Error("剪映项目选择无效，请重新选择项目");
+}
+async function readCapcutSelection<T>(token: unknown, read: (plan: CapcutProjectIOPlan) => Promise<T>): Promise<T> {
+  validateCapcutToken(token);
+  pruneCapcutSelections();
+  const selection = capcutSelections.get(token);
+  if (!selection || selection.ownerId !== window!.webContents.id)
+    throw new Error("剪映项目选择已失效，请重新选择项目");
+  if (selection.reading) throw new Error("所选时间线正在读取，请稍候");
+  selection.reading = true;
+  try {
+    const result = await read(selection.plan);
+    capcutSelections.delete(token);
+    return result;
+  } finally {
+    selection.reading = false;
+  }
 }
 const menuAction = (action: string) =>
   window?.webContents.send("menu-action", action);
@@ -311,6 +330,8 @@ async function hydrateProject(input: unknown): Promise<Project> {
         hydrated.height = 0;
         hydrated.thumbnail = undefined;
       }
+      if (metadata && (!hydrated.hasAudio || Math.abs(asset.duration - hydrated.duration) > 0.05))
+        delete hydrated.beats;
       authorizeAsset(hydrated);
       return hydrated;
     }),
@@ -455,7 +476,9 @@ function registerIPC() {
     if (typeof jobId !== "string" || !/^[a-f\d-]{36}$/i.test(jobId) || audioAnalysisJob)
       throw new Error("An audio analysis task is already running or its ID is invalid.");
     const project = validateProject(input);
-    for (const { asset } of audioAnalysisSources(project, request))
+    const sources = request?.mode === "beats" ? [beatSource(project, request.assetId)] :
+      audioAnalysisSources(project, request).map(({ asset }) => asset);
+    for (const asset of sources)
       if (!allowedMedia.has(path.resolve(asset.path))) throw new Error("Audio source is not authorized.");
     const controller = new AbortController(), owner = window!.webContents;
     const done = analyzeAudio(project, request, controller.signal, progress => {
@@ -713,6 +736,7 @@ function registerIPC() {
     outputPaths.add(result.filePath);
     return result.filePath;
   });
+  handle("export-encoders", async () => ({ videoToolbox: await videoToolboxAvailable() }));
   handle("export-project", async (input: unknown, options: ExportOptions) => {
     const project = validateProject(input);
     if (!outputPaths.has(options.path)) throw new Error("请先选择导出位置");
@@ -787,36 +811,31 @@ function registerIPC() {
     };
     return selection;
   });
-  handle("read-capcut-draft", async (token: unknown, timelineId?: unknown) => {
-    validateCapcutToken(token);
-    pruneCapcutSelections();
-    const selection = capcutSelections.get(token);
-    if (!selection || selection.ownerId !== window!.webContents.id)
-      throw new Error("剪映项目选择已失效，请重新选择项目");
-    if (selection.reading) throw new Error("所选时间线正在读取，请稍候");
+  handle("read-capcut-draft", (token: unknown, timelineId?: unknown) => readCapcutSelection(token, async plan => {
     if (
       timelineId !== undefined &&
       (typeof timelineId !== "string" ||
-        !selection.plan.timelines.some((choice) => choice.id === timelineId))
+        !plan.timelines.some((choice) => choice.id === timelineId))
     )
       throw new Error("请选择项目中已有的时间线");
-    selection.reading = true;
-    try {
-      const result = await readSelectedCapcutTimeline(
-        selection.plan,
-        timelineId as string | undefined,
-      );
-      const decoded = decodeCapcutDraft(result.text);
-      capcutSelections.delete(token);
-      return {
-        text: decoded.text,
-        name: result.name,
-        warnings: selection.plan.warnings,
-      };
-    } finally {
-      selection.reading = false;
+    const result = await readSelectedCapcutTimeline(plan, timelineId as string | undefined);
+    return { text: decodeCapcutDraft(result.text).text, name: result.name, warnings: plan.warnings };
+  }));
+  handle("read-capcut-timelines", (token: unknown) => readCapcutSelection(token, async plan => {
+    if (plan.sourceSelection.kind !== "directory" || !plan.requiresTimelineChoice ||
+        plan.timelines.length > MAX_PROJECT_TIMELINES)
+      throw new Error("Choose a CapCut project folder with 2–32 timelines.");
+    const drafts: CapcutTimelineDraft[] = [];
+    let bytes = 0;
+    for (const timeline of plan.timelines) {
+      const draft = await readSelectedCapcutTimeline(plan, timeline.id);
+      const { text } = decodeCapcutDraft(draft.text);
+      bytes += Buffer.byteLength(text);
+      if (bytes > 40 * 1024 * 1024) throw new Error("The combined CapCut timelines exceed 40 MiB.");
+      drafts.push({ id: timeline.id, name: draft.name, text });
     }
-  });
+    return { drafts, warnings: plan.warnings };
+  }));
   handle("discard-capcut-project", (token: unknown) => {
     validateCapcutToken(token);
     const selection = capcutSelections.get(token);

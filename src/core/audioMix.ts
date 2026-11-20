@@ -1,4 +1,5 @@
 import type { Clip, MediaAsset, Project } from "./types";
+import type { BeatAnalysis } from "./beats";
 
 export interface AudioInterval { start: number; end: number }
 export interface DuckingOptions {
@@ -14,11 +15,13 @@ export interface AudioDucking extends DuckingOptions {
 
 export type AudioAnalysisRequest =
   | { mode: "normalize"; clipIds: readonly string[]; targetLufs: number }
-  | { mode: "duck"; voiceTrackId: string; musicTrackId: string; options: DuckingOptions };
+  | { mode: "duck"; voiceTrackId: string; musicTrackId: string; options: DuckingOptions }
+  | { mode: "beats"; assetId: string };
 export interface LoudnessMeasurement { clipId: string; lufs: number; truePeakDb: number; gainDb: number }
 export type AudioAnalysisResult =
   | { mode: "normalize"; measurements: LoudnessMeasurement[] }
-  | { mode: "duck"; regions: AudioInterval[] };
+  | { mode: "duck"; regions: AudioInterval[] }
+  | { mode: "beats"; analysis: BeatAnalysis };
 export interface AudioAnalysisProgress { jobId: string; progress: number }
 
 export const DEFAULT_DUCKING: DuckingOptions = {

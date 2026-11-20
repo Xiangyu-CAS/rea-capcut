@@ -1,5 +1,8 @@
 import { EASINGS, easingProgress } from "./easing";
 import { validateAudioDucking } from "./audioMix";
+import { MAX_PROJECT_TIMELINES, MAX_TIMELINE_NAME } from "./projectTimelines";
+import { averageSpeed, MAX_SPEED_POINTS, sliceSpeedCurve, sourceOffsetAt, timelineOffsetAt, validateSpeedCurve, type SpeedPoint } from "./speedCurve";
+import { validateBeatAnalysis } from "./beats";
 import type {
   Clip,
   MediaAsset,
@@ -149,7 +152,8 @@ export function splitClip(
     id: id(),
     start: at,
     duration: clip.duration - leftDuration,
-    sourceIn: clip.sourceIn + leftDuration * clip.speed,
+    sourceIn: clip.sourceIn + sourceOffsetAt(clip, leftDuration),
+    ...sliceSpeedCurve(clip, leftDuration, clip.duration),
     fadeIn: 0,
     audioFadeIn: 0,
     keyframes: sliceKeyframes(clip, leftDuration, clip.duration),
@@ -157,6 +161,7 @@ export function splitClip(
   const left = {
     ...clip,
     duration: leftDuration,
+    ...sliceSpeedCurve(clip, 0, leftDuration),
     fadeOut: 0,
     audioFadeOut: 0,
     keyframes: sliceKeyframes(clip, 0, leftDuration),
@@ -199,25 +204,28 @@ export function trimClip(
   if (edge === "start") {
     const lower =
       asset && asset.kind !== "image"
-        ? Math.max(0, clip.start - clip.sourceIn / clip.speed)
+        ? Math.max(0, clip.start + timelineOffsetAt(clip, -clip.sourceIn))
         : 0;
     const next = Math.max(
       lower,
       Math.min(at, clip.start + clip.duration - min),
     );
     const delta = next - clip.start;
-    clip.sourceIn = Math.max(0, clip.sourceIn + delta * clip.speed);
+    clip.sourceIn = Math.max(0, clip.sourceIn + sourceOffsetAt(original, delta));
     clip.duration -= delta;
     clip.start = next;
     clip.keyframes = sliceKeyframes(original, delta, original.duration);
+    Object.assign(clip, sliceSpeedCurve(original, delta, original.duration));
   } else {
     const max =
       asset && asset.kind !== "image"
-        ? clip.start + (asset.duration - clip.sourceIn) / clip.speed
+        ? clip.start + timelineOffsetAt(clip, asset.duration - clip.sourceIn)
         : Infinity;
     clip.duration = Math.max(min, Math.min(at, max) - clip.start);
     clip.keyframes = sliceKeyframes(original, 0, clip.duration);
+    Object.assign(clip, sliceSpeedCurve(original, 0, clip.duration));
   }
+  if ((clip.speedCurve?.length ?? 0) > MAX_SPEED_POINTS) return project;
   preserveFades(original, clip, clip.start - original.start);
   for (const field of [
     "fadeIn",
@@ -237,6 +245,7 @@ export function changeClipSpeed(
   project: Project,
   clipId: string,
   speed: number,
+  curve?: SpeedPoint[],
 ): Project {
   const clip = project.clips.find((c) => c.id === clipId);
   if (
@@ -245,11 +254,13 @@ export function changeClipSpeed(
     !Number.isFinite(speed) ||
     speed < 0.1 ||
     speed > 8 ||
-    speed === clip.speed
+    (speed === clip.speed && !clip.speedCurve && !curve)
   )
     return project;
+  if (curve && !project.assets.some(asset => asset.id === clip.assetId && asset.kind !== "image"))
+    return project;
   const ratio = clip.speed / speed;
-  const next = {
+  const next: Clip = {
     ...clip,
     speed,
     duration: clip.duration * ratio,
@@ -259,6 +270,8 @@ export function changeClipSpeed(
     audioFadeIn: clip.audioFadeIn * ratio,
     audioFadeOut: clip.audioFadeOut * ratio,
   };
+  if (curve) next.speedCurve = curve;
+  else delete next.speedCurve;
   for (const field of ["videoFadeWindow", "audioFadeWindow"] as const)
     if (clip[field]) {
       const w = clip[field]!;
@@ -460,15 +473,37 @@ export function validateProject(input: unknown): Project {
   if (p.version !== 1) fail("版本（仅支持版本 1）");
   str(p.id, "ID", 256);
   str(p.name, "名称", 4096, true);
-  for (const field of ["width", "height"] as const)
-    if (!Number.isInteger(num(p[field], field, 16, 7680))) fail(field);
-  if (![24, 25, 30, 50, 60].includes(num(p.fps, "帧率"))) fail("帧率");
-  color(p.background, "背景颜色");
   for (const field of ["createdAt", "updatedAt"] as const)
     if (!Number.isFinite(Date.parse(str(p[field], field, 64)))) fail(field);
-  const rawAssets = list(p.assets, "素材列表", 10000),
-    rawTracks = list(p.tracks, "轨道列表", 1000),
-    rawClips = list(p.clips, "片段列表", 10000);
+  const other = p.otherTimelines === undefined ? [] :
+    list(p.otherTimelines, "其他时间线", MAX_PROJECT_TIMELINES - 1).map(item => object(item, "时间线"));
+  if (other.length && p.activeTimeline === undefined) fail("当前时间线");
+  if (p.activeTimeline !== undefined) {
+    const names = [object(p.activeTimeline, "当前时间线"), ...other];
+    const timelineIds = new Set<string>(), timelineIndices = new Set<number>();
+    for (const timeline of names) {
+      const timelineId = str(timeline.id, "时间线 ID", 256);
+      const index = num(timeline.index, "时间线顺序", 0, names.length - 1);
+      if (timelineIds.has(timelineId) || !Number.isInteger(index) || timelineIndices.has(index))
+        fail("重复时间线 ID 或顺序");
+      str(timeline.name, "时间线名称", MAX_TIMELINE_NAME);
+      timelineIds.add(timelineId);
+      timelineIndices.add(index);
+    }
+  }
+  const rawAssets = list(p.assets, "素材列表", 10000);
+  const timelineLists = [p, ...other].map(timeline => {
+    for (const field of ["width", "height"] as const)
+      if (!Number.isInteger(num(timeline[field], field, 16, 7680))) fail(field);
+    if (![24, 25, 30, 50, 60].includes(num(timeline.fps, "帧率"))) fail("帧率");
+    color(timeline.background, "背景颜色");
+    return { tracks: list(timeline.tracks, "轨道列表", 1000), clips: list(timeline.clips, "片段列表", 10000) };
+  });
+  if (timelineLists.reduce((count, timeline) => count + timeline.clips.length, 0) > 40000 ||
+      timelineLists.reduce((count, timeline) => count + timeline.tracks.length, 0) > 4000)
+    fail("多时间线轨道或片段数量");
+  const rawTracks = timelineLists.flatMap((timeline, index) => timeline.tracks.map(raw => [raw, index] as const));
+  const rawClips = timelineLists.flatMap((timeline, index) => timeline.clips.map(raw => [raw, index] as const));
   const ids = new Set<string>();
   const recordId = (item: Record<string, unknown>, label: string) => {
     const value = str(item.id, `${label} ID`, 256);
@@ -477,7 +512,8 @@ export function validateProject(input: unknown): Project {
     return value;
   };
   const assets = new Map<string, Record<string, unknown>>(),
-    tracks = new Map<string, Record<string, unknown>>();
+    tracks = new Map<string, { track: Record<string, unknown>; timeline: number }>();
+  let beatMarks = 0;
   for (const raw of rawAssets) {
     const a = object(raw, "素材");
     assets.set(recordId(a, "素材"), a);
@@ -485,7 +521,7 @@ export function validateProject(input: unknown): Project {
     str(a.path, "素材路径", 32768);
     str(a.url, "素材 URL", 32768);
     choice(a.kind, ["video", "audio", "image"], "素材类型");
-    num(a.duration, "素材时长", 0, 86400 * 8);
+    const assetDuration = num(a.duration, "素材时长", 0, 86400 * 8);
     for (const field of ["width", "height"] as const)
       num(a[field], `素材 ${field}`, 0, 100000);
     num(a.fps, "素材帧率", 0, 1000);
@@ -498,10 +534,15 @@ export function validateProject(input: unknown): Project {
     if (a.waveform !== undefined)
       for (const v of list(a.waveform, "音频波形", 100000))
         num(v, "音频波形值", 0, 1);
+    if (a.beats !== undefined) {
+      if (!a.hasAudio || a.kind === "image") fail("节拍素材类型");
+      beatMarks += validateBeatAnalysis(a.beats, assetDuration).times.length;
+      if (beatMarks > 60000) fail("工程节拍数量");
+    }
   }
-  for (const raw of rawTracks) {
+  for (const [raw, timeline] of rawTracks) {
     const t = object(raw, "轨道");
-    tracks.set(recordId(t, "轨道"), t);
+    tracks.set(recordId(t, "轨道"), { track: t, timeline });
     str(t.name, "轨道名称", 4096, true);
     choice(t.kind, ["video", "audio", "image", "text"], "轨道类型");
     for (const field of ["muted", "hidden", "locked"] as const)
@@ -511,13 +552,14 @@ export function validateProject(input: unknown): Project {
       validateAudioDucking(t.audioDucking);
     }
   }
-  for (const raw of rawClips) {
+  for (const [raw, timeline] of rawClips) {
     const c = object(raw, "片段");
     recordId(c, "片段");
     str(c.name, "片段名称", 4096, true);
     if (c.linkId !== undefined) str(c.linkId, "画声关联 ID", 256);
-    const track = tracks.get(str(c.trackId, "片段轨道 ID", 256));
-    if (!track) fail("片段轨道引用");
+    const entry = tracks.get(str(c.trackId, "片段轨道 ID", 256));
+    if (entry?.timeline !== timeline) fail("片段轨道引用");
+    const track = entry?.track;
     const asset =
       c.assetId === undefined
         ? undefined
@@ -527,6 +569,9 @@ export function validateProject(input: unknown): Project {
       duration = num(c.duration, "片段时长", Number.MIN_VALUE, 86400),
       sourceIn = num(c.sourceIn, "源素材起点", 0, 86400 * 8),
       speed = num(c.speed, "速度", 0.1, 8);
+    if (c.speedCurve !== undefined && (!asset || asset.kind === "image" ||
+        Math.abs(averageSpeed(validateSpeedCurve(c.speedCurve)) - speed) > 1e-7))
+      fail("变速曲线与源范围");
     if (start + duration > 86400) fail("时间线时长（最长 24 小时）");
     num(c.volume, "音量", 0, 4);
     if (c.audioGainDb !== undefined) num(c.audioGainDb, "响度增益", -36, 24);
