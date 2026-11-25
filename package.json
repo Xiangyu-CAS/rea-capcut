@@ -28,7 +28,7 @@
     "test:storage": "npm run build && tsx tests/storage-electron.ts",
     "test:player": "npm run build && tsx tests/player-electron.ts",
     "dist:mac:installer": "npm run build && electron-builder --mac dmg zip --publish never",
-    "dist:win": "npm run build && electron-builder --win nsis --x64 --publish never",
+    "dist:win": "node node_modules/electron/install.js && npm run build && electron-builder --win nsis --x64 --config.electronDist=node_modules/electron/dist --publish never",
     "test:tracks": "npm run build && tsx tests/track-electron.ts",
     "test:audio": "npm run build && tsx tests/audio-electron.ts",
     "test:package": "tsx tests/package-electron.ts",
