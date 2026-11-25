@@ -77,7 +77,7 @@ const speechSettingsPath = path.join(settingsRoot, "speech-settings.json");
 if (process.platform === "darwin") app.setActivationPolicy(pluginMode ? "accessory" : "regular");
 if (pluginMode && !process.env.REACUT_USER_DATA)
   app.setPath("userData", path.join(app.getPath("appData"), "ReaCut-Plugin", "sessions", randomUUID()));
-if (app.isPackaged && process.platform === "darwin")
+if (app.isPackaged && (process.platform === "darwin" || process.platform === "win32"))
   setBundledMediaToolsDirectory(path.join(process.resourcesPath, "media-tools"));
 if (process.env.REACUT_USER_DATA)
   app.setPath("userData", path.resolve(process.env.REACUT_USER_DATA));

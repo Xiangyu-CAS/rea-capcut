@@ -57,7 +57,9 @@ ReaCut 将素材管理、多轨剪辑、字幕和视频导出放在一个熟悉�
 
 **界面语言。** 打开右上角 **设置 → 语言**，或按 **Cmd/Ctrl+,**。新安装默认「跟随系统」，匹配不到时使用英文。手动选择保存在本机，随时可切回「跟随系统」。 [语言支持与验证](docs/LOCALIZATION.md)
 
-### 方式一：独立 DMG 桌面版
+### 方式一：独立桌面版
+
+**Windows 10/11 x64** 用户可下载并运行 [ReaCut 0.9.1 EXE 安装包](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe)。包内自带 FFmpeg 和 FFprobe。预览版安装包未签名，Windows 可能显示 SmartScreen 提示。MLX 本地识别、macOS 系统配音和 Codex 插件暂未纳入 Windows 预览版。
 
 下载 [ReaCut 0.9.0 DMG（macOS Apple Silicon）](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg)，打开后将应用拖入“应用程序”，直接启动即可剪辑。安装包自带 FFmpeg / FFprobe，不需要另外安装。当前为预览版，采用 ad-hoc 签名，尚未完成 Apple 公证。
 
@@ -106,6 +108,10 @@ npm run dist:mac:installer
 DMG 和 ZIP 输出到 `release/`。首次构建会下载并编译内置 FFmpeg / FFprobe；安装包用户无需再安装媒体工具。打开 DMG 后，将 ReaCut 拖入“应用程序”。
 
 当前安装包采用本地 ad-hoc 签名，尚未完成 Apple 公证。平台验证与构建细节见 [验证记录](docs/VALIDATION.md) 和 [媒体工具说明](docs/MEDIA_TOOLS.md)。
+
+### 构建 Windows 安装包
+
+先按 [MinGW-w64 构建说明](docs/MEDIA_TOOLS.md#windows-x64) 准备 Windows x64 媒体工具，再在 Windows x64 上依次运行 `npm ci`、`node node_modules/electron/install.js`、`npm run licenses` 和 `npm run dist:win`。NSIS 安装包输出到 `release/`。
 
 ## 项目与数据
 
@@ -163,4 +169,4 @@ ReaCut 自行编写的源码采用 [MIT License](LICENSE)。第三方组件保�
 
 ## 手动检查更新（v0.7.1）
 
-设置或原生帮助菜单中的「检查更新」按用户请求检查预览通道，显示更新说明，并在浏览器打开匹配的 DMG；需手动替换应用。不在启动时检查，不上传工程或媒体。GitHub 会接收普通连接的 IP 地址。详见 [手动更新的行为与限制](docs/MANUAL_UPDATES.md)。
+设置或原生帮助菜单中的「检查更新」可按需检查预览通道，显示更新说明，并在浏览器打开匹配的安装包。GitHub 会接收普通连接的 IP 地址。详见 [手动更新的行为与限制](docs/MANUAL_UPDATES.md)。

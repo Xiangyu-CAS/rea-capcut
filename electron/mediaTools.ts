@@ -21,20 +21,23 @@ export async function resolveMediaTool(
   const env = options.env ?? process.env;
   const platform = options.platform ?? process.platform;
   const override = env[name === "ffmpeg" ? "REACUT_FFMPEG" : "REACUT_FFPROBE"];
-  const executable = platform === "win32" ? `${name}.exe` : name;
+  const windows = platform === "win32";
+  const executable = windows ? `${name}.exe` : name;
+  // Worker threads use a case-sensitive copy of the Windows environment.
+  const searchPath = env.PATH ?? (windows ? env.Path : undefined) ?? "";
   const candidates = override
     ? [override]
     : options.bundledDirectory
       ? [path.join(options.bundledDirectory, executable)]
-      : (env.PATH ?? "").split(platform === "win32" ? ";" : ":")
+      : searchPath.split(windows ? ";" : ":")
           .filter(Boolean).map(directory => path.join(directory, executable))
-          .concat(platform === "win32" ? [] : [
+          .concat(windows ? [] : [
             `/opt/homebrew/bin/${name}`, `/usr/local/bin/${name}`, `/usr/bin/${name}`,
           ]);
   for (const candidate of candidates) {
     try {
       if (!(await stat(candidate)).isFile()) continue;
-      await access(candidate, platform === "win32" ? constants.F_OK : constants.X_OK);
+      await access(candidate, windows ? constants.F_OK : constants.X_OK);
       return candidate;
     } catch { /* next candidate */ }
   }

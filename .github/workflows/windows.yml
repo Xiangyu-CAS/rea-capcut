@@ -1,0 +1,139 @@
+name: Windows installer
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/windows.yml'
+      - 'electron/**'
+      - 'src/**'
+      - 'scripts/**'
+      - 'tests/package-electron.ts'
+      - 'public/**'
+      - 'package*.json'
+  push:
+    branches: [main]
+    tags: ['v*']
+    paths:
+      - '.github/workflows/windows.yml'
+      - 'electron/**'
+      - 'src/**'
+      - 'scripts/**'
+      - 'tests/package-electron.ts'
+      - 'public/**'
+      - 'package*.json'
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish a Windows preview from main
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  media-tools:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/cache@v5
+        id: media
+        with:
+          path: media-tools/win32-x64
+          key: windows-x64-media-tools-ubuntu24.04-${{ hashFiles('scripts/build-windows-media-tools.sh') }}
+      - if: steps.media.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-mingw-w64-x86-64-win32 binutils-mingw-w64-x86-64 nasm pkg-config
+          bash scripts/build-windows-media-tools.sh
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows-media-tools
+          path: media-tools/win32-x64
+          if-no-files-found: error
+  installer:
+    needs: media-tools
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/download-artifact@v8
+        with:
+          name: windows-media-tools
+          path: media-tools/win32-x64
+      - run: npm ci
+      - run: node node_modules/electron/install.js
+      - run: npm run licenses
+      - run: npm run dist:win
+      - name: Install and verify the packaged editor
+        shell: pwsh
+        run: |
+          $version = node -p "require('./package.json').version"
+          $setup = (Resolve-Path "release/ReaCut-$version-x64-Setup.exe").Path
+          $install = Join-Path $env:RUNNER_TEMP 'ReaCut installer smoke'
+          $process = Start-Process -FilePath $setup -ArgumentList "/S /D=$install" -Wait -PassThru
+          if ($process.ExitCode -ne 0 -or !(Test-Path -LiteralPath (Join-Path $install 'ReaCut.exe'))) {
+            throw "Windows installer failed with exit code $($process.ExitCode)"
+          }
+          $tools = Join-Path $install 'resources/media-tools'
+          $env:REACUT_FFMPEG = Join-Path $tools 'ffmpeg.exe'
+          $env:REACUT_FFPROBE = Join-Path $tools 'ffprobe.exe'
+          npm run demo
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:REACUT_TEST_APP = $install
+          npm run test:package
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $setup).Hash.ToLowerInvariant()
+          "$hash  $(Split-Path $setup -Leaf)" | Set-Content -Encoding ascii release/SHA256SUMS-windows.txt
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: windows-package-evidence
+          path: |
+            .test-output/package-electron/*.png
+            .test-output/package-electron/evidence.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ReaCut-Windows-x64
+          path: |
+            release/ReaCut-*-x64-Setup.exe
+            release/SHA256SUMS-windows.txt
+          if-no-files-found: error
+  publish:
+    if: >-
+      github.repository == 'Xiangyu-CAS/rea-capcut'
+      && github.event_name == 'workflow_dispatch'
+      && github.ref == 'refs/heads/main'
+      && inputs.publish
+    needs: installer
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    concurrency: publish-windows-preview
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v8
+        with:
+          name: ReaCut-Windows-x64
+          path: artifacts
+      - name: Publish tested installer as a GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="$(jq -er .version package.json)"
+          tag="v$version"
+          installer="ReaCut-$version-x64-Setup.exe"
+          (cd artifacts && sha256sum --check SHA256SUMS-windows.txt)
+          # Refuse to move an existing tag or replace an existing release.
+          if [[ -n "$(git ls-remote --exit-code origin "refs/tags/$tag")" ]]; then
+            echo "Tag already exists: $tag" >&2
+            exit 1
+          fi
+          gh release create "$tag" "artifacts/$installer" artifacts/SHA256SUMS-windows.txt \
+            --target "$GITHUB_SHA" --prerelease --latest=false --title "ReaCut $version Windows Preview" \
+            --notes "Windows 10/11 x64 desktop preview with bundled offline FFmpeg and FFprobe. Download $installer and run it to install. The installer is unsigned. Local MLX transcription, macOS voices, and the Codex plugin are outside this Windows preview."

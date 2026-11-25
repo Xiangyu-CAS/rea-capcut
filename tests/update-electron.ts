@@ -99,7 +99,7 @@ async function checkRequests(app: ElectronApplication, expected = 1) {
     await expect(page.getByRole('dialog').locator('a, script')).toHaveCount(0);
     expect(await page.evaluate(() => (window as any).__unsafeRelease)).toBeUndefined();
     await page.getByRole('button', { name: 'GitHub release page', exact: true }).click();
-    await page.getByRole('button', { name: 'Download compatible DMG', exact: true }).click();
+    await page.getByRole('button', { name: 'Download installer', exact: true }).click();
     expect(await app.evaluate(() => (globalThis as any).__updateOpens)).toEqual([
       `${repo}/releases/tag/v${future}`, `${repo}/releases/download/v${future}/ReaCut-${future}-${arch}.dmg`,
     ]);
@@ -165,10 +165,10 @@ for (const scenario of ['current', 'no-asset', 'offline', 'rate-limit', 'pending
       await expect(page.getByText(`New version available: ${future}`, { exact: true })).toBeVisible();
     } else if (scenario === 'current') {
       await expect(page.getByText('No newer version was found in the Preview channel.', { exact: true })).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Download compatible DMG', exact: true })).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Download installer', exact: true })).toHaveCount(0);
     } else if (scenario === 'no-asset') {
-      await expect(page.getByText(/No compatible DMG is available/)).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Download compatible DMG', exact: true })).toHaveCount(0);
+      await expect(page.getByText(/No compatible installer is available/)).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Download installer', exact: true })).toHaveCount(0);
     } else {
       await expect(page.getByRole('dialog').getByRole('alert')).toContainText(scenario === 'offline' ? 'Could not reach GitHub' : 'GitHub has temporarily limited requests');
       await expect(page.getByRole('button', { name: 'GitHub release page', exact: true })).toHaveCount(0);

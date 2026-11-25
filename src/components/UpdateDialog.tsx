@@ -73,7 +73,7 @@ export default function UpdateDialog({ onClose, autoCheck = false }: { onClose()
         </div>
         {!available && <p role="alert" className="inline-warning">{ui('请在 ReaCut 桌面应用中检查更新。浏览器预览不支持此功能。', 'Check for updates in the ReaCut desktop app. This feature is unavailable in the browser preview.')}</p>}
         {!busy && result?.status === 'error' && <p role="alert" className="inline-warning">{errors[result.error ?? 'server'] ?? errors.server}</p>}
-        {!busy && result?.status === 'available' && !result.release?.hasDownload && <p className="inline-warning">{ui('此版本没有适用于本机系统和架构的 DMG。可查看发布页；请勿安装不匹配的安装包。', 'No compatible DMG is available for this system and architecture. You can view the release page; do not install an incompatible package.')}</p>}
+        {!busy && result?.status === 'available' && !result.release?.hasDownload && <p className="inline-warning">{ui('此版本暂无适用于本机系统和架构的安装包，可查看发布页。', 'No compatible installer is available for this system and architecture. See the release page for details.')}</p>}
         {!busy && result?.release && <div className="update-notes"><h3>{ui('发布说明（原文）', 'Release notes (original text)')}</h3><pre>{result.release.notes || ui('此版本未提供发布说明。', 'No release notes were provided.')}</pre></div>}
         {openFailed && <p role="alert" className="inline-warning">{ui('无法打开已验证的发布链接。请重新检查更新后再试。', 'Could not open the verified release link. Check for updates and try again.')}</p>}
         <p className="muted small">{ui('仅在你点击检查更新时请求 GitHub；GitHub 会收到普通网络请求（包括 IP 地址）。不会上传项目、媒体或令牌，也没有后台轮询或遥测。短时间内重复检查会复用 30 秒内的结果。', 'GitHub is contacted only when you request a check and receives an ordinary network request, including your IP address. No projects, media or tokens are uploaded; there is no background polling or telemetry. Repeated checks reuse results for 30 seconds.')}</p>
@@ -83,7 +83,7 @@ export default function UpdateDialog({ onClose, autoCheck = false }: { onClose()
         <button onClick={onClose}>{ui('关闭', 'Close')}</button>
         <button disabled={!available || busy || opening} onClick={() => void check()}>{busy ? ui('检查中…', 'Checking…') : ui('重新检查', 'Check again')}</button>
         {!busy && result?.release && result.status !== 'error' && <button disabled={opening} onClick={() => void open('release')}>{ui('GitHub 发布页', 'GitHub release page')}</button>}
-        {!busy && result?.status === 'available' && result.release?.hasDownload && <button className="primary" disabled={opening} onClick={() => void open('download')}>{ui('下载匹配的 DMG', 'Download compatible DMG')}</button>}
+        {!busy && result?.status === 'available' && result.release?.hasDownload && <button className="primary" disabled={opening} onClick={() => void open('download')}>{ui('下载安装包', 'Download installer')}</button>}
       </footer>
     </section>
   </div>;

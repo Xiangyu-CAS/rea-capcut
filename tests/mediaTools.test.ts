@@ -11,7 +11,7 @@ beforeAll(async () => {
   system = path.join(directory, "system");
   for (const folder of [bundledDirectory, system]) {
     await mkdir(folder, { recursive: true });
-    for (const tool of ["ffmpeg", "ffprobe"]) {
+    for (const tool of ["ffmpeg", "ffprobe", "ffmpeg.exe", "ffprobe.exe"]) {
       await writeFile(path.join(folder, tool), "#!/bin/sh\nexit 0\n");
       await chmod(path.join(folder, tool), 0o755);
     }
@@ -35,6 +35,12 @@ it("does not hide a stale explicit override with the bundled tool", async () => 
   await expect(resolveMediaTool("ffmpeg", { platform: "darwin", bundledDirectory, env: { REACUT_FFMPEG: directory } }))
     .rejects.toThrow("所选 ffmpeg");
 });
-it("retains PATH discovery for source development", async () => {
-  expect(await resolveMediaTool("ffmpeg", { platform: "darwin", env: { PATH: system } })).toBe(path.join(system, "ffmpeg"));
+it("retains native PATH discovery for source development", async () => {
+  const tool = process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg";
+  expect(await resolveMediaTool("ffmpeg", { env: { PATH: system } })).toBe(path.join(system, tool));
+});
+it("finds Windows executables both in the bundle and in a mixed-case Path", async () => {
+  const env = { Path: `${path.join(directory, "missing")};${system}` };
+  expect(await resolveMediaTool("ffprobe", { platform: "win32", env })).toBe(path.join(system, "ffprobe.exe"));
+  expect(await resolveMediaTool("ffprobe", { platform: "win32", bundledDirectory, env })).toBe(path.join(bundledDirectory, "ffprobe.exe"));
 });

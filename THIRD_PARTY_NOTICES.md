@@ -54,7 +54,9 @@ macOS installers from ReaCut 0.2.1 include separately executed FFmpeg and FFprob
 
 The app's `Contents/Resources/media-tools/` directory contains the executables, original license texts, exact corresponding source archives, a build recipe and `manifest.json` with pinned URLs, source checksums and build flags. Source is provided together with every installer, including the build-only pkgconf source. No FFmpeg/x264 source patches are applied. Preserve this directory when redistributing. `buildSHA256` records binaries before application signing; signing can change their bytes. The standalone recipe is also in `scripts/build-media-tools.mjs`; it builds static codec libraries and verifies that executable dependencies are exclusively macOS system libraries/frameworks.
 
-ReaCut invokes these tools as separate local processes. The independently written ReaCut source remains MIT; each included component retains its own license. User-selected custom FFmpeg builds and Windows/Linux source-development installations have their own configuration and licenses. REA, Ghidra and Jianying binaries are not used to build these media tools.
+Windows x64 installers from ReaCut 0.9.1 include the same pinned FFmpeg and x264 sources and statically link [zlib 1.4](https://zlib.net/fossils/zlib-1.4.tar.gz) under its original zlib license. The app's `resources/media-tools/` includes the exact source archives, hashes, original license texts and [Windows build recipe](scripts/build-windows-media-tools.sh). The executables require only Windows system DLLs.
+
+ReaCut invokes these tools as separate local processes. ReaCut source remains MIT and bundled components retain their own licenses. User-selected FFmpeg tools have their own configurations and licenses.
 
 REA is a development research tool from [morluto/rea](https://github.com/morluto/rea). Its tools are not imported, copied into the runtime, or required to run ReaCut. The public research report distinguishes observed behavior from inference and original design. Raw local evidence remains excluded from the repository.
 

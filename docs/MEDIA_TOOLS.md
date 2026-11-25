@@ -22,4 +22,16 @@ npm run dist:mac:installer
 
 所有上游源码归档、下载 URL、SHA-256、编译参数和许可证路径都在包内 `manifest.json` / `sources/` / `licenses/` 中。仓库留有脱敏的 [构建清单](media-tools-build.json)。清单的 `buildSHA256` 是签名前的指纹，应用签名可能改变可执行文件字节；最终签名后指纹另记录于 [验证摘要](validation-summary.json)。
 
-源码开发仍可使用系统安装的工具；Windows/Linux 安装包尚未集成对应平台媒体工具。不要将本机 macOS 的验证外推至这些平台。
+源码开发可使用系统安装的工具。Linux 安装包尚未集成内置媒体工具。
+
+## Windows x64
+
+Windows 安装包将 `ffmpeg.exe` 和 `ffprobe.exe` 放在 `resources/media-tools/`，自带对应源码、许可和 SHA-256 文件。使用与 macOS 构建相同的 FFmpeg 和 x264 源码，另静态链接 zlib 1.4。构建禁用网络协议，并检查 Windows 系统 DLL 以外的运行时依赖。
+
+在 Debian / Ubuntu 上安装 `gcc-mingw-w64-x86-64-win32`、`binutils-mingw-w64-x86-64`、`make`、`nasm`、`pkg-config`、`curl` 和 `xz-utils`。在 Windows 上可用 MSYS2 UCRT64，安装 `make`、`diffutils`、`pkgconf`、`mingw-w64-ucrt-x86_64-gcc` 和 `mingw-w64-ucrt-x86_64-nasm`。从仓库根目录运行：
+
+```sh
+bash scripts/build-windows-media-tools.sh
+```
+
+构建产物在 `media-tools/win32-x64/`。如果在另一台机器编译，将该目录复制到 Windows 构建机器，再运行 `npm run dist:win`。GitHub Actions 的 [Windows installer 工作流](../.github/workflows/windows.yml) 在 Windows 上运行安装程序，并在无系统媒体工具的环境下检查预览、缩略图和 MP4 导出。
