@@ -3,7 +3,7 @@ import type { SpeechInfo, SpeechProgress, SpeechRequest, SpeechResult } from "./
 import type { AudioAnalysisProgress, AudioAnalysisRequest, AudioAnalysisResult, AudioDucking } from "./audioMix";
 import type { SpeedPoint } from "./speedCurve";
 import type { BeatAnalysis } from "./beats";
-import type { AssistantEvent, AssistantMessage, AssistantProvider, AssistantProviderInfo, AssistantRequest } from "./assistantTypes";
+import type { AssistantCLI, AssistantEvent, AssistantLocalProject, AssistantMessage, AssistantProviderInfo, AssistantRequest, CodexAgentAccount, CodexAgentModel } from "./assistantTypes";
 export type MediaKind = "video" | "audio" | "image";
 export type TrackKind = MediaKind | "text";
 export interface MediaAsset {
@@ -238,8 +238,13 @@ export interface EditorAPI {
   onPackageProgress: (callback: (event: ExportProgress) => void) => () => void;
   importBuiltinAsset: (id: string) => Promise<MediaAsset>;
   getAssistantProviders: () => Promise<AssistantProviderInfo[]>;
-  chooseAssistantCLI: (provider: AssistantProvider) => Promise<AssistantProviderInfo[]>;
-  startAssistant: (request: AssistantRequest) => Promise<void>;
+  chooseAssistantCLI: (provider: AssistantCLI) => Promise<AssistantProviderInfo[]>;
+  getCodexAgentAccount: () => Promise<CodexAgentAccount>;
+  listCodexAgentModels: () => Promise<CodexAgentModel[]>;
+  signInCodexAgent: () => Promise<CodexAgentAccount>;
+  cancelCodexAgentSignIn: () => Promise<void>;
+  signOutCodexAgent: () => Promise<CodexAgentAccount>;
+  startAssistant: (request: AssistantRequest, local?: AssistantLocalProject) => Promise<void>;
   cancelAssistant: (requestId: string) => Promise<void>;
   onAssistantEvent: (callback: (event: AssistantEvent) => void) => () => void;
   getAssistantHistory: (projectId: string) => Promise<AssistantMessage[]>;

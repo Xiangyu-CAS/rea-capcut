@@ -1,4 +1,4 @@
-import { firstChineseWindow } from "./ui-language";
+import { firstChineseWindow, showProperties } from "./ui-language";
 import {
   _electron as electron,
   expect,
@@ -55,6 +55,7 @@ async function launch() {
     env,
   });
   page = await firstChineseWindow(app);
+  await showProperties(page);
   page.on("pageerror", (e) => errors.push(e.message));
   await app.evaluate(({ dialog, BrowserWindow }, output) => {
     BrowserWindow.getAllWindows()[0].setSize(1470, 900);

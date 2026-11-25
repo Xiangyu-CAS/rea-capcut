@@ -5,7 +5,7 @@ import SpeechSetup from "./components/SpeechSetup";
 import AudioMixDialog from "./components/AudioMixDialog";
 import DerivativeDialog from "./components/DerivativeDialog";
 import { version as appVersion } from "../package.json";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   AudioLines,
   Check,
@@ -20,7 +20,6 @@ import {
   LoaderCircle,
   Monitor,
   Music2,
-  MessageSquare,
   Shapes,
   Play,
   Save,
@@ -34,6 +33,8 @@ import {
   X,
 } from "lucide-react";
 import { useEditorStore } from "./editor/store";
+import { assistantMediaSelection } from "./core/assistantEdits";
+import type { AssistantMediaSelection } from "./core/assistantTypes";
 import { usePreviewProxies } from "./editor/usePreviewProxies";
 import { setPluginProjectReady } from "./editor/pluginBridge";
 import {
@@ -72,7 +73,7 @@ import Timeline from "./components/Timeline";
 import EffectsPanel from "./components/EffectsPanel";
 import { TextLibrary, TransitionLibrary } from "./components/CreativeLibrary";
 import { addTextPreset, applyTransition, type TextPreset, type TransitionId } from "./core/creativePresets";
-import Player from "./components/Player";
+import Player, { AgentPlanPreview } from "./components/Player";
 import Inspector from "./components/Inspector";
 import { useUITranslation, translateUI, useTranslation, useLanguageStore, type LanguagePreference, type TranslationKey } from "./i18n";
 import { createEditorProject } from "./editor/localizedDefaults";
@@ -497,9 +498,12 @@ export default function App() {
   const s = useEditorStore();
   const previewProxies = usePreviewProxies(s.project);
   const [speechMode, setSpeechMode] = useState<"asr" | "tts" | null>(null);
-  const [assistantOpen, setAssistantOpen] = useState(false);
-  const [sourceAssetId, setSourceAssetId] = useState<string | null>(null);
-  const sourceAsset = s.project.assets.find(asset => asset.id === sourceAssetId);
+  const { agentOpen: assistantOpen, setAgentOpen: setAssistantOpen } = s;
+  const [agentInspectorOpen, setAgentInspectorOpen] = useState(false);
+  const agentAssetIds = useMemo(() => new Set(assistantMediaSelection(s.project, s.agentMedia).map(item => item.assetId)), [s.project, s.agentMedia]);
+  const previewedPlan = s.agentPlan?.id === s.agentPreviewId && s.agentPlan?.base === s.project ? s.agentPlan : null;
+  const [sourceSelection, setSourceSelection] = useState<AssistantMediaSelection | null>(null);
+  const sourceAsset = s.project.assets.find(asset => asset.id === sourceSelection?.assetId);
   const [addingBuiltin, setAddingBuiltin] = useState<string | null>(null);
   const [tab, setTab] = useState("素材"),
     [modal, setModal] = useState<Modal>(null),
@@ -515,8 +519,9 @@ export default function App() {
     [recent, setRecent] = useState<RecentProject[]>([]),
     [recover, setRecover] = useState<Project | null>(null),
     [initialized, setInitialized] = useState(false);
-  useEffect(() => { setSourceAssetId(null); }, [s.project.id, modal, s.selectedIds]);
-  useEffect(() => { if (s.playing) setSourceAssetId(null); }, [s.playing]);
+  useEffect(() => { setSourceSelection(null); }, [s.project.id, modal, s.selectedIds]);
+  useEffect(() => { if (s.playing || s.agentPreviewId) setSourceSelection(null); }, [s.playing, s.agentPreviewId]);
+  useEffect(() => { if (modal || speechMode || recover) s.setAgentPreview(null); }, [modal, speechMode, recover, s.setAgentPreview]);
   const [timelineHeight, setTimelineHeight] = useState(() =>
     Math.max(220, Math.min(420, window.innerHeight * 0.34)),
   );
@@ -599,6 +604,11 @@ export default function App() {
     },
     [notify],
   );
+  const showSource = (selection: AssistantMediaSelection) => {
+    s.setAgentPreview(null);
+    s.setPlaying(false);
+    setSourceSelection(selection);
+  };
   const active = s.project.clips.find((c) => c.id === s.selectedIds[0]);
   const activeTrack = s.project.tracks.find((t) => t.id === active?.trackId);
   const { t, language } = useTranslation();
@@ -825,6 +835,12 @@ export default function App() {
       }
       const state = useEditorStore.getState(),
         modifier = e.metaKey || e.ctrlKey;
+      if (e.key === "Escape" && state.agentPreviewId && !e.defaultPrevented) {
+        state.setAgentPreview(null);
+        e.preventDefault();
+        return;
+      }
+      if (e.defaultPrevented || (e.key === " " && state.agentPreviewId)) return;
       let handled = true;
       if (modifier) {
         switch (e.key.toLowerCase()) {
@@ -1083,9 +1099,7 @@ export default function App() {
   return (
     <div
       className="app-shell"
-      style={{
-        gridTemplateRows: `44px minmax(180px,1fr) ${timelineHeight}px 26px`,
-      }}
+      style={{ "--timeline-height": `${timelineHeight}px` } as CSSProperties}
       onDragOver={(e) => {
         if (e.dataTransfer.types.includes("Files")) e.preventDefault();
       }}
@@ -1167,7 +1181,7 @@ export default function App() {
           />
         </div>
         <div className="titlebar-actions">
-          <button aria-label={t("toolbar.assistant.aria")} className={assistantOpen ? "active" : ""} onClick={() => setAssistantOpen(!assistantOpen)}><MessageSquare size={15} />{t("toolbar.assistant")}</button>
+          <button aria-label={t("toolbar.assistant.aria")} aria-pressed={assistantOpen} disabled={!window.editorAPI} className={assistantOpen ? "active" : ""} onClick={() => setAssistantOpen(!assistantOpen)}><Sparkles size={15} />{t("toolbar.assistant")}</button>
           <span className="offline-pill">
             <CloudOff size={12} />
             {t("toolbar.offline")}
@@ -1235,8 +1249,13 @@ export default function App() {
                     : s.project
                 }
                 onImport={(paths) => void safe(() => importMedia(paths))}
-                onPreviewAsset={(assetId) => { s.setPlaying(false); setSourceAssetId(assetId); }}
-                onAddAsset={(assetId) => { setSourceAssetId(null); s.addAssetClip(assetId); }}
+                onPreviewAsset={assetId => showSource({ assetId })}
+                agentAssetIds={agentAssetIds}
+                onToggleAgentAsset={window.editorAPI ? assetId => void safe(() => {
+                  if (agentAssetIds.has(assetId)) s.removeAgentMedia(assetId);
+                  else s.attachAgentMedia({ assetId });
+                }) : undefined}
+                onAddAsset={(assetId) => { setSourceSelection(null); s.addAssetClip(assetId); }}
                 onRemoveAsset={(assetId) =>
                   void safe(() => s.removeAsset(assetId))
                 }
@@ -1276,14 +1295,16 @@ export default function App() {
             />}
           </div>
         </section>
-        {sourceAsset ? <SourcePreview
+        {previewedPlan ? <AgentPlanPreview key={previewedPlan.id} plan={previewedPlan} proxies={previewProxies} onClose={() => s.setAgentPreview(null)} /> : sourceAsset ? <SourcePreview
           asset={sourceAsset}
           fps={s.project.fps}
+          initialRange={sourceSelection?.range}
           tracks={s.project.tracks.filter(t => t.kind === sourceAsset.kind || (sourceAsset.kind === "image" && t.kind === "video"))}
-          onClose={() => setSourceAssetId(null)}
+          onClose={() => setSourceSelection(null)}
+          onUseInAgent={window.editorAPI ? range => void safe(() => s.attachAgentMedia({ assetId: sourceAsset.id, range })) : undefined}
           onAddRange={(sourceIn, duration, mode, trackId) => void safe(() => {
             s.placeAsset(sourceAsset.id, trackId, { sourceIn, duration }, mode ?? "insert");
-            setSourceAssetId(null);
+            setSourceSelection(null);
           })}
         /> : <Player
           project={s.project}
@@ -1296,99 +1317,109 @@ export default function App() {
           onSeek={s.seek}
           onPlayingChange={s.setPlaying}
         />}
-        {assistantOpen ? <AssistantPanel onClose={() => setAssistantOpen(false)} /> : <Inspector
-          project={s.project}
-          clip={active}
-          playhead={s.playhead}
-          onUpdate={(patch) => active && s.updateClip(active.id, patch)}
-          onProjectUpdate={s.updateProject}
-          onNormalizeAudio={window.editorAPI && !activeTrack?.locked ? () => { s.setPlaying(false); setModal("normalize"); } : undefined}
-        />}
-      </EditorWorkspace>
-      <div className="timeline-pane">
-        <div
-          className="timeline-resize"
-          role="separator"
-          tabIndex={0}
-          aria-label={ui("调整时间线高度", "Resize timeline height")}
-          aria-orientation="horizontal"
-          aria-valuenow={Math.round(timelineHeight)}
-          aria-valuemin={190}
-          aria-valuemax={Math.max(190, window.innerHeight - 290)}
-          title={ui("拖动调整时间线高度", "Drag to resize the timeline")}
-          onKeyDown={(event) => {
-            if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+        <div className={`editor-right-dock${assistantOpen && agentInspectorOpen ? " inspector-visible" : ""}`}>
+          {(!assistantOpen || agentInspectorOpen) && <Inspector
+            project={s.project}
+            clip={active}
+            playhead={s.playhead}
+            onUpdate={(patch) => active && s.updateClip(active.id, patch)}
+            onProjectUpdate={s.updateProject}
+            onNormalizeAudio={window.editorAPI && !activeTrack?.locked ? () => { s.setPlaying(false); setModal("normalize"); } : undefined}
+          />}
+          {assistantOpen && <AssistantPanel
+            inspectorVisible={agentInspectorOpen}
+            onToggleInspector={() => setAgentInspectorOpen(!agentInspectorOpen)}
+            importing={importing}
+            onImportMedia={() => void safe(() => importMedia())}
+            onPreviewMedia={selection => { setTab("素材"); showSource(selection); }}
+            onClose={() => setAssistantOpen(false)}
+          />}
+        </div>
+        <div className="timeline-pane">
+          <div
+            className="timeline-resize"
+            role="separator"
+            tabIndex={0}
+            aria-label={ui("调整时间线高度", "Resize timeline height")}
+            aria-orientation="horizontal"
+            aria-valuenow={Math.round(timelineHeight)}
+            aria-valuemin={190}
+            aria-valuemax={Math.max(190, window.innerHeight - 290)}
+            title={ui("拖动调整时间线高度", "Drag to resize the timeline")}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+                event.preventDefault();
+                resizeTimeline(
+                  timelineHeight + (event.key === "ArrowUp" ? 20 : -20),
+                );
+              }
+            }}
+            onPointerDown={(event) => {
+              if (event.button !== 0) return;
               event.preventDefault();
-              resizeTimeline(
-                timelineHeight + (event.key === "ArrowUp" ? 20 : -20),
-              );
-            }
-          }}
-          onPointerDown={(event) => {
-            if (event.button !== 0) return;
-            event.preventDefault();
-            timelineResize.current = {
-              y: event.clientY,
-              height: timelineHeight,
-            };
-            event.currentTarget.setPointerCapture(event.pointerId);
-          }}
-          onPointerMove={(event) => {
-            const drag = timelineResize.current;
-            if (drag) resizeTimeline(drag.height + drag.y - event.clientY);
-          }}
-          onPointerUp={(event) => {
-            timelineResize.current = null;
-            if (event.currentTarget.hasPointerCapture(event.pointerId))
-              event.currentTarget.releasePointerCapture(event.pointerId);
-          }}
-          onPointerCancel={() => {
-            timelineResize.current = null;
-          }}
-        />
-        <TimelineTabs
-          key={s.project.id}
-          project={s.project}
-          onOpen={s.openTimeline}
-          onCreate={(name, defaultName, duplicate) => void safe(() => s.createTimeline(name, defaultName, duplicate))}
-          onRename={s.renameTimeline}
-        />
-        <Timeline
-          project={s.project}
-          selectedIds={s.selectedIds}
-          playhead={s.playhead}
-          playing={s.playing}
-          zoom={s.zoom}
-          onSeek={(time) => { setSourceAssetId(null); s.seek(time); }}
-          onSelect={(ids) => { setSourceAssetId(null); s.select(ids); }}
-          onClipUpdate={s.updateClip}
-          onMoveClips={s.moveClips}
-          onTrim={s.trim}
-          onSplit={s.split}
-          onDelete={() => void safe(s.deleteSelected)}
-          onZoom={s.setZoom}
-          onTrackUpdate={s.updateTrack}
-          onTrackDelete={s.deleteTrack}
-          onTrackMove={s.reorderTrack}
-          onAddTrack={s.addTrack}
-          onDropAsset={(assetId, time, trackId) => {
-            setSourceAssetId(null); s.addAssetClip(assetId, time, trackId);
-          }}
-          snapping={s.snapping}
-          onSnappingChange={s.setSnapping}
-          magnetic={s.magnetic}
-          onMagneticChange={s.setMagnetic}
-          onDuplicate={s.duplicate}
-          onAddText={s.addText}
-          onDuckAudio={window.editorAPI ? () => { s.setPlaying(false); setModal("duck"); } : undefined}
-          beatSnapping={beatSnapping}
-          beatTools={<BeatTools snapping={beatSnapping} setSnapping={setBeatSnapping} notify={notify} />}
-          onUndo={s.undo}
-          onRedo={s.redo}
-          canUndo={s.past.length > 0}
-          canRedo={s.future.length > 0}
-        />
-      </div>
+              timelineResize.current = {
+                y: event.clientY,
+                height: timelineHeight,
+              };
+              event.currentTarget.setPointerCapture(event.pointerId);
+            }}
+            onPointerMove={(event) => {
+              const drag = timelineResize.current;
+              if (drag) resizeTimeline(drag.height + drag.y - event.clientY);
+            }}
+            onPointerUp={(event) => {
+              timelineResize.current = null;
+              if (event.currentTarget.hasPointerCapture(event.pointerId))
+                event.currentTarget.releasePointerCapture(event.pointerId);
+            }}
+            onPointerCancel={() => {
+              timelineResize.current = null;
+            }}
+          />
+          <TimelineTabs
+            key={s.project.id}
+            project={s.project}
+            onOpen={s.openTimeline}
+            onCreate={(name, defaultName, duplicate) => void safe(() => s.createTimeline(name, defaultName, duplicate))}
+            onRename={s.renameTimeline}
+          />
+          <Timeline
+            project={s.project}
+            selectedIds={s.selectedIds}
+            playhead={s.playhead}
+            playing={s.playing}
+            zoom={s.zoom}
+            onSeek={(time) => { setSourceSelection(null); s.seek(time); }}
+            onSelect={(ids) => { setSourceSelection(null); s.select(ids); }}
+            onClipUpdate={s.updateClip}
+            onMoveClips={s.moveClips}
+            onTrim={s.trim}
+            onSplit={s.split}
+            onDelete={() => void safe(s.deleteSelected)}
+            onZoom={s.setZoom}
+            onTrackUpdate={s.updateTrack}
+            onTrackDelete={s.deleteTrack}
+            onTrackMove={s.reorderTrack}
+            onAddTrack={s.addTrack}
+            onDropAsset={(assetId, time, trackId) => {
+              setSourceSelection(null); s.addAssetClip(assetId, time, trackId);
+            }}
+            snapping={s.snapping}
+            onSnappingChange={s.setSnapping}
+            magnetic={s.magnetic}
+            onMagneticChange={s.setMagnetic}
+            onDuplicate={s.duplicate}
+            onAddText={s.addText}
+            onDuckAudio={window.editorAPI ? () => { s.setPlaying(false); setModal("duck"); } : undefined}
+            beatSnapping={beatSnapping}
+            beatTools={<BeatTools snapping={beatSnapping} setSnapping={setBeatSnapping} notify={notify} />}
+            onUndo={s.undo}
+            onRedo={s.redo}
+            canUndo={s.past.length > 0}
+            canRedo={s.future.length > 0}
+          />
+        </div>
+      </EditorWorkspace>
       <footer className="app-status">
         <span>
           <span className="status-dot" />{" "}

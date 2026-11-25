@@ -1,5 +1,6 @@
-import { useEditorStore } from './store';
-import { previewAssistantEdits } from '../core/assistantEdits';
+import { agentPlanStatus, useEditorStore } from './store';
+import { assistantMediaSelection, assistantTranscriptionRequest } from '../core/assistantEdits';
+import type { AssistantTranscription } from '../core/assistantTypes';
 import { projectDuration } from '../core/model';
 import { BUILTIN_ASSETS } from '../core/builtinAssets';
 import { TEMPLATE_EXAMPLES } from '../core/templateExamples';
@@ -18,17 +19,31 @@ export function installPluginBridge() {
   const plugin = window.reacutPlugin, api = window.editorAPI;
   if (!plugin || !api) return;
   let revision = 0;
+  const transcriptions = new Map<string, AssistantTranscription>();
   useEditorStore.subscribe((state, previous) => {
-    if (state.project !== previous.project) revision++;
+    if (state.project !== previous.project) {
+      revision++;
+      transcriptions.clear();
+    }
   });
   const snapshot = () => {
     const s = useEditorStore.getState();
+    const plan = s.agentPlan;
     return { revision, projectReady, name: s.project.name, id: s.project.id, width: s.project.width,
       height: s.project.height, fps: s.project.fps, duration: projectDuration(s.project),
       selectedIds: s.selectedIds, playhead: s.playhead, playing: s.playing, dirty: s.dirty,
+      activeTimeline: s.project.activeTimeline,
+      agent: {
+        open: s.agentOpen,
+        media: assistantMediaSelection(s.project, s.agentMedia),
+        plan: plan ? {
+          id: plan.id, source: plan.source, status: agentPlanStatus(plan, s.project),
+          changes: plan.preview.descriptions, previewing: s.agentPreviewId === plan.id,
+        } : null,
+      },
       tracks: s.project.tracks, clips: s.project.clips,
-      assets: s.project.assets.map(({ id, name, kind, duration, width, height, missing }) =>
-        ({ id, name, kind, duration, width, height, missing })) };
+      assets: s.project.assets.map(({ id, name, kind, duration, width, height, missing, hasAudio }) =>
+        ({ id, name, kind, duration, width, height, missing, hasAudio })) };
   };
   const loadTemplate = async ({ templateId, source }: TemplateSelection, instantiate = false) => {
     const template = await api.loadTemplate(templateId, source === 'builtin');
@@ -54,6 +69,16 @@ export function installPluginBridge() {
       return { saved: projectReady };
     }
     if (request.action === 'state') return snapshot();
+    if (request.action === 'transcribe') {
+      checkRevision(a.revision);
+      const recognition = assistantTranscriptionRequest(a.source, a.language, assistantMediaSelection(s.project, s.agentMedia));
+      const id = crypto.randomUUID();
+      const result = await api.generateSpeech(id, s.project, recognition);
+      checkRevision(a.revision);
+      if (result.mode !== 'asr') throw new Error('Invalid speech result.');
+      transcriptions.set(id, { id, request: recognition, time: s.playhead, cues: result.cues });
+      return { transcriptionId: id, source: recognition.source, cues: result.cues, revision };
+    }
     if (request.action === 'catalog') return { assets: BUILTIN_ASSETS };
     if (request.action === 'templates') {
       const chinese = useLanguageStore.getState().language === 'zh-CN';
@@ -135,12 +160,13 @@ export function installPluginBridge() {
     }
     if (request.action === 'export_status') return plugin.outputs.exportStatus(a.jobId);
     if (request.action === 'export_cancel') return plugin.outputs.exportCancel(a.jobId);
-    if (request.action === 'edit') {
-      if (!Number.isInteger(a.revision) || a.revision !== revision) throw new Error('项目已变化，请重新读取状态后再编辑');
-      if (s.transactionOpen) throw new Error('用户正在拖动或调整参数，请稍后重试');
-      const result = previewAssistantEdits(s.project, a.actions);
-      s.commit(result.project);
-      return { ...snapshot(), changes: result.descriptions };
+    if (request.action === 'edit' || request.action === 'propose_edit') {
+      checkRevision(a.revision);
+      const mode = request.action === 'edit' ? 'edit' : 'preview';
+      const plan = s.submitAgentEdits(s.project, a.actions, {
+        source: 'chatgpt', mode, summary: a.summary?.trim() || undefined, transcriptions: [...transcriptions.values()],
+      });
+      return mode === 'edit' ? { ...snapshot(), changes: plan.preview.descriptions } : snapshot();
     }
     if (request.action === 'import') {
       const assets = a.builtinId ? [await window.editorAPI!.importBuiltinAsset(a.builtinId)] :

@@ -1,4 +1,4 @@
-import { firstChineseWindow } from "./ui-language";
+import { firstChineseWindow, showProperties } from "./ui-language";
 /** Actual desktop integration. Uses original bundled assets and a synthetic CLI,
  * never a real CLI account. Dialog replacements are limited to this test app. */
 import { _electron as electron, expect, type Page } from "@playwright/test";
@@ -22,7 +22,7 @@ let prompt='';process.stdin.setEncoding('utf8');process.stdin.on('data',d=>promp
 const current=prompt.split('本次用户请求：').at(-1);fs.appendFileSync(${JSON.stringify(invocations)},JSON.stringify({args,cwd:process.cwd(),prompt,current,pid:process.pid})+'\\n');
 const event=value=>process.stdout.write(JSON.stringify(value)+'\\n');
 if(current.includes('CASE_CANCEL')){setInterval(()=>{},1000);return;}
-const response={reply:args[0]==='exec'?'Codex 合成回复：请确认两项修改。':'Claude 合成回复：请确认两项修改。',actions:[{type:'addText',text:'原创片头·你好映刻',start:0,duration:2,fontSize:32,color:'#ffffff',x:null,y:null},{type:'setProject',name:null,width:null,height:null,fps:null,background:'#172b3c'}]};
+const response={reply:args[0]==='exec'?'Codex 合成回复：添加片头并调整背景。':'Claude 合成回复：添加片头并调整背景。',mode:current.includes('CASE_CLAUDE')?'preview':'edit',actions:[{type:'addText',text:'原创片头·你好映刻',start:0,duration:2,fontSize:32,color:'#ffffff',x:null,y:null},{type:'setProject',name:null,width:null,height:null,fps:null,background:'#172b3c'}]};
 setTimeout(()=>{if(args[0]==='exec'){event({type:'item.completed',item:{type:'agent_message',text:JSON.stringify(response)}});event({type:'turn.completed'});}else{event({type:'result',subtype:'success',is_error:false,structured_output:response});}},120);
 });
 `);
@@ -48,6 +48,7 @@ try {
  await page.evaluate(()=>{window.confirm=()=>true;});
  await page.locator(".project-title input").fill("离线素材与助手验收");
  await page.locator(".project-title input").blur();
+ await showProperties(page);
  await page.getByRole("spinbutton",{name:"宽度",exact:true}).fill("640");
  await page.getByRole("spinbutton",{name:"宽度",exact:true}).blur();
  await page.getByRole("spinbutton",{name:"高度",exact:true}).fill("360");
@@ -97,26 +98,31 @@ try {
  checks.push("one undo removes asset, clip and new audio track together");
  await add("星点提示");
  const beforeAssistant=await save();
- await page.getByRole("button",{name:"剪辑助手",exact:true}).click();
  const panel=page.getByRole("complementary",{name:"剪辑助手"});
+ await expect(panel).toBeVisible();
+ const connection=panel.getByRole("button",{name:"连接设置",exact:true});
+ await connection.click();
+ await panel.getByRole("combobox",{name:"助手后端"}).selectOption("codex");
  await panel.getByRole("button",{name:"选择 CLI",exact:true}).click();
  await expect(panel.locator(".assistant-provider-status")).toContainText("ReaCut synthetic fixture 1.0",{timeout:20000});
  const send=async(message:string)=>{await panel.getByRole("textbox",{name:"助手消息"}).fill(message);await panel.getByRole("button",{name:"发送",exact:true}).click();};
+ const requestMode=panel.getByRole("combobox",{name:"请求模式",exact:true});
+ await requestMode.selectOption("edit");
  await send("CASE_CODEX 添加片头与背景");
- await expect(panel.getByRole("button",{name:"应用 2 项修改",exact:true})).toBeEnabled({timeout:20000});
+ await expect(panel.getByText("已应用",{exact:true})).toBeVisible({timeout:20000});
  await expect(panel.locator(".assistant-message.assistant").last()).toContainText("Codex 合成回复");
- assert.equal((await save()).clips.length,3,"Proposal must not edit until Apply");
- await panel.getByRole("button",{name:"应用 2 项修改",exact:true}).click();
+ await expect(panel.locator(".assistant-apply")).toHaveCount(0);
  project=await save(); assert.equal(project.clips.length,4);assert.equal(project.background,"#172b3c");
  assert(project.clips.some(c=>c.text?.text==="原创片头·你好映刻"));
  await page.getByRole("button",{name:"撤销",exact:true}).click();
  project=await save();assert.equal(project.clips.length,3);assert.equal(project.background,beforeAssistant.background);
- checks.push("selected Codex fixture responds through subprocess, typed proposal preview, apply and one-step undo");
+ checks.push("selected Codex fixture edits immediately through the subprocess and supports one-step undo");
  await panel.getByRole("button",{name:"关闭剪辑助手",exact:true}).click();
  await page.getByRole("button",{name:"剪辑助手",exact:true}).click();
  await expect(panel.locator(".assistant-message")).toHaveCount(2);
  await expect(panel.locator(".assistant-message.assistant")).toContainText("Codex 合成回复");
  checks.push("project-scoped chat history survives panel reopen");
+ await connection.click();
  await panel.getByRole("combobox",{name:"助手后端"}).selectOption("claude");
  await panel.getByRole("button",{name:"选择 CLI",exact:true}).click();
  await expect(panel.locator(".assistant-provider-status")).toContainText("ReaCut synthetic fixture 1.0",{timeout:20000});
@@ -134,9 +140,10 @@ try {
  await expect(panel.getByText("已取消",{exact:true})).toBeVisible({timeout:10000});
  assert.equal((await save()).clips.length,3);assert.equal(await panel.locator(".assistant-proposal").count(),0);
  checks.push("real running subprocess cancelled without producing changes");
+ await requestMode.selectOption("edit");
  await send("CASE_RECOVER 取消后重新请求");
- await expect(panel.getByRole("button",{name:"应用 2 项修改",exact:true})).toBeEnabled({timeout:20000});
- await panel.getByRole("button",{name:"应用 2 项修改",exact:true}).click();
+ await expect(panel.getByText("已应用",{exact:true})).toBeVisible({timeout:20000});
+ await expect(panel.locator(".assistant-apply")).toHaveCount(0);
  project=await save();assert.equal(project.clips.length,4);
  checks.push("new request succeeds after cancellation");
  const calls=(await readFile(invocations,"utf8")).trim().split("\n").map(line=>JSON.parse(line));

@@ -263,6 +263,21 @@
 .media-add:hover {
   background: #81f4de !important;
 }
+.media-agent {
+  position: absolute;
+  top: 6px;
+  right: 33px;
+  width: 23px;
+  min-height: 23px;
+  padding: 3px;
+  border-radius: 50%;
+  background: #12191cdd;
+  color: #e1ebe9;
+  opacity: 0;
+}
+.media-item:hover .media-agent, .media-item:focus-within .media-agent, .media-agent[aria-pressed="true"] { opacity: 1; }
+.media-agent[aria-pressed="true"] { background: #126d64; color: #defcf3; }
+.media-list .media-agent { top: 10px; right: 45px; width: 20px; min-height: 22px; }
 .media-info {
   padding: 7px 6px 3px;
   display: flex;

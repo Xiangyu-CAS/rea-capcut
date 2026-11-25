@@ -4,7 +4,7 @@ import { mkdir, readFile, writeFile, stat } from "node:fs/promises";
 import assert from "node:assert/strict";
 import path from "node:path";
 import { createHash } from "node:crypto";
-import { firstChineseWindow } from "./ui-language";
+import { firstChineseWindow, showProperties } from "./ui-language";
 import { importAssets, probeFile, runMediaTool } from "../electron/media";
 import { analyzeAudio } from "../electron/audioAnalysis";
 import { createClip, createProject, createTrack, validateProject } from "../src/core/model";
@@ -85,6 +85,7 @@ async function open() {
   });
   assert.equal(await app.evaluate(({ app }) => app.isPackaged), Boolean(bundle));
   page = await firstChineseWindow(app);
+  await showProperties(page);
   page.on("pageerror", error => errors.push(error.message));
   await app.evaluate(({ dialog }, destination) => {
     dialog.showSaveDialog = async () => ({ canceled: false, filePath: destination });

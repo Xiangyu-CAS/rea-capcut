@@ -1,4 +1,4 @@
-import { firstChineseWindow } from "./ui-language";
+import { firstChineseWindow, showProperties } from "./ui-language";
 import { verifyEditorViewport } from './uiGeometry';
 /** Exercise the compiled desktop app with isolated, generated local media.
  * Run after npm run build: npx tsx tests/app-electron.ts
@@ -67,6 +67,7 @@ try {
     { ...fixture, saved, exported, subtitles },
   );
   page = await firstChineseWindow(app);
+  await showProperties(page);
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("response", (response) => {
     if (response.url().startsWith("reacut-media:") && response.status() >= 400)

@@ -1,4 +1,4 @@
-import { firstChineseWindow } from "./ui-language";
+import { firstChineseWindow, showProperties } from "./ui-language";
 /** Real UI controls + serialized project assertions, isolated synthetic captions only. */
 import { _electron as electron, expect, type Page } from "@playwright/test";
 import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
@@ -27,6 +27,7 @@ try {
   }, { original, subtitles, saved, exported });
   page = await firstChineseWindow(app); page.on("pageerror", e => errors.push(e.message));
   await page.waitForSelector(".app-shell");
+  await showProperties(page);
   await page.getByRole("button", { name: "文件菜单", exact: true }).click();
   await page.getByRole("button", { name: "打开项目", exact: false }).click();
   await expect(page.locator(".tl-clip")).toHaveCount(1);

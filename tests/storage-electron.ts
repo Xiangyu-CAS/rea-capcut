@@ -1,4 +1,4 @@
-import { firstChineseWindow } from "./ui-language";
+import { firstChineseWindow, showProperties } from "./ui-language";
 /** Real desktop storage flows; native dialogs deferred only in this owned test process. */
 import {
   _electron as electron,
@@ -89,6 +89,7 @@ const addText = async (text: string) => {
     .getByRole("button", { name: "文本", exact: true })
     .click();
   await page.getByRole("button", { name: "添加文本", exact: true }).click();
+  await showProperties(page);
   await page.getByRole("textbox", { name: "文字内容", exact: true }).fill(text);
   await page.getByRole("textbox", { name: "文字内容", exact: true }).blur();
 };

@@ -1,4 +1,4 @@
-import { firstChineseWindow } from "./ui-language";
+import { firstChineseWindow, showProperties } from "./ui-language";
 /** Real desktop audio separation and shared-source relinking; dialogs are stubbed only in this owned process. */
 import {
   _electron as electron,
@@ -266,6 +266,7 @@ try {
   const levelsAfterMove = await playAndMeasure();
 
   await page.keyboard.press("Escape");
+  await showProperties(page);
   await page.getByRole("spinbutton", { name: "宽度", exact: true }).fill("320");
   await page.getByRole("spinbutton", { name: "高度", exact: true }).fill("180");
   await page.getByRole("spinbutton", { name: "高度", exact: true }).blur();

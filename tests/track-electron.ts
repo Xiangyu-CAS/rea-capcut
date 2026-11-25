@@ -1,4 +1,4 @@
-import { firstChineseWindow } from "./ui-language";
+import { firstChineseWindow, showProperties } from "./ui-language";
 import { verifyEditorViewport } from './uiGeometry';
 /** Verify track controls through the real desktop App/Timeline/store wiring. */
 import { _electron as electron, expect, type Page } from "@playwright/test";
@@ -67,6 +67,7 @@ try {
     { original, saved },
   );
   page = await firstChineseWindow(app);
+  await showProperties(page);
   page.on("pageerror", (error) => errors.push(error.message));
   await page.waitForSelector(".app-shell");
   const initialGeometry = await verifyEditorViewport(page);

@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { probeFile, runMediaTool } from "../electron/media";
-import { firstChineseWindow } from "./ui-language";
+import { firstChineseWindow, showProperties } from "./ui-language";
 import type { ExportProgress, Project } from "../src/core/types";
 import { sourceOffsetAt } from "../src/core/speedCurve";
 
@@ -69,6 +69,7 @@ async function launch(reopen: boolean) {
   });
   assert.equal(await app.evaluate(({ app }) => app.isPackaged), Boolean(bundle));
   page = await firstChineseWindow(app);
+  await showProperties(page);
   page.setDefaultTimeout(15000);
   page.on("pageerror", error => errors.push(error.message));
   await app.evaluate(({ dialog, BrowserWindow }, paths) => {
