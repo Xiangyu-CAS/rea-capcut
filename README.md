@@ -2,17 +2,18 @@
   <img src="public/icons/reacut.png" width="96" height="96" alt="ReaCut icon" />
 </p>
 <h1 align="center">ReaCut</h1>
-<p align="center"><strong>An open-source video editor for Mac.</strong><br />Cut, caption, and export locally. Use the optional Codex Agent to edit the same timeline.</p>
+<p align="center"><strong>An open-source video editor for Windows and Mac.</strong><br />Cut, caption, and export locally. Use the optional Codex Agent to edit the same timeline.</p>
 <p align="center">
+  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe"><img src="docs/download-windows.svg" width="340" height="76" alt="Download the Windows 10/11 x64 EXE installer — v0.9.1" /></a>
   <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="Download for macOS — v0.9.0 · Apple Silicon" /></a><br />
   <a href="https://reacut.app/">Website</a> · <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">All releases / ZIP / checksums</a> · <a href="#getting-started">Installation guide</a><br />
-  <sub>Apple Silicon (M-series) only · Preview · Ad-hoc signed, not notarized. ASR requires separate local Python/MLX and model setup.</sub>
+  <sub>Preview installers · Windows EXE is unsigned · macOS DMG uses ad-hoc signing and lacks notarization.</sub>
 </p>
 <p align="center">Building a complete video editor is a substantial undertaking, and this project is still in its early stages.<br /><strong>Contributors are welcome to help with features, usability, cross-platform support, tests and documentation.</strong> <a href="#contributing">Get involved →</a></p>
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/source_license-MIT-45d6c0" alt="Source license: MIT" /></a>
   <img src="https://img.shields.io/badge/status-early_development-orange" alt="Status: early development" />
-  <img src="https://img.shields.io/badge/verified-macOS_arm64-333333" alt="Verified platform: macOS arm64" />
+  <img src="https://img.shields.io/badge/verified-Windows_x64_%2B_macOS_arm64-333333" alt="Verified platforms: Windows x64 and macOS arm64" />
   <a href="https://madewithrea.com/builds/reacut-open-source-video-editor-rebuilt-from-rea-assisted-jianying-cap"><img src="https://madewithrea.com/badges/featured.svg" alt="Featured on Made with REA" height="20" /></a>
   <a href="https://github.com/reacher-z/Awesome-REA"><img src="https://raw.githubusercontent.com/reacher-z/Awesome-REA/main/assets/featured-by-awesome-rea-inline.svg" alt="Featured by Awesome REA" width="184" height="20"></a>
 </p>
