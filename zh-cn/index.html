@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0e1415">
-  <title>ReaCut 映刻 — 开源桌面视频剪辑器</title>
-  <meta name="description" content="ReaCut 映刻是一款免费开源的桌面视频剪辑器，支持多轨剪辑、字幕、混音和本地导出。下载 Apple Silicon 版 macOS 预览安装包。">
+  <meta name="theme-color" content="#0b0b11">
+  <title>ReaCut 映刻 — Mac 上的开源视频剪辑器</title>
+  <meta name="description" content="ReaCut 映刻是一款免费开源的 Mac 视频剪辑器，支持多轨时间线、字幕、混音和本地导出。">
   <link rel="canonical" href="https://reacut.app/zh-cn/">
   <link rel="alternate" hreflang="en" href="https://reacut.app/">
   <link rel="alternate" hreflang="zh-CN" href="https://reacut.app/zh-cn/">
@@ -13,141 +13,199 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="ReaCut">
   <meta property="og:locale" content="zh_CN">
-  <meta property="og:title" content="ReaCut 映刻 — 开源桌面视频剪辑器">
-  <meta property="og:description" content="在 Mac 上剪视频、做字幕、调声音。从素材导入到成片导出，核心剪辑流程都在本机完成。">
+  <meta property="og:title" content="ReaCut 映刻 — Mac 上的开源视频剪辑器">
+  <meta property="og:description" content="ReaCut 映刻是一款免费开源的 Mac 视频剪辑器，支持多轨时间线、字幕、混音和本地导出。">
   <meta property="og:url" content="https://reacut.app/zh-cn/">
-  <meta property="og:image" content="https://reacut.app/assets/reacut-preview.jpg">
+  <meta property="og:image" content="https://reacut.app/assets/blue-hour-share.jpg">
   <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="680">
-  <meta property="og:image:alt" content="ReaCut 中打开的「山海之间」示例工程">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="剪辑样片《蓝调时刻》，一段 9 秒的暮色公路短片">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/png" href="../assets/reacut.png">
-  <link rel="stylesheet" href="../style.css">
+  <link rel="preload" href="../assets/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../blue-hour.css">
+  <script src="../site.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">跳到正文</a>
   <header class="site-header">
-    <div class="container header-inner">
-      <a class="brand" href="./">
-        <img src="../assets/reacut.png" width="32" height="32" alt="">
-        ReaCut
-      </a>
-      <nav class="main-nav" aria-label="主要导航">
-        <a href="#features">剪辑功能</a>
-        <a href="#codex">Codex 插件</a>
+    <div class="wrap header-inner">
+      <a class="brand" href="./"><img src="../assets/reacut.png" width="32" height="32" alt="">ReaCut</a>
+      <nav class="navigation" aria-label="主要导航">
+        <a href="#editor">编辑器</a>
+        <a href="#features">功能</a>
         <a href="#faq">常见问题</a>
       </nav>
-      <div class="header-links">
-        <a class="header-github" href="https://github.com/Xiangyu-CAS/rea-capcut">GitHub</a>
+      <div class="header-actions">
+        <a class="github-link" href="https://github.com/Xiangyu-CAS/rea-capcut">GitHub</a>
         <a class="language-link" href="../" lang="en" hreflang="en">English</a>
+        <a class="header-download" href="#download">下载</a>
       </div>
     </div>
   </header>
 
   <main id="main">
-    <section class="hero container" aria-labelledby="hero-title">
+    <section class="hero wrap" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="eyebrow">映刻 · 开源桌面视频剪辑器</p>
-        <h1 id="hero-title">自由剪辑。<br><span>素材留在本机。</span></h1>
-        <p class="hero-description">剪视频、做字幕、调声音。从导入素材到导出成片，核心剪辑流程都在你的 Mac 上完成。</p>
-        <div class="actions">
-          <a class="button button-primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-0.8.0-arm64.dmg">下载 macOS 版</a>
-          <a class="button button-secondary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases">所有版本</a>
-        </div>
-        <p class="release-note"><a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.8.0">v0.8.0 预览版</a> <span aria-hidden="true">·</span> Apple Silicon</p>
+        <p class="eyebrow">免费开源</p>
+        <h1 id="hero-title">为 Mac 而做的<br><em>视频剪辑器</em></h1>
+        <p class="hero-description">剪视频、加字幕、调声音。导入、编辑和导出，都在你的 Mac 上完成。</p>
+        <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-0.8.0-arm64.dmg">下载 macOS 版</a>
+        <p class="release-note">Apple Silicon <span aria-hidden="true">·</span> <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.8.0">v0.8.0 预览版</a></p>
       </div>
 
-      <figure class="workspace">
-        <div class="workspace-stage">
-          <div class="workspace-frame">
-            <img src="../assets/workspace.webp"
-              srcset="../assets/workspace-1080.webp 1080w, ../assets/workspace.webp 2160w"
-              sizes="(max-width: 600px) calc(100vw - 54px), (max-width: 1160px) calc(100vw - 130px), 1032px"
-              width="2160" height="1225" fetchpriority="high"
-              alt="ReaCut 编辑「山海之间」示例工程时的素材库、播放器、属性面板和多轨时间线">
-          </div>
+      <figure class="film" data-film>
+        <div class="film-screen">
+          <video width="1280" height="720" controls playsinline preload="none" poster="../assets/blue-hour-poster.webp" aria-label="剪辑样片《蓝调时刻》，一段 9 秒的暮色公路短片">
+            <source src="../assets/blue-hour.mp4" type="video/mp4">
+            <a href="../assets/blue-hour.mp4">打开样片视频</a>
+          </video>
+          <button class="film-play" type="button" data-play hidden aria-label="播放剪辑样片">
+            <span class="play-mark" aria-hidden="true"></span>
+            <span>播放剪辑样片</span>
+          </button>
         </div>
-        <figcaption class="workspace-caption">
-          <span>山海之间 <span class="caption-detail">· 示例工程</span></span>
-          <a href="../assets/workspace.webp">查看完整截图</a>
+        <figcaption class="film-caption">
+          <span class="film-name"><strong>蓝调时刻</strong><span>剪辑样片</span></span>
+          <span class="film-clock" aria-hidden="true"><span data-clock>00:00</span> / 00:09</span>
         </figcaption>
+        <div class="film-strip" role="group" aria-label="从指定镜头开始播放" hidden>
+          <button type="button" class="shot" data-shot="0" aria-label="沿海公路" title="沿海公路" aria-current="true">
+            <img src="../assets/coast-thumb.webp" width="384" height="216" alt="" decoding="async">
+          </button>
+          <button type="button" class="shot" data-shot="3" aria-label="暮色行驶" title="暮色行驶" aria-current="false">
+            <img src="../assets/road-thumb.webp" width="384" height="216" alt="" decoding="async">
+          </button>
+          <button type="button" class="shot" data-shot="6" aria-label="礁石浪花" title="礁石浪花" aria-current="false">
+            <img src="../assets/surf-thumb.webp" width="384" height="216" alt="" decoding="async">
+          </button>
+        </div>
       </figure>
     </section>
 
-    <section class="section container" id="features" aria-labelledby="features-title">
+    <section class="editor-band" id="editor" aria-labelledby="editor-title">
+      <div class="wrap">
+        <div class="section-heading studio-heading">
+          <h2 id="editor-title">看看 ReaCut 怎么剪。</h2>
+          <p>打开《蓝调时刻》工程，看看时间线、字幕和声音面板。</p>
+        </div>
+        <div class="editor-stage" data-tour>
+          <div class="tour-tabs" role="tablist" aria-label="编辑器视图" hidden>
+        <button type="button" id="tab-timeline" role="tab" aria-controls="view-timeline" aria-selected="true" tabindex="0">时间线</button>
+        <button type="button" id="tab-captions" role="tab" aria-controls="view-captions" aria-selected="false" tabindex="-1">字幕与文字</button>
+        <button type="button" id="tab-audio" role="tab" aria-controls="view-audio" aria-selected="false" tabindex="-1">声音</button>
+          </div>
+      <figure class="tour-view" id="view-timeline" role="tabpanel" aria-labelledby="tab-timeline">
+        <a class="editor-screen" href="../assets/editor-timeline.webp" aria-label="查看完整截图">
+          <img src="../assets/editor-timeline.webp" width="1725" height="1000" alt="ReaCut 的素材库、播放器、属性面板和正在编辑《蓝调时刻》的多轨时间线" loading="lazy" decoding="async">
+        </a>
+        <figcaption class="tour-caption">
+          <h3>在多轨时间线上剪辑</h3>
+          <p>标记素材的入点和出点，修剪和分割片段。同一工程可建多条时间线。</p>
+        </figcaption>
+      </figure>
+      <figure class="tour-view" id="view-captions" role="tabpanel" aria-labelledby="tab-captions" hidden>
+        <a class="editor-screen" href="../assets/editor-captions.webp" aria-label="查看完整截图">
+          <img src="../assets/editor-captions.webp" width="1725" height="1000" alt="在 ReaCut 中选中《蓝调时刻》的标题，右侧显示文字属性面板" loading="lazy" decoding="async">
+        </a>
+        <figcaption class="tour-caption">
+          <h3>调整字幕与标题样式</h3>
+          <p>导入 SRT、批量编辑字幕，或配置 MLX Whisper 后在本机识别字幕。</p>
+        </figcaption>
+      </figure>
+      <figure class="tour-view" id="view-audio" role="tabpanel" aria-labelledby="tab-audio" hidden>
+        <a class="editor-screen" href="../assets/editor-audio.webp" aria-label="查看完整截图">
+          <img src="../assets/editor-audio.webp" width="1725" height="1000" alt="在 ReaCut 的时间线选中音频片段，右侧显示声音属性面板" loading="lazy" decoding="async">
+        </a>
+        <figcaption class="tour-caption">
+          <h3>调出合适的声音层次</h3>
+          <p>统一片段响度，让背景音乐随人声自动降低，也可以检测节拍并按拍点剪辑。</p>
+        </figcaption>
+      </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap section" id="features" aria-labelledby="feature-title">
       <div class="section-heading">
-        <h2 id="features-title">从粗剪到出片。</h2>
+        <h2 id="feature-title">从粗剪到出片。</h2>
         <a class="text-link" href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/FEATURE_MATRIX.md">完整功能列表</a>
       </div>
       <div class="feature-grid">
-        <article>
-          <h3>多轨剪辑</h3>
-          <p>修剪、分割片段，用入点和出点选取素材范围。同一工程可以建立多条时间线，共享素材库。</p>
+        <article class="feature-card motion-card">
+          <div class="feature-copy">
+            <h3>关键帧与变速</h3>
+            <p>用曲线控制位移、缩放和透明度。可以渐变速度，也可以倒放或定格。</p>
+          </div>
+          <img src="../assets/curve-detail.webp" width="900" height="390" loading="lazy" decoding="async" alt="ReaCut 中用于调节画面运动和缓动的关键帧曲线编辑器">
         </article>
-        <article>
-          <h3>字幕与文字</h3>
-          <p>导入 SRT，批量调整字幕，给文字加动画。配置 MLX Whisper 后，可以在本机识别字幕。</p>
-        </article>
-        <article>
-          <h3>关键帧与变速</h3>
-          <p>用可编辑曲线调整位移、缩放和透明度，也可以使用曲线变速、倒放和定格。</p>
-        </article>
-        <article>
-          <h3>声音处理</h3>
-          <p>统一片段响度，让背景音乐随人声自动降低，或检测节拍后按拍点剪辑。</p>
-        </article>
-        <article>
-          <h3>可复用工程模板</h3>
-          <p>把剪好的工程存成带有素材和文字占位的模板。批量换素材，每个版本都能保存为独立工程。</p>
-        </article>
-        <article>
-          <h3>本地导出</h3>
-          <p>高分辨率素材可以用代理预览。导出整条时间线或选定区间，支持 MP4 和 MOV。</p>
+        <article class="feature-card template-card">
+          <div class="feature-copy">
+            <h3>可复用的工程模板</h3>
+            <p>把剪好的工程保存为带有素材和文字占位的模板。批量换素材，每一版都能保存为独立工程。</p>
+          </div>
+          <img src="../assets/template-detail.webp" width="900" height="390" loading="lazy" decoding="async" alt="ReaCut 的工程模板库与示例模板">
         </article>
       </div>
+      <article class="export-note">
+        <h3>预览与导出</h3>
+        <p>用轻量代理预览高分辨率素材。导出整条时间线或选定区间，支持 MP4 和 MOV。</p>
+      </article>
     </section>
 
-    <section class="section container" id="codex" aria-labelledby="codex-title">
-      <div class="codex-panel">
+    <section class="wrap section" id="codex" aria-labelledby="codex-title">
+      <div class="codex">
         <div class="codex-copy">
           <p class="eyebrow">可选的 Codex 插件</p>
           <h2 id="codex-title">在 Codex 侧栏里剪片。</h2>
-          <p>把本地编辑器打开在 Codex 里，直接操作时间线。也可以让 Codex 填充模板中的素材和文字，再批量导出视频。</p>
+          <p>在 Codex 里打开 ReaCut，直接操作时间线。也可以让 Codex 填充模板，再批量导出视频。</p>
           <div class="actions">
-            <a class="button button-secondary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-plugin-0.8.0.zip">下载插件</a>
+            <a class="button secondary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-plugin-0.8.0.zip">下载插件</a>
             <a class="text-link" href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/CODEX_PLUGIN.md">安装指南</a>
           </div>
         </div>
-        <img class="codex-image" src="../assets/codex.webp" width="1280" height="720" loading="lazy"
-          alt="在 Codex 侧栏内打开 ReaCut，显示编辑器和多轨时间线">
+        <img src="../assets/codex.webp" width="1280" height="720" loading="lazy" decoding="async" alt="在 Codex 侧栏内打开的 ReaCut 编辑器，显示预览画面与时间线">
       </div>
     </section>
 
-    <section class="section container faq" id="faq" aria-labelledby="faq-title">
-      <h2 id="faq-title">下载前你可能想知道。</h2>
+    <section class="wrap section" id="download" aria-labelledby="download-title">
+      <div class="download-panel">
+        <img class="download-image" src="../assets/blue-hour-surf.webp" width="960" height="540" alt="" loading="lazy" decoding="async">
+        <div class="download-copy">
+          <h2 id="download-title">下载 ReaCut。</h2>
+          <p>预览安装包适用于搭载 Apple 芯片的 Mac。</p>
+          <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-0.8.0-arm64.dmg">下载 DMG</a>
+          <div class="download-links">
+            <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">所有版本</a>
+            <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/SHA256SUMS.txt">校验和</a>
+            <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/README.zh-CN.md">安装说明</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap section faq" id="faq" aria-labelledby="faq-title">
+      <h2 id="faq-title">下载前了解一下。</h2>
       <div class="faq-list">
         <details>
-          <summary>哪些 Mac 可以安装？</summary>
-          <p>预览安装包适用于搭载 M 系列芯片的 Mac。打开 DMG 后，把 ReaCut 拖到「应用程序」。预览版采用临时签名，尚未经过 Apple 公证。<a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/README.zh-CN.md">安装说明</a></p>
+          <summary>如何安装 macOS 预览版？</summary>
+          <p>打开 DMG 后，把 ReaCut 拖到「应用程序」。预览版采用临时签名，尚未经过 Apple 公证。 <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/README.zh-CN.md">安装说明</a></p>
         </details>
         <details>
           <summary>可以离线剪辑吗？</summary>
-          <p>可以。导入、编辑、保存和导出都在本机运行，无需账号。自动识别字幕需要先配置本地 MLX Whisper 和模型。<a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/LOCAL_SPEECH.md">本地语音指南</a></p>
+          <p>可以。导入、编辑、保存和导出都在本机运行，无需账号。自动识别字幕需要先配置 MLX Whisper 和本地模型。 <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/LOCAL_SPEECH.md">本地语音指南</a></p>
         </details>
         <details>
           <summary>能打开剪映草稿吗？</summary>
-          <p>可以从受支持的本地剪映草稿导入基础剪辑。这个功能仍在实验阶段，部分文字样式、效果和关键帧可能丢失。<a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/CAPCUT_INTEROP.md">查看兼容范围</a></p>
+          <p>可以从受支持的本地剪映草稿导入基础剪辑。这个功能仍在实验阶段，部分文字样式、效果和关键帧可能丢失。 <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/CAPCUT_INTEROP.md">查看兼容范围</a></p>
         </details>
       </div>
     </section>
   </main>
 
   <footer class="site-footer">
-    <div class="container footer-inner">
-      <a class="brand" href="./">
-        <img src="../assets/reacut.png" width="28" height="28" alt="">
-        ReaCut
-      </a>
+    <div class="wrap footer-inner">
+      <a class="brand" href="./"><img src="../assets/reacut.png" width="32" height="32" alt="">ReaCut</a>
       <nav aria-label="项目链接">
         <a href="https://github.com/Xiangyu-CAS/rea-capcut">源代码</a>
         <a href="https://github.com/Xiangyu-CAS/rea-capcut/issues">反馈问题</a>

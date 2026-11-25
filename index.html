@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0e1415">
-  <title>ReaCut — Open-source desktop video editor</title>
-  <meta name="description" content="ReaCut is a free, open-source video editor with multitrack timelines, subtitles, audio mixing and local export. Download the macOS Apple Silicon preview.">
+  <meta name="theme-color" content="#0b0b11">
+  <title>ReaCut — Open-source video editing for Mac</title>
+  <meta name="description" content="A free, open-source video editor for macOS. Cut footage, style captions, and mix sound on your Mac with ReaCut.">
   <link rel="canonical" href="https://reacut.app/">
   <link rel="alternate" hreflang="en" href="https://reacut.app/">
   <link rel="alternate" hreflang="zh-CN" href="https://reacut.app/zh-cn/">
@@ -13,141 +13,199 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="ReaCut">
   <meta property="og:locale" content="en_US">
-  <meta property="og:title" content="ReaCut — Open-source desktop video editor">
-  <meta property="og:description" content="Cut video, style subtitles and mix audio in a desktop editor that runs on your Mac.">
+  <meta property="og:title" content="ReaCut — Open-source video editing for Mac">
+  <meta property="og:description" content="A free, open-source video editor for macOS. Cut footage, style captions, and mix sound on your Mac with ReaCut.">
   <meta property="og:url" content="https://reacut.app/">
-  <meta property="og:image" content="https://reacut.app/assets/reacut-preview.jpg">
+  <meta property="og:image" content="https://reacut.app/assets/blue-hour-share.jpg">
   <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="680">
-  <meta property="og:image:alt" content="The Mountain &amp; Sea example project open in ReaCut">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Blue Hour, a 9-second sample cut of a coastal road at dusk">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/png" href="./assets/reacut.png">
-  <link rel="stylesheet" href="./style.css">
+  <link rel="preload" href="./assets/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="./blue-hour.css">
+  <script src="./site.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header">
-    <div class="container header-inner">
-      <a class="brand" href="./">
-        <img src="./assets/reacut.png" width="32" height="32" alt="">
-        ReaCut
-      </a>
-      <nav class="main-nav" aria-label="Main navigation">
+    <div class="wrap header-inner">
+      <a class="brand" href="./"><img src="./assets/reacut.png" width="32" height="32" alt="">ReaCut</a>
+      <nav class="navigation" aria-label="Main navigation">
+        <a href="#editor">Editor</a>
         <a href="#features">Features</a>
-        <a href="#codex">Codex</a>
         <a href="#faq">FAQ</a>
       </nav>
-      <div class="header-links">
-        <a class="header-github" href="https://github.com/Xiangyu-CAS/rea-capcut">GitHub</a>
+      <div class="header-actions">
+        <a class="github-link" href="https://github.com/Xiangyu-CAS/rea-capcut">GitHub</a>
         <a class="language-link" href="./zh-cn/" lang="zh-CN" hreflang="zh-CN">简体中文</a>
+        <a class="header-download" href="#download">Download</a>
       </div>
     </div>
   </header>
 
   <main id="main">
-    <section class="hero container" aria-labelledby="hero-title">
+    <section class="hero wrap" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="eyebrow">Open-source desktop video editor</p>
-        <h1 id="hero-title">Make the cut.<br><span>Keep it local.</span></h1>
-        <p class="hero-description">Cut footage, style subtitles and mix sound in one workspace. From import to export, the core editing tools run on your Mac.</p>
-        <div class="actions">
-          <a class="button button-primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-0.8.0-arm64.dmg">Download for Mac</a>
-          <a class="button button-secondary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases">All releases</a>
-        </div>
-        <p class="release-note"><a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.8.0">v0.8.0 Preview</a> <span aria-hidden="true">·</span> Apple Silicon</p>
+        <p class="eyebrow">Free and open source</p>
+        <h1 id="hero-title">A video editor<br><em>for your Mac.</em></h1>
+        <p class="hero-description">Cut footage, style captions, and mix sound. From import to export, the core editing tools run on your Mac.</p>
+        <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-0.8.0-arm64.dmg">Download for macOS</a>
+        <p class="release-note">Apple Silicon <span aria-hidden="true">·</span> <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.8.0">v0.8.0 Preview</a></p>
       </div>
 
-      <figure class="workspace">
-        <div class="workspace-stage">
-          <div class="workspace-frame">
-            <img src="./assets/workspace.webp"
-              srcset="./assets/workspace-1080.webp 1080w, ./assets/workspace.webp 2160w"
-              sizes="(max-width: 600px) calc(100vw - 54px), (max-width: 1160px) calc(100vw - 130px), 1032px"
-              width="2160" height="1225" fetchpriority="high"
-              alt="ReaCut's media library, playback monitor, inspector and multitrack timeline showing the Mountain &amp; Sea example">
-          </div>
+      <figure class="film" data-film>
+        <div class="film-screen">
+          <video width="1280" height="720" controls playsinline preload="none" poster="./assets/blue-hour-poster.webp" aria-label="Blue Hour, a 9-second sample cut of a coastal road at dusk">
+            <source src="./assets/blue-hour.mp4" type="video/mp4">
+            <a href="./assets/blue-hour.mp4">Open the sample video</a>
+          </video>
+          <button class="film-play" type="button" data-play hidden aria-label="Play sample edit">
+            <span class="play-mark" aria-hidden="true"></span>
+            <span>Play sample edit</span>
+          </button>
         </div>
-        <figcaption class="workspace-caption">
-          <span>Mountain &amp; Sea <span class="caption-detail">· Demo project</span></span>
-          <a href="./assets/workspace.webp">Full-size screenshot</a>
+        <figcaption class="film-caption">
+          <span class="film-name"><strong>Blue Hour</strong><span>Sample edit</span></span>
+          <span class="film-clock" aria-hidden="true"><span data-clock>00:00</span> / 00:09</span>
         </figcaption>
+        <div class="film-strip" role="group" aria-label="Play a shot from the sample" hidden>
+          <button type="button" class="shot" data-shot="0" aria-label="Coast road" title="Coast road" aria-current="true">
+            <img src="./assets/coast-thumb.webp" width="384" height="216" alt="" decoding="async">
+          </button>
+          <button type="button" class="shot" data-shot="3" aria-label="Driving at dusk" title="Driving at dusk" aria-current="false">
+            <img src="./assets/road-thumb.webp" width="384" height="216" alt="" decoding="async">
+          </button>
+          <button type="button" class="shot" data-shot="6" aria-label="Breaking waves" title="Breaking waves" aria-current="false">
+            <img src="./assets/surf-thumb.webp" width="384" height="216" alt="" decoding="async">
+          </button>
+        </div>
       </figure>
     </section>
 
-    <section class="section container" id="features" aria-labelledby="features-title">
-      <div class="section-heading">
-        <h2 id="features-title">From rough cut to export.</h2>
-        <a class="text-link" href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/FEATURE_MATRIX.md">Feature details</a>
-      </div>
-      <div class="feature-grid">
-        <article>
-          <h3>Multitrack editing</h3>
-          <p>Trim and split clips, mark in and out points, and keep multiple timelines in one project with a shared media library.</p>
-        </article>
-        <article>
-          <h3>Subtitles and titles</h3>
-          <p>Import SRT, edit captions in batches and animate text. Set up MLX Whisper to transcribe on your Mac.</p>
-        </article>
-        <article>
-          <h3>Keyframes and speed</h3>
-          <p>Animate position, scale and opacity with editable curves. Use speed ramps, reverse playback and freeze frames.</p>
-        </article>
-        <article>
-          <h3>Sound mixing</h3>
-          <p>Normalize clip loudness, duck music under speech and cut to detected beats.</p>
-        </article>
-        <article>
-          <h3>Reusable templates</h3>
-          <p>Save an edit as a template with named media and text slots. Swap in new material and save each cut as its own project.</p>
-        </article>
-        <article>
-          <h3>Local export</h3>
-          <p>Use proxy previews for high-resolution footage. Export the timeline or a selected range to MP4 or MOV.</p>
-        </article>
+    <section class="editor-band" id="editor" aria-labelledby="editor-title">
+      <div class="wrap">
+        <div class="section-heading studio-heading">
+          <h2 id="editor-title">Inside ReaCut.</h2>
+          <p>Explore three parts of the editor with the Blue Hour project open.</p>
+        </div>
+        <div class="editor-stage" data-tour>
+          <div class="tour-tabs" role="tablist" aria-label="Editor views" hidden>
+        <button type="button" id="tab-timeline" role="tab" aria-controls="view-timeline" aria-selected="true" tabindex="0">Timeline</button>
+        <button type="button" id="tab-captions" role="tab" aria-controls="view-captions" aria-selected="false" tabindex="-1">Titles &amp; captions</button>
+        <button type="button" id="tab-audio" role="tab" aria-controls="view-audio" aria-selected="false" tabindex="-1">Audio</button>
+          </div>
+      <figure class="tour-view" id="view-timeline" role="tabpanel" aria-labelledby="tab-timeline">
+        <a class="editor-screen" href="./assets/editor-timeline.webp" aria-label="Open full screenshot">
+          <img src="./assets/editor-timeline.webp" width="1725" height="1000" alt="ReaCut’s media library, viewer, inspector and multitrack timeline working on Blue Hour" loading="lazy" decoding="async">
+        </a>
+        <figcaption class="tour-caption">
+          <h3>Edit on multiple tracks</h3>
+          <p>Mark source ranges, trim and split clips, and keep several timelines in the same project.</p>
+        </figcaption>
+      </figure>
+      <figure class="tour-view" id="view-captions" role="tabpanel" aria-labelledby="tab-captions" hidden>
+        <a class="editor-screen" href="./assets/editor-captions.webp" aria-label="Open full screenshot">
+          <img src="./assets/editor-captions.webp" width="1725" height="1000" alt="A selected Blue Hour title with its text controls open in the ReaCut inspector" loading="lazy" decoding="async">
+        </a>
+        <figcaption class="tour-caption">
+          <h3>Style your captions</h3>
+          <p>Import SRT, batch-edit captions, or set up local transcription with MLX Whisper.</p>
+        </figcaption>
+      </figure>
+      <figure class="tour-view" id="view-audio" role="tabpanel" aria-labelledby="tab-audio" hidden>
+        <a class="editor-screen" href="./assets/editor-audio.webp" aria-label="Open full screenshot">
+          <img src="./assets/editor-audio.webp" width="1725" height="1000" alt="The ReaCut timeline with an audio clip selected and sound controls in the inspector" loading="lazy" decoding="async">
+        </a>
+        <figcaption class="tour-caption">
+          <h3>Balance the soundtrack</h3>
+          <p>Normalize clip loudness, duck music under speech, and use detected beats as edit points.</p>
+        </figcaption>
+      </figure>
+        </div>
       </div>
     </section>
 
-    <section class="section container" id="codex" aria-labelledby="codex-title">
-      <div class="codex-panel">
+    <section class="wrap section" id="features" aria-labelledby="feature-title">
+      <div class="section-heading">
+        <h2 id="feature-title">Shaping the final cut.</h2>
+        <a class="text-link" href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/FEATURE_MATRIX.md">All features</a>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card motion-card">
+          <div class="feature-copy">
+            <h3>Keyframes and speed</h3>
+            <p>Animate position, scale, and opacity. Shape a speed ramp, reverse a clip, or hold a frame.</p>
+          </div>
+          <img src="./assets/curve-detail.webp" width="900" height="390" loading="lazy" decoding="async" alt="The ReaCut keyframe curve editor with easing controls for a motion curve">
+        </article>
+        <article class="feature-card template-card">
+          <div class="feature-copy">
+            <h3>Reusable project templates</h3>
+            <p>Save an edit with named places for media and text. Swap in new material and save each cut as its own project.</p>
+          </div>
+          <img src="./assets/template-detail.webp" width="900" height="390" loading="lazy" decoding="async" alt="The ReaCut project template library with example projects">
+        </article>
+      </div>
+      <article class="export-note">
+        <h3>Preview and export</h3>
+        <p>Use lightweight proxies for high-resolution footage. Export a timeline or a selected range to MP4 or MOV.</p>
+      </article>
+    </section>
+
+    <section class="wrap section" id="codex" aria-labelledby="codex-title">
+      <div class="codex">
         <div class="codex-copy">
           <p class="eyebrow">Optional Codex plugin</p>
           <h2 id="codex-title">Edit in the Codex sidebar.</h2>
-          <p>Open the local editor inside Codex. Work on the timeline directly or ask Codex to fill template slots and export multiple videos.</p>
+          <p>Open ReaCut inside Codex and work directly on the timeline. Ask Codex to fill a template and export a batch of videos.</p>
           <div class="actions">
-            <a class="button button-secondary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-plugin-0.8.0.zip">Download plugin</a>
+            <a class="button secondary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-plugin-0.8.0.zip">Download plugin</a>
             <a class="text-link" href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/README.md#option-2-inside-the-codex-side-panel">Setup guide</a>
           </div>
         </div>
-        <img class="codex-image" src="./assets/codex.webp" width="1280" height="720" loading="lazy"
-          alt="ReaCut open inside a Codex panel with the editor controls and timeline visible">
+        <img src="./assets/codex.webp" width="1280" height="720" loading="lazy" decoding="async" alt="ReaCut open inside a Codex panel, with the viewer and timeline visible">
       </div>
     </section>
 
-    <section class="section container faq" id="faq" aria-labelledby="faq-title">
+    <section class="wrap section" id="download" aria-labelledby="download-title">
+      <div class="download-panel">
+        <img class="download-image" src="./assets/blue-hour-surf.webp" width="960" height="540" alt="" loading="lazy" decoding="async">
+        <div class="download-copy">
+          <h2 id="download-title">Get ReaCut.</h2>
+          <p>The preview installer is available for Macs with Apple Silicon.</p>
+          <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-0.8.0-arm64.dmg">Download DMG</a>
+          <div class="download-links">
+            <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">All releases</a>
+            <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/SHA256SUMS.txt">Checksums</a>
+            <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/README.md#getting-started">Install guide</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap section faq" id="faq" aria-labelledby="faq-title">
       <h2 id="faq-title">Before you download.</h2>
       <div class="faq-list">
         <details>
-          <summary>Which Macs can run ReaCut?</summary>
-          <p>The preview installer is for Apple Silicon Macs with M-series chips. Open the DMG and drag ReaCut into Applications. This preview is ad-hoc signed and has yet to be notarized by Apple. <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/README.md#getting-started">Installation guide</a></p>
+          <summary>How do I install the macOS preview?</summary>
+          <p>Open the DMG and drag ReaCut into Applications. This preview is ad-hoc signed and has yet to be notarized by Apple. <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/README.md#getting-started">Installation guide</a></p>
         </details>
         <details>
           <summary>Can I edit offline?</summary>
-          <p>Yes. Import, editing, project storage and export run locally without an account. Automatic transcription needs an initial local setup with MLX Whisper and a model. <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/LOCAL_SPEECH.md">Local speech guide</a></p>
+          <p>Yes. Import, editing, project storage, and export run locally without an account. Automatic transcription needs an initial setup with MLX Whisper and a local model. <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/LOCAL_SPEECH.md">Local speech guide</a></p>
         </details>
         <details>
           <summary>Can I open a Jianying draft?</summary>
-          <p>ReaCut can import basic edits from supported local Jianying drafts. Import coverage is experimental, and some text styles, effects and keyframes may be lost. <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/CAPCUT_INTEROP.md">Supported formats</a></p>
+          <p>ReaCut can import basic edits from supported local Jianying drafts. Import coverage is experimental, and some text styles, effects, and keyframes may be lost. <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/CAPCUT_INTEROP.md">Supported formats</a></p>
         </details>
       </div>
     </section>
   </main>
 
   <footer class="site-footer">
-    <div class="container footer-inner">
-      <a class="brand" href="./">
-        <img src="./assets/reacut.png" width="28" height="28" alt="">
-        ReaCut
-      </a>
+    <div class="wrap footer-inner">
+      <a class="brand" href="./"><img src="./assets/reacut.png" width="32" height="32" alt="">ReaCut</a>
       <nav aria-label="Project links">
         <a href="https://github.com/Xiangyu-CAS/rea-capcut">Source code</a>
         <a href="https://github.com/Xiangyu-CAS/rea-capcut/issues">Report an issue</a>
