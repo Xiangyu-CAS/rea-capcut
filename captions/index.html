@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0b11">
+  <title>Set up captions in ReaCut</title>
+  <meta name="description" content="Set up local speech recognition and try editable English captions with the ReaCut Editing Agent on Apple Silicon.">
+  <link rel="canonical" href="https://reacut.app/captions/">
+  <link rel="icon" type="image/png" href="../assets/reacut.png">
+  <link rel="stylesheet" href="../blue-hour.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="../"><img src="../assets/reacut.png" width="32" height="32" alt="">ReaCut</a>
+      <div class="header-actions">
+        <a class="header-download" href="../#download">Download</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap caption-setup" id="main">
+    <h1>Set up the subtitle Agent.</h1>
+    <p>Use ReaCut 0.9.0 or later on an Apple Silicon Mac.</p>
+
+    <ol>
+      <li>
+        <h2>Install local speech recognition</h2>
+        <p>Run these commands in Terminal with an <a href="https://www.python.org/downloads/macos/">Apple Silicon Python 3.12</a> installation. The second command block downloads about 459 MiB of model files.</p>
+        <pre tabindex="0" aria-label="Install MLX Whisper"><code>python3.12 -m venv "$HOME/.venvs/reacut-speech"
+"$HOME/.venvs/reacut-speech/bin/python" -m pip install "mlx-whisper==0.4.3"</code></pre>
+        <pre tabindex="0" aria-label="Download the local recognition model"><code>"$HOME/.venvs/reacut-speech/bin/python" - &lt;&lt;'PYTHON'
+from pathlib import Path
+from huggingface_hub import snapshot_download
+
+snapshot_download(
+    repo_id="mlx-community/whisper-small-mlx",
+    revision="45f3915923c7a79a5a5b5a7d909d39aeb0e5630e",
+    allow_patterns=["config.json", "weights.npz"],
+    local_dir=str(Path.home() / "Models" / "reacut-whisper-small"),
+)
+PYTHON</code></pre>
+      </li>
+      <li>
+        <h2>Select the local model</h2>
+        <p>In ReaCut, open <strong>Settings → Configure local captions…</strong>. Use <strong>Choose model folder…</strong> to select <code>~/Models/reacut-whisper-small</code>. If Python is missing, use <strong>Choose Python…</strong> and select <code>~/.venvs/reacut-speech/bin/python</code>. Wait until <strong>Python and Metal</strong> and <strong>Local model files</strong> both show <strong>Ready</strong>.</p>
+      </li>
+      <li>
+        <h2>Try the practice clip</h2>
+        <p>Use Codex from the ChatGPT desktop app or <a href="https://learn.chatgpt.com/docs/codex/cli">install the Codex CLI</a>. In the Editing Agent, select <strong>Sign in with ChatGPT</strong> and finish signing in in the browser.</p>
+        <p><a href="../assets/ReaCut-Caption-Practice.zip" download>Download the practice project</a>, unzip it, and open <strong>Caption Practice.reacut</strong> in ReaCut. Select the video clip and ask <q>Add English subtitles to this video</q>. Play the timeline, then open <strong>Captions</strong> to edit the new cues.</p>
+      </li>
+    </ol>
+  </main>
+</body>
+</html>

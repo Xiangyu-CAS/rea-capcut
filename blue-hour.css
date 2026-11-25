@@ -490,6 +490,49 @@ h3 {
   font-weight: 535;
 }
 
+.caption-setup {
+  max-width: 47rem;
+  padding-block: clamp(3rem, 7vw, 6rem);
+}
+
+.caption-setup h1 {
+  font-size: clamp(2.6rem, 6vw, 4.75rem);
+  line-height: 1.03;
+  letter-spacing: -0.06em;
+}
+
+.caption-setup ol {
+  padding-inline-start: 1.35rem;
+  margin-block: 2.5rem 0;
+}
+
+.caption-setup li + li {
+  margin-top: 2rem;
+}
+
+.caption-setup h2 {
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
+  line-height: 1.25;
+}
+
+.caption-setup p {
+  margin-top: 0.65rem;
+  color: var(--muted);
+}
+
+.caption-setup pre {
+  overflow-x: auto;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.625rem;
+  background: var(--surface);
+  font-size: 0.86rem;
+}
+
+.caption-setup p code {
+  overflow-wrap: anywhere;
+}
+
 .editor-stage {
   padding: clamp(0.75rem, 2.3vw, 1.8rem);
   border: 1px solid #6f649368;
