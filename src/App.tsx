@@ -1249,6 +1249,9 @@ export default function App() {
                     : s.project
                 }
                 onImport={(paths) => void safe(() => importMedia(paths))}
+                onBrowseExamples={tab === "素材" && window.editorAPI
+                  ? () => void safe(() => handleAction("templates"))
+                  : undefined}
                 onPreviewAsset={assetId => showSource({ assetId })}
                 agentAssetIds={agentAssetIds}
                 onToggleAgentAsset={window.editorAPI ? assetId => void safe(() => {

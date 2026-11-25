@@ -440,6 +440,14 @@
   color: #76d5c2;
   margin-top: 2px;
 }
+.media-empty > .media-empty-examples {
+  margin-top: -5px;
+  background: transparent;
+  color: #a6b4c8;
+}
+.media-empty > .media-empty-examples:not(:disabled):hover {
+  color: var(--accent);
+}
 .media-empty-illustration {
   width: 78px;
   height: 63px;
