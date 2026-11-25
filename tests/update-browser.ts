@@ -51,7 +51,7 @@ try {
   await expect(page.locator('.update-notes pre')).toContainText('<script>');
   expect(await page.evaluate(() => (window as any).evil)).toBeUndefined();
   await expect(page.getByRole('link')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Download compatible DMG' }).click();
+  await page.getByRole('button', { name: 'Download installer' }).click();
   await page.getByRole('button', { name: 'GitHub release page' }).click();
   expect(await page.evaluate(() => (window as any).opens)).toEqual(['download', 'release']);
   const output = path.resolve('.test-output/update-browser'); mkdirSync(output, { recursive: true });
@@ -70,7 +70,7 @@ try {
   await page.evaluate(() => { (window as any).result = { currentVersion: '0.7.0', channel: 'preview', status: 'error', error: 'offline' }; });
   await open();
   await expect(page.getByRole('alert')).toContainText('Could not reach GitHub');
-  await expect(page.getByRole('button', { name: 'Download compatible DMG' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Download installer' })).toHaveCount(0);
   await close();
   await page.evaluate(() => { (window as any).result = { currentVersion: '0.7.0', channel: 'preview', status: 'up-to-date' }; });
   await open();
@@ -78,8 +78,8 @@ try {
   await close();
   await page.evaluate(() => { (window as any).result = { currentVersion: '0.7.0', channel: 'preview', status: 'available', release: { version: '0.8.0', notes: '', hasDownload: false } }; });
   await open();
-  await expect(page.getByText(/No compatible DMG is available/)).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Download compatible DMG' })).toHaveCount(0);
+  await expect(page.getByText(/No compatible installer is available/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Download installer' })).toHaveCount(0);
   await page.evaluate(() => { (window as any).openOK = false; });
   await page.getByRole('button', { name: 'GitHub release page' }).click();
   await expect(page.getByRole('alert')).toContainText('Could not open the verified release link');

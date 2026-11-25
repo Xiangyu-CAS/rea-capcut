@@ -1,2 +1,4 @@
 # Third-party license copies belong in distributions, not source-language stats.
 licenses/** linguist-vendored
+scripts/build-windows-media-tools.sh text eol=lf
+public/fonts/OFL.txt -text

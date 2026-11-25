@@ -1,6 +1,6 @@
 {
   "name": "reacut",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "private": true,
   "description": "An open source offline desktop video editor informed by REA research",
   "type": "module",
@@ -28,6 +28,7 @@
     "test:storage": "npm run build && tsx tests/storage-electron.ts",
     "test:player": "npm run build && tsx tests/player-electron.ts",
     "dist:mac:installer": "npm run build && electron-builder --mac dmg zip --publish never",
+    "dist:win": "node node_modules/electron/install.js && npm run build && electron-builder --win nsis --x64 --config.electronDist=node_modules/electron/dist --publish never",
     "test:tracks": "npm run build && tsx tests/track-electron.ts",
     "test:audio": "npm run build && tsx tests/audio-electron.ts",
     "test:package": "tsx tests/package-electron.ts",
@@ -116,9 +117,22 @@
     },
     "win": {
       "target": [
-        "nsis"
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
       ],
-      "icon": "build/icon.ico"
+      "icon": "build/icon.ico",
+      "artifactName": "${productName}-${version}-${arch}-Setup.${ext}",
+      "extraResources": [
+        {
+          "from": "media-tools/win32-x64",
+          "to": "media-tools"
+        }
+      ]
+    },
+    "nsis": {
+      "differentialPackage": false
     },
     "linux": {
       "target": [

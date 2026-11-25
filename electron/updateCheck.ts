@@ -57,7 +57,9 @@ function selectRelease(data: unknown, platform: string, arch: string): SelectedR
     const page = verifiedURL(item.html_url, [...REPOSITORY.split("/"), "releases", "tag", tag]);
     if (!page) continue;
     const version = tag.replace(/^v/, "");
-    const expectedName = platform === "darwin" && (arch === "arm64" || arch === "x64") ? `ReaCut-${version}-${arch}.dmg` : undefined;
+    const expectedName = platform === "darwin" && (arch === "arm64" || arch === "x64")
+      ? `ReaCut-${version}-${arch}.dmg`
+      : platform === "win32" && arch === "x64" ? `ReaCut-${version}-x64-Setup.exe` : undefined;
     let download: string | undefined;
     if (expectedName && Array.isArray(item.assets)) {
       for (const asset of item.assets) {
@@ -70,7 +72,8 @@ function selectRelease(data: unknown, platform: string, arch: string): SelectedR
   }
   if (!valid.length) throw new CheckError("invalid-response");
   valid.sort((a, b) => compareVersions(b.version, a.version)!);
-  return valid[0];
+  // Platform-specific previews can be published independently.
+  return valid.find(release => release.download) ?? valid[0];
 }
 class CheckError extends Error {
   constructor(readonly code: UpdateError) { super(code); }

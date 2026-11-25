@@ -2,9 +2,9 @@
 
 The desktop app offers **Settings → Check for Updates** and native **Help → Check for Updates…**. Opening either entry explicitly checks the **Preview** channel: published stable and prerelease GitHub releases, excluding drafts. Existing ReaCut releases are previews; GitHub's `latest` endpoint would omit them.
 
-The dialog shows the installed version, newer version and release notes as plain, untrusted text. A newer release can open its verified page in the fixed `Xiangyu-CAS/rea-capcut` repository. **Download DMG** is offered only for a matching macOS desktop asset and CPU architecture. A plugin ZIP, an Apple Silicon DMG on Intel, or a release older than the running app is never offered as a download. If no compatible DMG exists, the release page remains available for inspection; do not install an incompatible asset manually.
+The dialog shows the installed version and release notes as plain text. **Download installer** opens the newest matching macOS DMG or Windows x64 EXE when its version is newer than the running app. If no compatible installer exists, you can inspect the release page in the fixed `Xiangyu-CAS/rea-capcut` repository.
 
-Save your project, download the appropriate DMG in your browser, quit ReaCut and replace the app yourself. Nothing is installed, overwritten or restarted automatically. Current preview packages are ad-hoc signed and not Apple-notarized. This feature does not add signing, notarization or an automatic updater; those require a separate release design.
+Save your project, download the installer in your browser and quit ReaCut. On Windows, run the EXE. On macOS, open the DMG and replace the app in Applications. Updates are installed manually.
 
 ## Network and privacy
 
@@ -14,7 +14,7 @@ The main process validates IPC callers, bounds requests and response data, rejec
 
 ## Limits and verification
 
-This is a manual discovery and browser-download entry, not package authenticity verification or installation validation. GitHub release metadata remains remote, untrusted input. See the implementation and tests for response bounds and supported asset-name patterns. Only the bounded release-list window is inspected; an older release outside that window is not searched. Windows/Linux packaging and existing platform failures are outside this change.
+GitHub release metadata remains remote, untrusted input. The updater validates download URLs and inspects only the bounded release-list window. Release checksums can be used to verify the downloaded file.
 
 Source checks: `npm run check`. Focused service and DOM-unit checks: `npx vitest run tests/update-check.test.ts tests/update-dialog.test.ts`. Synthetic browser flows: `npx tsx tests/update-browser.ts` (or set `CHROMIUM_PATH`). Browser fixtures do not contact GitHub or download/install an application. Native Electron, macOS installer and live network verification must be distinguished from these mocked checks.
 

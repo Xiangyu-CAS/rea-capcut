@@ -58,15 +58,17 @@ ReaCut supports multiple timelines per project, group import of supported Jianyi
 
 **Interface language.** Open **Settings → Language** or press **Cmd/Ctrl+,**. New installations **Follow System**, with English as the fallback. Choose a language to save a manual preference, or select **Follow System** to resume automatic selection. [Language coverage and tests](docs/LOCALIZATION.md).
 
-**Manual updates (v0.7.1):** Settings or native Help → **Check for Updates** checks the Preview channel only on request. View release notes and open a matching DMG in your browser; replacement stays manual. No startup polling or project uploads. GitHub receives the ordinary connecting IP address. [Behavior and limits](docs/MANUAL_UPDATES.md).
+**Manual updates:** Settings or native Help → **Check for Updates** checks the Preview channel on request. Open the matching desktop installer in your browser. GitHub receives the ordinary connecting IP address. [Behavior and limits](docs/MANUAL_UPDATES.md).
 
-### Option 1: standalone DMG
+### Option 1: standalone desktop app
+
+On **Windows 10/11 x64**, download and run the [ReaCut 0.9.1 EXE installer](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe). FFmpeg and FFprobe are included. The preview installer is unsigned, so Windows may show a SmartScreen warning. MLX transcription, macOS system voices, and the Codex plugin are outside the Windows preview.
 
 Download the [ReaCut 0.9.0 DMG for macOS Apple Silicon](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg), open it, drag the app into Applications, and launch it. FFmpeg and FFprobe are bundled. This preview uses ad-hoc signing and lacks Apple notarization.
 
 ### Option 2: inside the Codex side panel
 
-Install **ReaCut 0.9.0**, Codex desktop, its `codex` CLI, and Python 3. Download the [Codex plugin ZIP](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-plugin-0.9.0.zip), then run from its extracted directory or this repository:
+On macOS, install **ReaCut 0.9.0**, Codex desktop, its `codex` CLI, and Python 3. Download the [Codex plugin ZIP](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-plugin-0.9.0.zip), then run from its extracted directory or this repository:
 
 ```sh
 sh scripts/install-plugin.sh
@@ -109,6 +111,10 @@ npm run dist:mac:installer
 DMG and ZIP files are written to `release/`. The first build downloads and compiles bundled FFmpeg / FFprobe; installer users do not need to install media tools separately. Open the DMG and drag ReaCut into Applications.
 
 Current builds use local ad-hoc signing and are not Apple-notarized. See [validation](docs/VALIDATION.md) and [media tools](docs/MEDIA_TOOLS.md) for platform coverage and build details.
+
+### Build a Windows installer
+
+Prepare the Windows x64 media bundle with the [MinGW-w64 build recipe](docs/MEDIA_TOOLS.md#windows-x64). On Windows x64, run `npm ci`, `node node_modules/electron/install.js`, `npm run licenses`, and `npm run dist:win`. The NSIS installer is written to `release/`.
 
 ## Projects and data
 

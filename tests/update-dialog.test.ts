@@ -29,7 +29,7 @@ describe('manual update dialog', () => {
     expect(host.textContent).toContain('New version available: 0.8.0');
     expect(host.querySelector('pre')?.textContent).toContain('<script>');
     expect(host.querySelectorAll('script,a')).toHaveLength(0);
-    await click(button('Download compatible DMG'));
+    await click(button('Download installer'));
     await click(button('GitHub release page'));
     expect(open.mock.calls).toEqual([['download'], ['release']]);
   });
@@ -41,17 +41,17 @@ describe('manual update dialog', () => {
   it.each(['offline', 'timeout', 'rate-limit', 'invalid-response', 'invalid-version', 'server'] as const)('shows a safe %s error without download links', async error => {
     check.mockResolvedValue({ currentVersion: '0.7.0', channel: 'preview', status: 'error', error });
     await render(); expect(host.querySelector('[role=alert]')?.textContent?.length).toBeGreaterThan(10);
-    expect(button('Download compatible DMG')).toBeUndefined(); expect(button('GitHub release page')).toBeUndefined();
+    expect(button('Download installer')).toBeUndefined(); expect(button('GitHub release page')).toBeUndefined();
   });
   it('shows current version without a downgrade offer', async () => {
     check.mockResolvedValue({ currentVersion: '0.7.0', channel: 'preview', status: 'up-to-date' });
     await render(); expect(host.textContent).toContain('No newer version was found');
-    expect(button('Download compatible DMG')).toBeUndefined();
+    expect(button('Download installer')).toBeUndefined();
   });
   it('explains missing architecture assets and catches browser-open failure', async () => {
     check.mockResolvedValue({ ...available, release: { ...available.release!, hasDownload: false } });
     open.mockResolvedValue(false); await render();
-    expect(host.textContent).toContain('No compatible DMG'); expect(button('Download compatible DMG')).toBeUndefined();
+    expect(host.textContent).toContain('No compatible installer'); expect(button('Download installer')).toBeUndefined();
     await click(button('GitHub release page'));
     expect(host.querySelector('[role=alert]')?.textContent).toContain('Could not open the verified release link');
   });

@@ -7,21 +7,21 @@ import assert from "node:assert/strict";
 import { probeFile } from "../electron/media";
 const root = process.cwd(),
   output = path.join(root, ".test-output", "package-electron");
+const windows = process.platform === "win32";
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 const bundle = path.resolve(
   process.env.REACUT_TEST_APP ??
-    path.join(root, "release", "mac-arm64", "ReaCut.app"),
+    (windows ? path.join(root, "release", "win-unpacked") : path.join(root, "release", "mac-arm64", "ReaCut.app")),
 );
-const executable = path.join(bundle, "Contents", "MacOS", "ReaCut"),
+const executable = windows ? path.join(bundle, "ReaCut.exe") : path.join(bundle, "Contents", "MacOS", "ReaCut"),
+  resources = windows ? path.join(bundle, "resources") : path.join(bundle, "Contents", "Resources"),
   demo = path.join(root, ".demo", "demo.reacut"),
   exported = path.join(output, "packaged-demo.mp4");
 await stat(executable);
 await stat(demo);
 const font = path.join(
-  bundle,
-  "Contents",
-  "Resources",
+  resources,
   "app.asar.unpacked",
   "dist",
   "fonts",
@@ -43,10 +43,13 @@ delete env.REACUT_FFMPEG;
 delete env.REACUT_FFPROBE;
 const emptyPath = path.join(output, "empty-path");
 await mkdir(emptyPath);
+for (const key of Object.keys(env)) if (key.toUpperCase() === "PATH") delete env[key];
 env.PATH = emptyPath;
-const bundledTools = path.join(bundle, "Contents", "Resources", "media-tools");
+const bundledTools = path.join(resources, "media-tools");
+const ffmpeg = path.join(bundledTools, windows ? "ffmpeg.exe" : "ffmpeg");
+const ffprobe = path.join(bundledTools, windows ? "ffprobe.exe" : "ffprobe");
 // The verification probe also uses the shipped executable, not Homebrew.
-process.env.REACUT_FFPROBE = path.join(bundledTools, "ffprobe");
+process.env.REACUT_FFPROBE = ffprobe;
 const app = await electron.launch({
   executablePath: executable,
   args: [demo],
@@ -106,8 +109,8 @@ try {
     system.ffmpeg,
     "Packaged application must discover bundled FFmpeg/FFprobe with an empty PATH",
   );
-  assert.equal(system.ffmpegPath, path.join(bundledTools, "ffmpeg"));
-  assert.equal(system.ffprobePath, path.join(bundledTools, "ffprobe"));
+  assert.equal(system.ffmpegPath, ffmpeg);
+  assert.equal(system.ffprobePath, ffprobe);
   // Seek to an opaque middle frame and verify that the actual preview has color variation.
   const ruler = (await page.locator(".tl-ruler-body").boundingBox())!;
   await page.mouse.click(ruler.x + 90, ruler.y + 15);
@@ -170,9 +173,9 @@ try {
     ),
     "Resized timeline must keep Inspector in viewport",
   );
-  await mkdir(path.join(root, "docs", "screenshots"), { recursive: true });
+  if (!windows) await mkdir(path.join(root, "docs", "screenshots"), { recursive: true });
   await page.screenshot({
-    path: path.join(root, "docs", "screenshots", "demo-editor.png"),
+    path: windows ? path.join(output, "demo-editor.png") : path.join(root, "docs", "screenshots", "demo-editor.png"),
   });
   await page.getByRole("button", { name: "导出", exact: true }).click();
   await page.getByRole("button", { name: "开始导出", exact: true }).click();
@@ -204,7 +207,7 @@ try {
     height: video?.height,
     duration: rendered.format.duration,
     checks: [
-      "packaged .app launched outside repository cwd",
+      "packaged desktop app launched outside repository cwd",
       "bundled FFmpeg and FFprobe selected with empty PATH and no overrides",
       "native canvas and bundled font",
       "isolated sandbox bridge",

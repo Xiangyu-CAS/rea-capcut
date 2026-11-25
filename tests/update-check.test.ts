@@ -64,6 +64,19 @@ describe("manual preview update service", () => {
     const service = setup([release("0.8.0", { assets: [{ name: "ReaCut-0.8.0-x64.dmg", state: "uploaded", size: 1, browser_download_url: `${repo}/releases/download/v0.8.0/ReaCut-0.8.0-x64.dmg` }] })], { arch: "x64" });
     expect((await service.check()).release?.hasDownload).toBe(true);
   });
+  it("selects the latest installer for the current platform when releases ship separately", async () => {
+    const name = "ReaCut-0.9.1-x64-Setup.exe";
+    const download = `${repo}/releases/download/v0.9.1/${name}`;
+    const data = [
+      release("0.9.1", { assets: [{ name, state: "uploaded", size: 1, browser_download_url: download }] }),
+      release("0.9.0"),
+    ];
+    const windows = setup(data, { platform: "win32", arch: "x64" });
+    expect((await windows.check()).release).toMatchObject({ version: "0.9.1", hasDownload: true });
+    expect(await windows.open("download")).toBe(true);
+    expect(windows.openExternal).toHaveBeenCalledWith(download);
+    expect((await setup(data).check()).release).toMatchObject({ version: "0.9.0", hasDownload: true });
+  });
   it.each(["ReaCut-plugin-0.8.0.zip", "ReaCut-0.8.0-arm64.zip", "ReaCut-0.8.0.dmg", "ReaCut-0.7.0-arm64.dmg"])("rejects incompatible asset %s", async name => {
     const service = setup([release("0.8.0", { assets: [{ name, state: "uploaded", size: 1, browser_download_url: `${repo}/releases/download/v0.8.0/${name}` }] })]);
     expect((await service.check()).release?.hasDownload).toBe(false);
