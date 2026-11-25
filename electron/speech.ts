@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 import { access, mkdir, mkdtemp, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { findMediaTool, importAssets, probeFile, runMediaTool } from './media';
-import { speechSource, validateCues, type CachedSpeechModel, type SpeechDependencyCheck, type SpeechInfo, type SpeechProgress, type SpeechRequest, type SpeechResult, type SpeechSettings, type SpeechVoice } from '../src/core/speech';
+import { LocalSpeechSetupRequired, speechSource, validateCues, type CachedSpeechModel, type SpeechDependencyCheck, type SpeechInfo, type SpeechProgress, type SpeechRequest, type SpeechResult, type SpeechSettings, type SpeechVoice } from '../src/core/speech';
 import type { Project } from '../src/core/types';
 
 // Always pass a local model directory and decoded PCM; neither the model loader nor FFmpeg can fetch URLs.
@@ -201,7 +201,8 @@ export function generateSpeech(jobId:string,p:Project,request:SpeechRequest,sett
         const source=speechSource(p,request.source,request.range);
         const models = !settings.model && !process.env.REACUT_SPEECH_MODEL && mlxSupported() ? await cachedSpeechModels() : [];
         const config=await localSpeechSettings(settings, models[0]?.folder);
-        if(process.platform!=='darwin'||process.arch!=='arm64'||!config.python||!path.isAbsolute(config.python)||!config.model) throw new Error('Configure local MLX Whisper and Python first.');
+        if (!mlxSupported()) throw new Error("Local speech recognition requires Apple Silicon macOS.");
+        if (!config.python || !path.isAbsolute(config.python) || !config.model) throw new LocalSpeechSetupRequired();
         await modelBytes(config.model);
         const probe=await probeFile(source.asset.path,signal);if(!probe.streams.some(s=>s.codec_type==='audio')) throw new Error('Source has no audio stream.');
         const before=await stat(source.asset.path);

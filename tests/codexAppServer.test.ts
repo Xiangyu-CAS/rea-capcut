@@ -5,6 +5,7 @@ import path from "node:path";
 import { listCodexAgentModels, readCodexAgentAccount, signInCodexAgent, signOutCodexAgent, startCodexAgentSession } from "../electron/codexAppServer";
 import { validateAssistantRequest } from "../electron/assistantBackend";
 import type { AssistantEvent, AssistantRequest } from "../src/core/assistantTypes";
+import { LocalSpeechSetupRequired } from "../src/core/speech";
 import { englishAgentCommentary, englishAgentReply, writeCodexAppServerFixture } from "./codexAppServerFixture";
 
 const jpeg = "data:image/jpeg;base64,/9j/2Q==";
@@ -123,6 +124,23 @@ describe.skipIf(process.platform === "win32")("Codex App Server standalone subpr
     ]);
     const returned = JSON.parse(calls.find(call => call.method === "transcription-result").result.content[0].text);
     expect(returned).toEqual({ transcriptionId: expect.any(String), source: recognition.source, cues });
+  });
+
+  it("offers caption setup after local transcription reports missing prerequisites", async () => {
+    await flag("fixture-signed-in");
+    const events: AssistantEvent[] = [];
+    const session = startCodexAgentSession({
+      ...request,
+      references: undefined,
+      prompt: "Add English subtitles to this video",
+      context: JSON.stringify({ assets: [{ id: "fixture-asset", hasAudio: true }], clips: [] }),
+    }, event => events.push(event), options, async () => {
+      throw new LocalSpeechSetupRequired();
+    });
+    await session.done;
+    expect(events).toContainEqual({ type: "speech-setup-required", requestId: request.requestId });
+    expect(events.at(-1)).toMatchObject({ type: "error", message: "Configure local MLX Whisper and Python first." });
+    expect(await trace()).not.toContainEqual(expect.objectContaining({ method: "turn/start" }));
   });
 
   it("rejects an unexpected MCP tool and cancels a running local job", async () => {

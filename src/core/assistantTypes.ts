@@ -96,6 +96,7 @@ export interface AssistantProviderInfo {
 }
 export type AssistantEvent = { requestId: string } & (
   | { type: "status"; message: string }
+  | { type: "speech-setup-required" }
   | { type: "activity"; kind: AssistantActivityKind; message: string; state?: "done" }
   | { type: "commentary"; text: string }
   | { type: "text"; text: string }
