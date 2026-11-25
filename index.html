@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0b11">
-  <title>ReaCut — Open-source video editing for Mac</title>
-  <meta name="description" content="An open-source video editor for Apple Silicon Macs. Cut footage, mix sound, and use the optional Codex Agent for editable captions.">
+  <title>ReaCut — Open-source video editing for macOS and Windows</title>
+  <meta name="description" content="A local, open-source video editor for Apple Silicon Macs and Windows 10/11 x64. Cut footage, style captions, and mix sound.">
   <link rel="canonical" href="https://reacut.app/">
   <link rel="alternate" hreflang="en" href="https://reacut.app/">
   <link rel="alternate" hreflang="zh-CN" href="https://reacut.app/zh-cn/">
@@ -13,8 +13,8 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="ReaCut">
   <meta property="og:locale" content="en_US">
-  <meta property="og:title" content="ReaCut — Open-source video editing for Mac">
-  <meta property="og:description" content="An open-source video editor for Apple Silicon Macs. Cut footage, mix sound, and use the optional Codex Agent for editable captions.">
+  <meta property="og:title" content="ReaCut — Open-source video editing for macOS and Windows">
+  <meta property="og:description" content="A local, open-source video editor for Apple Silicon Macs and Windows 10/11 x64. Cut footage, style captions, and mix sound.">
   <meta property="og:url" content="https://reacut.app/">
   <meta property="og:image" content="https://reacut.app/assets/reacut-09-share.jpg">
   <meta property="og:image:width" content="1200">
@@ -24,6 +24,7 @@
   <link rel="icon" type="image/png" href="./assets/reacut.png">
   <link rel="preload" href="./assets/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="./blue-hour.css">
+  <style>.hero .actions .button, .download-copy .actions .button { margin-top: 0; }</style>
   <script src="./site.js" defer></script>
 </head>
 <body>
@@ -48,10 +49,13 @@
     <section class="hero wrap" aria-labelledby="hero-title">
       <div class="hero-copy">
         <p class="eyebrow">Free and open source</p>
-        <h1 id="hero-title">A video editor<br><em>for your Mac.</em></h1>
-        <p class="hero-description">Cut footage, style captions, and mix sound. From import to export, the core editing tools run on your Mac.</p>
-        <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg">Download for macOS</a>
-        <p class="release-note">Apple Silicon <span aria-hidden="true">·</span> <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.9.0">v0.9.0 Preview</a> <span aria-hidden="true">·</span> <a href="#agent">See the Agent</a></p>
+        <h1 id="hero-title">A local<br><em>video editor.</em></h1>
+        <p class="hero-description">Cut footage, style captions, and mix sound. Edit and export locally on macOS and Windows.</p>
+        <div class="actions">
+          <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg">Download for macOS</a>
+          <a class="button secondary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe">Get Windows preview</a>
+        </div>
+        <p class="release-note">Apple Silicon <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.9.0">v0.9.0</a> <span aria-hidden="true">·</span> Windows 10/11 x64 <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.9.1">v0.9.1</a> <span aria-hidden="true">·</span> <a href="#agent">See the Agent</a></p>
       </div>
 
       <figure class="film" data-film>
@@ -86,7 +90,7 @@
     <section class="wrap agent-section" id="agent" aria-labelledby="agent-title">
       <div class="section-heading studio-heading">
         <h2 id="agent-title">English subtitles you can edit.</h2>
-        <p>ReaCut recognizes speech on your Mac. Codex translates the text into editable subtitles with the original timing.</p>
+        <p>On Apple Silicon Macs, ReaCut recognizes speech locally. Codex translates the text into editable subtitles with the original timing.</p>
       </div>
       <figure class="agent-demo">
         <a class="editor-screen" href="./assets/editor-agent.webp" aria-label="Open the full screenshot">
@@ -176,7 +180,7 @@
     <section class="wrap section" id="codex" aria-labelledby="codex-title">
       <div class="codex">
         <div class="codex-copy">
-          <p class="eyebrow">Optional Codex plugin</p>
+          <p class="eyebrow">Optional Codex plugin for Apple Silicon</p>
           <h2 id="codex-title">Edit in the Codex sidebar.</h2>
           <p>Open ReaCut inside Codex and work directly on the timeline. Ask Codex to fill a template and export a batch of videos.</p>
           <div class="actions">
@@ -193,13 +197,18 @@
         <img class="download-image" src="./assets/blue-hour-surf.webp" width="960" height="540" alt="" loading="lazy" decoding="async">
         <div class="download-copy">
           <h2 id="download-title">Get ReaCut.</h2>
-          <p>The preview installer is available for Macs with Apple Silicon.</p>
-          <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg">Download DMG</a>
-          <div class="download-links">
-            <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">All releases</a>
-            <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/SHA256SUMS.txt">Checksums</a>
-            <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/README.md#getting-started">Install guide</a>
+          <p>Choose the preview for your computer.</p>
+          <div class="actions">
+            <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg">macOS · DMG</a>
+            <a class="button secondary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe">Windows · EXE</a>
           </div>
+          <div class="download-links">
+            <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/SHA256SUMS.txt">macOS SHA-256</a>
+            <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.1/SHA256SUMS-windows.txt">Windows SHA-256</a>
+            <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/README.md#getting-started">macOS install guide</a>
+            <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">All releases</a>
+          </div>
+          <p class="release-note">macOS Apple Silicon v0.9.0 · Windows 10/11 x64 v0.9.1 (unsigned installer).</p>
         </div>
       </div>
     </section>
@@ -210,6 +219,10 @@
         <details>
           <summary>How do I install the macOS preview?</summary>
           <p>Open the DMG and drag ReaCut into Applications. This preview is ad-hoc signed and lacks Apple notarization. If macOS asks you to verify the developer, check the download’s SHA-256 before following <a href="https://support.apple.com/en-us/102445">Apple’s instructions</a>. <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/README.md#getting-started">Installation guide</a></p>
+        </details>
+        <details>
+          <summary>How do I install the Windows preview?</summary>
+          <p>Download the EXE for Windows 10/11 x64 and verify its SHA-256 before running the unsigned installer. This preview does not include local MLX transcription, macOS voices, or the Codex plugin. <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.9.1">Windows release notes</a></p>
         </details>
         <details>
           <summary>Can I edit offline?</summary>

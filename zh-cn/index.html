@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0b11">
-  <title>ReaCut 映刻 — Mac 上的开源视频剪辑器</title>
-  <meta name="description" content="ReaCut 映刻是一款面向 Apple 芯片 Mac 的开源视频剪辑器，支持本地剪辑和混音，也可用 Codex Agent 生成可编辑字幕。">
+  <title>ReaCut 映刻 — macOS 和 Windows 上的开源视频剪辑器</title>
+  <meta name="description" content="ReaCut 映刻是一款开源本地视频剪辑器，支持 Apple 芯片 Mac 和 Windows 10/11 x64，可剪视频、加字幕和调声音。">
   <link rel="canonical" href="https://reacut.app/zh-cn/">
   <link rel="alternate" hreflang="en" href="https://reacut.app/">
   <link rel="alternate" hreflang="zh-CN" href="https://reacut.app/zh-cn/">
@@ -13,8 +13,8 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="ReaCut">
   <meta property="og:locale" content="zh_CN">
-  <meta property="og:title" content="ReaCut 映刻 — Mac 上的开源视频剪辑器">
-  <meta property="og:description" content="ReaCut 映刻是一款面向 Apple 芯片 Mac 的开源视频剪辑器，支持本地剪辑和混音，也可用 Codex Agent 生成可编辑字幕。">
+  <meta property="og:title" content="ReaCut 映刻 — macOS 和 Windows 上的开源视频剪辑器">
+  <meta property="og:description" content="ReaCut 映刻是一款开源本地视频剪辑器，支持 Apple 芯片 Mac 和 Windows 10/11 x64，可剪视频、加字幕和调声音。">
   <meta property="og:url" content="https://reacut.app/zh-cn/">
   <meta property="og:image" content="https://reacut.app/assets/reacut-09-share.jpg">
   <meta property="og:image:width" content="1200">
@@ -24,6 +24,7 @@
   <link rel="icon" type="image/png" href="../assets/reacut.png">
   <link rel="preload" href="../assets/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="../blue-hour.css">
+  <style>.hero .actions .button, .download-copy .actions .button { margin-top: 0; }</style>
   <script src="../site.js" defer></script>
 </head>
 <body>
@@ -48,10 +49,13 @@
     <section class="hero wrap" aria-labelledby="hero-title">
       <div class="hero-copy">
         <p class="eyebrow">免费开源</p>
-        <h1 id="hero-title">为 Mac 而做的<br><em>视频剪辑器</em></h1>
-        <p class="hero-description">剪视频、加字幕、调声音。导入、编辑和导出，都在你的 Mac 上完成。</p>
-        <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg">下载 macOS 版</a>
-        <p class="release-note">Apple Silicon <span aria-hidden="true">·</span> <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.9.0">v0.9.0 预览版</a> <span aria-hidden="true">·</span> <a href="#agent">查看剪辑 Agent</a></p>
+        <h1 id="hero-title">在本机完成的<br><em>视频剪辑。</em></h1>
+        <p class="hero-description">剪视频、加字幕、调声音。macOS 和 Windows 均支持本地剪辑和导出。</p>
+        <div class="actions">
+          <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg">下载 macOS 版</a>
+          <a class="button secondary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe">下载 Windows 预览版</a>
+        </div>
+        <p class="release-note">Apple Silicon <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.9.0">v0.9.0</a> <span aria-hidden="true">·</span> Windows 10/11 x64 <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.9.1">v0.9.1</a> <span aria-hidden="true">·</span> <a href="#agent">查看剪辑 Agent</a></p>
       </div>
 
       <figure class="film" data-film>
@@ -86,7 +90,7 @@
     <section class="wrap agent-section" id="agent" aria-labelledby="agent-title">
       <div class="section-heading studio-heading">
         <h2 id="agent-title">生成可编辑的英文字幕</h2>
-        <p>ReaCut 在本机识别语音，Codex 翻译文字，字幕按原有时间写入可编辑的时间线。</p>
+        <p>在搭载 Apple 芯片的 Mac 上，ReaCut 在本机识别语音，Codex 翻译文字，字幕按原有时间写入可编辑的时间线。</p>
       </div>
       <figure class="agent-demo">
         <a class="editor-screen" href="../assets/editor-agent.webp" aria-label="查看完整截图">
@@ -176,7 +180,7 @@
     <section class="wrap section" id="codex" aria-labelledby="codex-title">
       <div class="codex">
         <div class="codex-copy">
-          <p class="eyebrow">可选的 Codex 插件</p>
+          <p class="eyebrow">Apple 芯片 Mac 专用的可选 Codex 插件</p>
           <h2 id="codex-title">在 Codex 侧栏里剪片。</h2>
           <p>在 Codex 里打开 ReaCut，直接操作时间线。也可以让 Codex 填充模板，再批量导出视频。</p>
           <div class="actions">
@@ -193,13 +197,18 @@
         <img class="download-image" src="../assets/blue-hour-surf.webp" width="960" height="540" alt="" loading="lazy" decoding="async">
         <div class="download-copy">
           <h2 id="download-title">下载 ReaCut。</h2>
-          <p>预览安装包适用于搭载 Apple 芯片的 Mac。</p>
-          <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg">下载 DMG</a>
-          <div class="download-links">
-            <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">所有版本</a>
-            <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/SHA256SUMS.txt">校验和</a>
-            <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/README.zh-CN.md">安装说明</a>
+          <p>选择适合你电脑的预览版。</p>
+          <div class="actions">
+            <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg">macOS · DMG</a>
+            <a class="button secondary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe">Windows · EXE</a>
           </div>
+          <div class="download-links">
+            <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/SHA256SUMS.txt">macOS SHA-256 校验和</a>
+            <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.1/SHA256SUMS-windows.txt">Windows SHA-256 校验和</a>
+            <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/README.zh-CN.md">macOS 安装说明</a>
+            <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">所有版本</a>
+          </div>
+          <p class="release-note">macOS Apple 芯片 v0.9.0 · Windows 10/11 x64 v0.9.1（安装包未签名）。</p>
         </div>
       </div>
     </section>
@@ -210,6 +219,10 @@
         <details>
           <summary>如何安装 macOS 预览版？</summary>
           <p>打开 DMG 后，把 ReaCut 拖到「应用程序」。预览版采用临时签名，尚未经过 Apple 公证。如果 macOS 提示无法验证开发者，请先核对下载文件的 SHA-256，再参考 <a href="https://support.apple.com/en-us/102445">Apple 的说明</a>。 <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/README.zh-CN.md">安装说明</a></p>
+        </details>
+        <details>
+          <summary>如何安装 Windows 预览版？</summary>
+          <p>下载适用于 Windows 10/11 x64 的 EXE。安装包未签名，请先核对 SHA-256 再运行。此预览版不包含本地 MLX 转录、macOS 系统语音或 Codex 插件。 <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.9.1">Windows 版本说明</a></p>
         </details>
         <details>
           <summary>可以离线剪辑吗？</summary>
