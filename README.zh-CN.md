@@ -2,17 +2,18 @@
   <img src="public/icons/reacut.png" width="96" height="96" alt="ReaCut 图标" />
 </p>
 <h1 align="center">ReaCut · 映刻</h1>
-<p align="center"><strong>面向 Mac 的开源视频编辑器。</strong><br />在本机剪辑、加字幕和导出，也可用 Codex Agent 编辑同一条时间线。</p>
+<p align="center"><strong>适用于 Windows 和 Mac 的开源视频编辑器。</strong><br />在本机剪辑、加字幕和导出，也可用 Codex Agent 编辑同一条时间线。</p>
 <p align="center">
+  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe"><img src="docs/download-windows.svg" width="340" height="76" alt="下载 Windows 10/11 x64 EXE 安装包 v0.9.1" /></a>
   <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="下载 macOS Apple Silicon 版 v0.9.0" /></a><br />
   <a href="https://reacut.app/zh-cn/">产品网站</a> · <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">全部 Releases / ZIP / 校验和</a> · <a href="#快速开始">安装说明</a><br />
-  <sub>仅 Apple Silicon（M 系列）· 预览版 · ad-hoc 签名，未公证。ASR 需另配本地 Python/MLX 与模型。</sub>
+  <sub>预览版安装包 · Windows EXE 未签名 · macOS DMG 采用 ad-hoc 签名，尚未公证。</sub>
 </p>
 <p align="center">完整视频编辑器的实现工作量很大，项目仍处于早期阶段。<br /><strong>欢迎贡献者一起完善功能、交互、跨平台支持、测试和文档。</strong> <a href="#参与贡献">参与贡献 →</a></p>
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/source_license-MIT-45d6c0" alt="Source license: MIT" /></a>
   <img src="https://img.shields.io/badge/status-early_development-orange" alt="Status: early development" />
-  <img src="https://img.shields.io/badge/verified-macOS_arm64-333333" alt="Verified platform: macOS arm64" />
+  <img src="https://img.shields.io/badge/verified-Windows_x64_%2B_macOS_arm64-333333" alt="已验证平台：Windows x64 和 macOS arm64" />
   <a href="https://github.com/reacher-z/Awesome-REA"><img src="https://raw.githubusercontent.com/reacher-z/Awesome-REA/main/assets/featured-by-awesome-rea-inline.svg" alt="Featured by Awesome REA" width="184" height="20"></a>
 </p>
 <p align="center">
