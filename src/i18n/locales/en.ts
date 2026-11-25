@@ -57,7 +57,7 @@ export const en: Record<TranslationKey, string> = {
   "toolbar.projectName.aria": "Project name",
   "toolbar.dirty": "Unsaved changes",
   "toolbar.saved": "Saved",
-  "toolbar.assistant": "Assistant",
+  "toolbar.assistant": "Agent",
   "toolbar.assistant.aria": "Editing assistant",
   "toolbar.offline": "Offline editing",
   "toolbar.saveProject.title": "Save project ⌘S",

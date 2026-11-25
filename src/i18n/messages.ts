@@ -3,6 +3,14 @@ import { useLanguageStore, type Language } from "./languageStore";
 // Only application-owned diagnostics belong here. Do not translate project names,
 // subtitles, filenames, assistant replies, or arbitrary third-party error details.
 const messages: Record<string, string> = {
+  "正在本机识别字幕…": "Recognizing speech locally…",
+  "已选择语音来源": "Selected the audio source",
+  "已完成本机语音识别": "Transcribed speech on this device",
+  "正在通过 Codex 翻译字幕…": "Translating subtitles with Codex…",
+  "正在根据转录准备字幕…": "Preparing subtitles from the transcript…",
+  "本机转录没有返回结果。": "Local transcription returned no result.",
+  "字幕转录已失效，请重新识别。": "The transcription is unavailable. Recognize the source again.",
+  "Codex 未发现 ReaCut 本地转录工具。": "Codex could not find the ReaCut transcription tool.",
   "抠像颜色必须为 #RRGGBB。": "The chroma key color must use #RRGGBB.",
   "原创示例不存在或素材不完整": "The built-in example does not exist or its media is incomplete.",
   "关键帧已不存在": "The keyframe no longer exists.",
@@ -62,6 +70,7 @@ const messages: Record<string, string> = {
   "目标轨道不存在": "The target track does not exist.",
   "目标轨道已锁定或类型不兼容": "The target track is locked or its type is incompatible.",
   "片段时长超出素材范围": "The clip duration exceeds the asset range.",
+  "图片的源素材入点须为零": "A still image must start at source time zero.",
   "项目修改为空": "The project edit is empty.",
   "画布尺寸必须为整数": "Canvas dimensions must be integers.",
   "不支持该帧率": "This frame rate is unsupported.",
@@ -233,6 +242,7 @@ const messages: Record<string, string> = {
   "CLI 未返回可识别的编辑提案，请换一种方式描述需求": "The CLI did not return a recognizable editing proposal. Try describing the request differently.",
   "助手回复格式无效": "Invalid assistant response format.",
   "助手回复格式无效或提案过多": "Invalid assistant response format or too many proposed edits.",
+  "助手回复的编辑模式无效": "The assistant returned an invalid editing mode.",
   "编辑提案格式无效": "Invalid editing proposal format.",
   "CLI 检查超时": "The CLI check timed out.",
   "CLI 检查输出过长": "The CLI check output is too long.",
@@ -252,6 +262,20 @@ const messages: Record<string, string> = {
   "CLI 未返回完整回复，请确认登录状态后重试": "The CLI did not return a complete response. Verify its sign-in status and try again.",
   "助手回复无法解析": "The assistant response could not be parsed.",
   "助手响应超时，已停止本次请求。可以缩短需求后重新发送。": "The assistant timed out and this request was stopped. Try sending a shorter request.",
+  "参考帧无效或过大，请重新选择。": "Select a valid, smaller reference frame.",
+  "所选模型不支持参考帧。": "The selected model does not support reference frames.",
+  "当前 Codex 模型或推理强度不可用，请重新选择。": "Select another Codex model or reasoning effort.",
+  "Codex 返回了无效的 App Server 数据。": "Codex App Server returned invalid data.",
+  "Codex App Server 连接已关闭。": "The Codex App Server connection closed.",
+  "Codex 版本不支持剪辑 Agent 所需的 App Server 功能，请更新 Codex。": "Update Codex to a version with the App Server features required by the editing agent.",
+  "Codex 尝试使用未授权的工具，已停止本次请求。": "Codex requested an unavailable tool. The request was stopped.",
+  "Codex 登录已失效，请在剪辑 Agent 中重新登录。": "Sign in again from the editing agent.",
+  "Codex 未完成本次请求。请检查登录状态和 Codex 版本。": "Codex did not complete the request. Check your sign-in and Codex version.",
+  "Codex 未返回有效的 OpenAI 登录地址。": "Codex did not return a valid OpenAI sign-in address.",
+  "Codex 登录未完成。请在浏览器中完成登录后再试。": "Complete Codex sign-in in your browser, then try again.",
+  "Codex 登录超时，请重新打开浏览器登录。": "Codex sign-in timed out. Reopen sign-in in your browser.",
+  "请等待当前 Codex 登录操作完成。": "Wait for the current Codex sign-in operation to finish.",
+  "正在通过 Codex 准备剪辑方案…": "Preparing an edit proposal with Codex…",
 };
 
 const fields: Record<string, string> = {
@@ -303,9 +327,9 @@ const patterns: Pattern[] = [
   [/^找不到素材“(.+)”，请重新链接后保存$/s, name => `Asset “${name}” was not found. Relink it before saving.`],
   [/^正在收集素材 (\d+) \/ (\d+)$/, (current, total) => `Collecting media ${current} / ${total}`],
   [/^倒放分段 (\d+)\/(\d+)$/, (current, total) => `Reversing segment ${current}/${total}`],
-  [/^正在连接 (Codex|Claude Code)…$/, provider => `Connecting to ${provider}…`],
-  [/^所选 (Codex|Claude Code) 不是可执行文件（Windows 请选择原生 .exe）$/, provider => `The selected ${provider} file is not executable (choose a native .exe on Windows).`],
-  [/^未找到 (Codex|Claude Code)。请先安装并在终端登录，或选择 CLI 可执行文件$/, provider => `${provider} was not found. Install it and sign in in a terminal, or select its CLI executable.`],
+  [/^正在连接 (Codex(?: CLI)?|Claude Code)…$/, provider => `Connecting to ${provider}…`],
+  [/^所选 (Codex(?: CLI)?|Claude Code) 不是可执行文件（Windows 请选择原生 .exe）$/, provider => `The selected ${provider} file is not executable (choose a native .exe on Windows).`],
+  [/^未找到 (Codex(?: CLI)?|Claude Code)。请先安装并在终端登录，或选择 CLI 可执行文件$/, provider => `${provider} was not found. Install it and sign in in a terminal, or select its CLI executable.`],
 ];
 
 /** Translate diagnostics at display time so switching languages also updates errors. */

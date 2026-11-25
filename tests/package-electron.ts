@@ -1,4 +1,4 @@
-import { firstChineseWindow } from "./ui-language";
+import { firstChineseWindow, showProperties } from "./ui-language";
 /** Launch the actual packaged app from a different cwd, not the developer entry. */
 import { _electron as electron, expect } from "@playwright/test";
 import { mkdir, rm, stat, writeFile } from "node:fs/promises";
@@ -58,6 +58,7 @@ const page = await firstChineseWindow(app),
   errors: string[] = [];
 page.on("pageerror", (e) => errors.push(e.message));
 try {
+  await showProperties(page);
   await app.evaluate(({ dialog }, file) => {
     (dialog as any).showSaveDialog = async () => ({
       canceled: false,

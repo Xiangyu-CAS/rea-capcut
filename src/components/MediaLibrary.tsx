@@ -15,6 +15,7 @@ import {
   Plus,
   Play,
   Search,
+  Sparkles,
   Trash2,
   Upload,
   X,
@@ -32,6 +33,8 @@ export interface MediaLibraryProps {
   onImportFiles?: (files: File[]) => void;
   onRevealAsset?: (assetId: string) => void;
   onPreviewAsset?: (assetId: string) => void;
+  agentAssetIds?: ReadonlySet<string>;
+  onToggleAgentAsset?: (assetId: string) => void;
 }
 export function formatMediaDuration(seconds: number) {
   const value = Math.max(0, Math.floor(seconds));
@@ -57,6 +60,8 @@ export default function MediaLibrary({
   onImportFiles,
   onRevealAsset,
   onPreviewAsset,
+  agentAssetIds,
+  onToggleAgentAsset,
 }: MediaLibraryProps) {
   const ui = useUITranslation();
   const [query, setQuery] = useState("");
@@ -100,6 +105,7 @@ export default function MediaLibrary({
   };
   const item = (asset: MediaAsset) => {
     const inTimeline = project.clips.some((c) => c.assetId === asset.id);
+    const usedByAgent = agentAssetIds?.has(asset.id) ?? false;
     return (
       <div
         key={asset.id}
@@ -199,6 +205,13 @@ export default function MediaLibrary({
             </span>
           )}
           {asset.missing && <span className="media-missing"> {ui("文件丢失", "Missing file")} </span>}
+          {onToggleAgentAsset && !asset.missing && <button
+            className="media-agent"
+            aria-label={ui(`将 ${asset.name} 用于 Agent`, `Use ${asset.name} in Agent`)}
+            aria-pressed={usedByAgent}
+            title={usedByAgent ? ui("从 Agent 移除", "Remove from Agent") : ui("用于 Agent", "Use in Agent")}
+            onClick={event => { event.stopPropagation(); onToggleAgentAsset(asset.id); }}
+          ><Sparkles size={13} /></button>}
           <button
             className="media-add"
             aria-label={ui(`添加 ${asset.name} 到时间线`, `Add ${asset.name} to timeline`)}
@@ -244,6 +257,9 @@ export default function MediaLibrary({
             onClick={(event) => event.stopPropagation()}
           >
             {onPreviewAsset && <button onClick={() => { onPreviewAsset(asset.id);setMenu(null); }}><Play size={13} />  {ui("预览素材", "Preview asset")} </button>}
+            {onToggleAgentAsset && !asset.missing && <button onClick={() => { onToggleAgentAsset(asset.id); setMenu(null); }}>
+              <Sparkles size={13} />{usedByAgent ? ui("从 Agent 移除", "Remove from Agent") : ui("用于 Agent", "Use in Agent")}
+            </button>}
             <button
               disabled={asset.missing}
               onClick={() => {

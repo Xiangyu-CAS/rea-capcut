@@ -1,6 +1,6 @@
 # 架构
 
-ReaCut 的编辑模型、预览与导出由独立代码实现。REA 只用于开发阶段记录指定剪映安装包和授权测试项目的观察证据，不参与应用运行。
+ReaCut 的编辑模型、预览与导出由独立代码实现。REA 用于开发阶段取证，国际版 CapCut Desktop 提供工作流参考，国内剪映提供历史研究和部分本地草稿证据。 [国际版对照](research/CAPCUT_DESKTOP_9_8.md)
 
 ```mermaid
 flowchart LR
@@ -77,9 +77,15 @@ renderer 没有 Node.js 权限。preload 只暴露编辑所需方法；主进程
 
 云项目、登录、SaaS 与 API AI 没有服务端或隐藏实现。剪映导入由主进程负责受限目录读取、时间线选择和认证解码，平台无关转换器将已解码 JSON 转为基础时间线。当前仅验证本机受控草稿的嵌入 AES-GCM 格式，详见第二轮格式报告。Windows/Linux 的代码与构建目标需要在对应系统上独立运行验证。完整性能上限、长期大型项目编辑、HDR/专业颜色管理和所有第三方媒体编解码组合尚未验证。
 
-## 可选 CLI 助手与内置素材
+## 可选剪辑 Agent 与内置素材
 
-`assistantBackend.ts` 管理 CLI 发现、隔离目录、结构化输出、取消和超时；`assistantEdits.ts` 对每项操作进行白名单验证，renderer 先显示计划再一次提交。摘要明确选择可发送字段，对话按项目 ID 的 SHA-256 存储在本机。内置素材由原创 SVG/合成音频生成，安装包资源被复制到稳定的用户缓存路径再按普通媒体导入，更新应用不改变已保存工程的素材引用。详见 [助手](ASSISTANT.md) 和 [原创素材](ORIGINAL_ASSETS.md)。
+`codexAppServer.ts` 通过本地 stdio 调用安装好的 Codex，负责浏览器登录、临时会话、流式回复和取消。Codex 管理专用配置的登录状态，主进程向 renderer 返回连接状态。`assistantBackend.ts` 提供 CLI 发现、共享的请求约束和结构化回复，也服务于原有 CLI 后端。摘要记录用户所选素材、源范围和时间线片段，参考帧由用户选择。对话按项目 ID 的 SHA-256 存储在本机。 [剪辑 Agent](ASSISTANT.md)
+
+`reacut_transcribe` 通过桌面 Agent 的专用 stdio MCP 和插件的 stdio MCP 调用同一本地语音识别器。桌面 Agent 的连接通过每回合独立的本机套接字转发。工具使用当前项目里的素材或片段 ID，仅返回带时间戳的文字。每个转录结果绑定 Agent 回合或插件 revision。`addCaptions` 按源时间映射到片段的最终位置和速度，校验逐条译文后一次入轨。
+
+本机 Codex 和插件的剪辑动作共用 renderer 中的编辑状态与 `assistantEdits.ts` 校验。桌面 Agent 在发送请求时保存用户选择的模式，回复只能在该范围内执行。直接剪辑在项目版本匹配时原子提交，并在对应的撤销记录上保存方案 ID。预览播放器使用校验后的方案和独立播放位置。 [插件工作流](CODEX_PLUGIN.md)
+
+内置素材由原创 SVG 与合成音频生成，安装包资源复制到稳定的用户缓存路径，再走普通媒体导入。 [原创素材](ORIGINAL_ASSETS.md)
 
 ## v0.4 本地工作流
 

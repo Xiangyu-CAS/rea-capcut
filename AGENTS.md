@@ -39,7 +39,7 @@
 
 ## 项目目标与代码结构
 
-ReaCut（映刻）是独立实现的离线桌面视频编辑器，采用 Electron、React、TypeScript、Zustand、Vite 和 Vitest，媒体探测与导出使用本地 FFprobe / FFmpeg。剪映研究用于了解行为和本地格式，运行产品不依赖 REA、Ghidra 或剪映。
+ReaCut（映刻）是独立实现的离线桌面视频编辑器，采用 Electron、React、TypeScript、Zustand、Vite 和 Vitest，媒体探测与导出使用本地 FFprobe / FFmpeg。国际版 CapCut Desktop 是编辑工作流的对照目标。国内剪映研究提供历史界面和本地草稿格式证据。REA、Ghidra、CapCut 和剪映仅用于开发取证。 [国际版对照](docs/research/CAPCUT_DESKTOP_9_8.md)
 
 - `src/core/`：项目验证、时间线、动画、字幕、画面处理与草稿转换。
 - `src/editor/`：编辑状态、撤销重做与预览图层。
@@ -50,7 +50,7 @@ ReaCut（映刻）是独立实现的离线桌面视频编辑器，采用 Electro
 
 开始修改前阅读 `README.md` 及相关的 `docs/ARCHITECTURE.md`、`docs/FEATURE_MATRIX.md`、`docs/CAPCUT_INTEROP.md`、`docs/VALIDATION.md`。不要把历史文档中的功能描述当成当前代码或验收证据。
 
-## 剪映研究与互通
+## CapCut／剪映研究与互通
 
 - 本地界面观察、公开格式学习、经授权的受控样本分析和独立实现可以支持互通工作；逆向研究本身不等于恶意网络行为，但每次操作仍须符合授权、政策及适用权利边界。
 - 使用专门创建的测试草稿和自造媒体。只读取明确选定的文件或项目目录；不遍历私人草稿库、账号缓存或其他应用数据。

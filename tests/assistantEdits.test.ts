@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { assistantProjectContext, previewAssistantEdits } from "../src/core/assistantEdits";
+import { assistantProjectContext, assistantRequestMode, assistantTranscriptionRequest, previewAssistantEdits } from "../src/core/assistantEdits";
 import { clone, createClip, createProject, createTrack, evaluateFade, evaluateKeyframes } from "../src/core/model";
-import { useEditorStore } from "../src/editor/store";
+import { agentPlanStatus, useEditorStore } from "../src/editor/store";
 import { validateAssistantRequest } from "../electron/assistantBackend";
 import type { Project } from "../src/core/types";
+import type { AssistantTranscription } from "../src/core/assistantTypes";
 
 function fixture(): Project {
   const p = createProject("合成项目");
@@ -20,6 +21,47 @@ function fixture(): Project {
 beforeEach(() => useEditorStore.getState().setProject(createProject()));
 
 describe("assistant atomic edit proposals", () => {
+  it("adds translated text from a transcript at the original media times and supports one undo", () => {
+    useEditorStore.getState().setProject(fixture());
+    const project = useEditorStore.getState().project;
+    const transcription: AssistantTranscription = {
+      id: "test-speech", request: assistantTranscriptionRequest("clip:clip"), time: 0,
+      cues: [{ start: 1, end: 3, text: "你好" }, { start: 4, end: 7, text: "再见" }],
+    };
+    const caption = { type: "addCaptions", transcriptionId: transcription.id, translations: ["Hello", "Goodbye"] };
+    expect(() => previewAssistantEdits(project, [caption])).toThrow("转录已失效");
+    expect(() => previewAssistantEdits(project, [caption, { type: "trimClip", clipId: "clip", edge: "start", time: 3 }], "en", [transcription]))
+      .toThrow("source range changed");
+    expect(() => previewAssistantEdits(project, [{ ...caption, translations: ["Hello"] }], "en", [transcription]))
+      .toThrow("one translation for each");
+    useEditorStore.getState().submitAgentEdits(project, [caption], {
+      source: "agent", mode: "edit", transcriptions: [transcription],
+    });
+    const [video, ...cues] = useEditorStore.getState().project.clips;
+    expect(video).toEqual(project.clips[0]);
+    expect(cues).toMatchObject([
+      { start: 2.5, duration: 1, text: { text: "Hello" } },
+      { start: 4, duration: 1.5, text: { text: "Goodbye" } },
+    ]);
+    useEditorStore.getState().undo();
+    expect(useEditorStore.getState().project.clips).toEqual(project.clips);
+  });
+
+  it("limits transcription to an attached source range and places that range when adding captions", () => {
+    const project = fixture();
+    project.clips = [];
+    const range = { sourceIn: 5, duration: 3 };
+    const request = assistantTranscriptionRequest("asset:asset", undefined, [{ assetId: "asset", range }]);
+    const action = { type: "addCaptions", transcriptionId: "media-transcript" };
+    const result = previewAssistantEdits(project, [action], "en", [{
+      id: action.transcriptionId, request, time: 10, cues: [{ start: 0.5, end: 2, text: "Test caption" }],
+    }]);
+    expect(() => assistantTranscriptionRequest("asset:/tmp/media.mp4")).toThrow();
+    expect(result.project.clips).toMatchObject([
+      { assetId: "asset", start: 10, ...range },
+      { start: 10.5, duration: 1.5, text: { text: "Test caption" } },
+    ]);
+  });
   it("validates all operations on a clone and leaves the project untouched on later failure", () => {
     const p = fixture(), snapshot = clone(p);
     expect(() => previewAssistantEdits(p, [
@@ -29,21 +71,107 @@ describe("assistant atomic edit proposals", () => {
     ])).toThrow("不存在");
     expect(p).toEqual(snapshot);
   });
-  it("applies a multi-action proposal as one reversible history entry", () => {
+  it("publishes a direct multi-action edit and its result as one reversible update", () => {
     const p = fixture();
     useEditorStore.getState().setProject(p);
-    const before = clone(useEditorStore.getState().project);
-    const preview = previewAssistantEdits(before, [
-      { type: "setVolume", clipId: "clip", volume: .4 },
-      { type: "addText", text: "新增", start: 0, duration: 2 },
-      { type: "setProject", width: 1080, height: 1920 },
-    ]);
-    expect(useEditorStore.getState().past).toHaveLength(0);
-    useEditorStore.getState().commit(preview.project);
+    const before = useEditorStore.getState().project;
+    const published: boolean[] = [];
+    const stop = useEditorStore.subscribe(state => published.push(state.agentPlan?.status === "applied"));
+    try {
+      useEditorStore.getState().submitAgentEdits(before, [
+        { type: "setVolume", clipId: "clip", volume: .4 },
+        { type: "addText", text: "新增", start: 0, duration: 2 },
+        { type: "setProject", width: 1080, height: 1920 },
+      ], { source: "agent", mode: "edit" });
+    } finally {
+      stop();
+    }
+    expect(published).toEqual([true]);
     expect(useEditorStore.getState().past).toHaveLength(1);
     expect(useEditorStore.getState().project.clips).toHaveLength(2);
     useEditorStore.getState().undo(); expect(useEditorStore.getState().project).toEqual(before);
     useEditorStore.getState().redo(); expect(useEditorStore.getState().project.clips).toHaveLength(2);
+  });
+  it("tracks the plan's history entry across timeline switches and other edits", () => {
+    const current = useEditorStore.getState;
+    current().setProject(fixture());
+    const mainTimeline = current().project.activeTimeline?.id ?? current().project.id;
+    current().createTimeline("Alternate", "Main", false);
+    const alternateTimeline = current().project.activeTimeline!.id;
+    current().openTimeline(mainTimeline);
+    current().updateProject({ name: "Earlier edit" });
+    const base = current().project;
+    const plan = current().submitAgentEdits(base, [
+      { type: "setVolume", clipId: "clip", volume: .4 },
+    ], { source: "chatgpt", mode: "preview" });
+    current().applyAgentPlan(plan.id);
+    current().updateProject({ name: "Later edit" });
+    current().openTimeline(alternateTimeline);
+    const status = () => agentPlanStatus(current().agentPlan!, current().project);
+    const mainClip = () => current().project.otherTimelines!.find(timeline => timeline.id === mainTimeline)!.clips[0];
+
+    current().undo();
+    expect(status()).toBe("applied");
+    current().undo();
+    expect(current().project.activeTimeline?.id).toBe(alternateTimeline);
+    expect(mainClip().volume).toBe(base.clips[0].volume);
+    expect(status()).toBe("undone");
+    current().undo();
+    expect(status()).toBe("undone");
+    current().redo();
+    expect(status()).toBe("undone");
+    current().redo();
+    expect(mainClip().volume).toBe(.4);
+    expect(status()).toBe("applied");
+    current().undo();
+    current().updateProject({ name: "New history branch" });
+    expect(current().future).toHaveLength(0);
+    expect(status()).toBe("undone");
+  });
+  it.each(["edit", "preview"] as const)("reports an unchanged %s without altering undo or redo history", mode => {
+    const current = useEditorStore.getState;
+    current().setProject(fixture());
+    current().updateProject({ name: "Earlier edit" });
+    current().updateProject({ name: "Later edit" });
+    current().undo();
+    current().seek(3);
+    current().select(["clip"]);
+    const before = current();
+    const plan = before.submitAgentEdits(before.project, [
+      { type: "setProject", name: before.project.name },
+    ], { source: "agent", mode });
+    expect(plan.status).toBe("unchanged");
+    expect(plan.preview.descriptions).toEqual([]);
+    expect(current().project).toBe(before.project);
+    expect(current().past).toBe(before.past);
+    expect(current().future).toBe(before.future);
+    expect(current().playhead).toBe(3);
+    expect(current().selectedIds).toEqual(["clip"]);
+    current().setAgentPreview(plan.id);
+    expect(current().agentPreviewId).toBeNull();
+    expect(() => current().applyAgentPlan(plan.id)).toThrow();
+  });
+  it("keeps the current project and undo history when an automatic batch conflicts", () => {
+    useEditorStore.getState().setProject(fixture());
+    const state = useEditorStore.getState();
+    const actions = [{ type: "deleteClip", clipId: "clip" }];
+    state.beginTransaction();
+    expect(() => state.submitAgentEdits(state.project, actions, { source: "agent", mode: "edit" })).toThrow();
+    expect(useEditorStore.getState().project).toBe(state.project);
+    expect(useEditorStore.getState().past).toHaveLength(0);
+    state.endTransaction();
+    state.updateProject({ name: "Manual change" });
+    const current = useEditorStore.getState();
+    expect(() => state.submitAgentEdits(state.project, actions, { source: "agent", mode: "edit" })).toThrow();
+    expect(useEditorStore.getState()).toBe(current);
+  });
+  it("proposes source ranges for a rough cut and rejects ranges beyond the media", () => {
+    const p = fixture();
+    const preview = previewAssistantEdits(p, [{ type: "addAsset", assetId: "asset", start: 12, sourceIn: 3.5, duration: 2 }], "en");
+    expect(preview.project.clips.at(-1)).toMatchObject({ start: 12, sourceIn: 3.5, duration: 2 });
+    expect(preview.descriptions[0]).toContain("Source in 3.50s");
+    expect(() => previewAssistantEdits(p, [{ type: "addAsset", assetId: "asset", start: 12, sourceIn: 19, duration: 2 }])).toThrow("超出素材范围");
+    expect(p.clips).toHaveLength(1);
   });
   it("blocks changes to locked source tracks and locked/incompatible destinations", () => {
     const p = fixture(); p.tracks[1].locked = true;
@@ -120,6 +248,23 @@ describe("assistant atomic edit proposals", () => {
   });
 });
 
+describe("assistant request modes", () => {
+  it("honors the composer and lets explicit wording narrow its scope", () => {
+    expect(assistantRequestMode("edit", "Add an opening title.")).toBe("edit");
+    expect(assistantRequestMode("preview", "Add an opening title.")).toBe("preview");
+    expect(assistantRequestMode("answer", "Add an opening title.")).toBe("answer");
+    expect(assistantRequestMode("edit", "先预览粗剪效果，等我确认")).toBe("preview");
+    expect(assistantRequestMode("edit", "Show me a preview before applying.")).toBe("preview");
+    expect(assistantRequestMode("edit", "只给建议，先不要剪")).toBe("answer");
+    expect(assistantRequestMode("edit", "Just give me advice.")).toBe("answer");
+    expect(assistantRequestMode("edit", "先不要剪")).toBe("answer");
+    expect(assistantRequestMode("edit", "Do not edit the timeline yet.")).toBe("answer");
+    expect(assistantRequestMode("edit", "去掉空镜，但不要剪掉我说话的部分")).toBe("edit");
+    expect(assistantRequestMode("edit", "Trim the opening. Don't edit the audio.")).toBe("edit");
+    expect(assistantRequestMode("edit", "添加片头「只给建议」")).toBe("edit");
+  });
+});
+
 describe("assistant project summary privacy and bounds", () => {
   it("keeps useful timing and selection, without paths, media data or unknown fields", () => {
     const p = fixture();
@@ -155,6 +300,21 @@ describe("assistant project summary privacy and bounds", () => {
     const context = assistantProjectContext(p, [], 0);
     for (const secret of ["/mnt/private", "/Users/private", "/etc/private"]) expect(context).not.toContain(secret);
     expect(() => validateAssistantRequest({ requestId: "summary-test", provider: "codex", prompt: "建议", history: [], context })).not.toThrow();
+  });
+  it("keeps an attached source range beyond the asset limit and drops invalid selections", () => {
+    const p = fixture(), original = p.assets[0];
+    p.assets.push(...Array.from({ length: 110 }, (_, index) => ({ ...original, id: "asset-" + index })));
+    const selected = { assetId: "asset-109", range: { sourceIn: 4, duration: 2 } };
+    const context = assistantProjectContext(p, [], 0, [], [
+      selected,
+      { assetId: "asset-1", range: { sourceIn: 18, duration: 3 } },
+      { assetId: "missing" },
+    ]);
+    const summary = JSON.parse(context);
+    expect(summary.selectedMedia).toEqual([selected]);
+    expect(summary.assets[0].id).toBe(selected.assetId);
+    expect(summary.truncated).toBe(true);
+    expect(context).not.toContain(original.path);
   });
   it("enforces the byte budget independently of list limits for long Unicode text", () => {
     const p = createProject("大量同轨字幕");

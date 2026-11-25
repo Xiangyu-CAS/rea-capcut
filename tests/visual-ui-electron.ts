@@ -1,4 +1,4 @@
-import { firstChineseWindow } from "./ui-language";
+import { firstChineseWindow, showProperties } from "./ui-language";
 import { verifyEditorViewport } from './uiGeometry';
 /** Native UI, project persistence and decoded pixels for crop/key/mask tools.
  * Run against the current compiled app: npx tsx tests/visual-ui-electron.ts
@@ -70,6 +70,7 @@ try {
     { inputs: [media.quadrants, keyFile], directory, project: projectPath },
   );
   page = await firstChineseWindow(app);
+  await showProperties(page);
   page.on("pageerror", (error) => errors.push(error.message));
   await page.waitForSelector(".app-shell");
   const initialGeometry = await verifyEditorViewport(page);

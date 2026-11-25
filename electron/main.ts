@@ -3,7 +3,8 @@ import { listTemplates, libraryTemplate, readTemplate, writeTemplate } from "./p
 import { validateTemplate } from "../src/core/projectTemplates";
 import { TEMPLATE_EXAMPLES, buildTemplateExample } from "../src/core/templateExamples";
 import { speechInfo, cachedSpeechModels, generateSpeech, cancelSpeech, cancelAllSpeech, cleanSpeechTemporaries } from "./speech";
-import { speechSource, type SpeechSettings, type SpeechRequest } from "../src/core/speech";
+import { speechSource, type SpeechProgress, type SpeechSettings, type SpeechRequest } from "../src/core/speech";
+import { assistantMediaSelection, assistantTranscriptionRequest } from "../src/core/assistantEdits";
 import { audioAnalysisSources, type AudioAnalysisRequest, type AudioAnalysisResult } from "../src/core/audioMix";
 import { analyzeAudio } from "./audioAnalysis";
 import { beatSource } from "../src/core/beats";
@@ -36,7 +37,8 @@ import { fileURLToPath } from "node:url";
 import { createHash, randomUUID } from "node:crypto";
 import { BUILTIN_ASSETS } from "../src/core/builtinAssets";
 import { discoverAssistantProviders, startAssistantSession } from "./assistantBackend";
-import type { AssistantMessage, AssistantProvider, AssistantRequest } from "../src/core/assistantTypes";
+import { listCodexAgentModels, readCodexAgentAccount, signInCodexAgent, signOutCodexAgent, startCodexAgentSession } from "./codexAppServer";
+import { ASSISTANT_ACTIVITY_KINDS, MAX_ASSISTANT_COMMENTARY, MAX_ASSISTANT_COMMENTARY_LENGTH, MAX_ASSISTANT_WORK_ENTRIES, type AssistantCLI, type AssistantEvent, type AssistantLocalProject, type AssistantMessage, type AssistantRequest, type AssistantWorkEntry, type CodexAgentAccount, type CodexAgentModel } from "../src/core/assistantTypes";
 import {
   importAssets,
   performancePreviewProxy,
@@ -68,8 +70,9 @@ import type {
 } from "../src/core/types";
 
 const pluginMode = process.argv.includes("--reacut-plugin");
-const templateRoot = path.join(process.env.REACUT_USER_DATA
-  ? path.resolve(process.env.REACUT_USER_DATA) : app.getPath("userData"), "project-templates");
+const settingsRoot = process.env.REACUT_USER_DATA ? path.resolve(process.env.REACUT_USER_DATA) : app.getPath("userData");
+const templateRoot = path.join(settingsRoot, "project-templates");
+const speechSettingsPath = path.join(settingsRoot, "speech-settings.json");
 // A connected MCP server is a background app until its desktop window is shown.
 if (process.platform === "darwin") app.setActivationPolicy(pluginMode ? "accessory" : "regular");
 if (pluginMode && !process.env.REACUT_USER_DATA)
@@ -91,13 +94,31 @@ protocol.registerSchemesAsPrivileged([
   },
 ]);
 let window: BrowserWindow | null = null;
-let assistantOverrides: Partial<Record<AssistantProvider, string>> = {};
+let assistantOverrides: Partial<Record<AssistantCLI, string>> = {};
 let assistantRunning: { requestId: string; cancel: () => void; done: Promise<void> } | null = null;
 let assistantStarting = false;
 let assistantPendingId: string | null = null;
 let assistantCancelPending = false;
 let assistantStartDone: Promise<void> = Promise.resolve();
 let assistantHistoryWrites = Promise.resolve();
+let codexAccountTask: { kind: "read" | "sign-in" | "sign-out"; controller: AbortController; done: Promise<CodexAgentAccount> } | undefined;
+let codexNeedsSignIn = false;
+let codexModelsTask: { controller: AbortController; done: Promise<CodexAgentModel[]> } | undefined;
+const assistantSessionRoot = () => userFile("assistant-runs");
+const codexAgentOptions = () => ({ executablePath: assistantOverrides.codex, sessionRoot: assistantSessionRoot(), profileDirectory: userFile("codex-agent") });
+
+async function codexAccountOperation(kind: NonNullable<typeof codexAccountTask>["kind"], work: (signal: AbortSignal) => Promise<CodexAgentAccount>): Promise<CodexAgentAccount> {
+  if (kind !== "read" && (assistantRunning || assistantStarting)) throw new Error("助手正在处理上一条消息");
+  if (codexAccountTask) {
+    if (kind === "read" || kind === codexAccountTask.kind) return codexAccountTask.done;
+    throw new Error("请等待当前 Codex 登录操作完成。");
+  }
+  const controller = new AbortController();
+  if (kind === "sign-out") codexModelsTask?.controller.abort();
+  const done = work(controller.signal);
+  codexAccountTask = { kind, controller, done };
+  try { return await done; } finally { codexAccountTask = undefined; }
+}
 function assistantHistoryFile(projectId: unknown): string {
   if (typeof projectId !== "string" || !projectId || projectId.length > 256) throw new Error("无效项目 ID");
   return userFile(`assistant/${createHash("sha256").update(projectId).digest("hex")}.json`);
@@ -107,7 +128,28 @@ function cleanAssistantMessages(value: unknown): AssistantMessage[] {
   const messages = value.map(item => {
     if (!item || !["user", "assistant"].includes(item.role) || typeof item.content !== "string" || item.content.length > 12000)
       throw new Error("对话记录格式无效");
-    return { role: item.role, content: item.content } as AssistantMessage;
+    const message: AssistantMessage = { role: item.role, content: item.content };
+    const work = item.work;
+    if (message.role === "assistant" && Number.isFinite(work?.elapsedMs) && work.elapsedMs >= 0 && Array.isArray(work.commentary)) {
+      message.work = {
+        elapsedMs: work.elapsedMs,
+        commentary: work.commentary
+          .slice(0, MAX_ASSISTANT_COMMENTARY)
+          .filter((text: unknown): text is string => typeof text === "string" && !!text.trim())
+          .map((text: string) => text.slice(0, MAX_ASSISTANT_COMMENTARY_LENGTH)),
+      };
+      if (Array.isArray(work.entries)) {
+        message.work.entries = work.entries.slice(0, MAX_ASSISTANT_WORK_ENTRIES).flatMap((entry: AssistantWorkEntry) => {
+          if (!entry || typeof entry.text !== "string" || !entry.text.trim()) return [];
+          const text = entry.text.slice(0, MAX_ASSISTANT_COMMENTARY_LENGTH);
+          if (entry.type === "note") return [{ type: "note", text }];
+          if (entry.type === "activity" && ASSISTANT_ACTIVITY_KINDS.includes(entry.kind) && (entry.state === "done" || entry.state === "stopped"))
+            return [{ type: "activity", kind: entry.kind, text, state: entry.state }];
+          return [];
+        });
+      }
+    }
+    return message;
   });
   if (JSON.stringify(messages).length > 250000) throw new Error("对话记录过大");
   return messages;
@@ -164,6 +206,28 @@ const menuAction = (action: string) =>
   window?.webContents.send("menu-action", action);
 let speechSettings: SpeechSettings = {};
 let speechSettingsWrites = Promise.resolve();
+
+function generateProjectSpeech(jobId: string, project: Project, request: SpeechRequest, report: (event: SpeechProgress) => void, signal?: AbortSignal) {
+  if (request?.mode === "asr") {
+    if (typeof request.source !== "string") throw new Error("Invalid speech source");
+    const { asset } = speechSource(project, request.source, request.range);
+    if (!allowedMedia.has(path.resolve(asset.path))) throw new Error("Source is not authorized for import");
+  }
+  return generateSpeech(jobId, project, request, speechSettings, userFile("speech-media"), report, signal);
+}
+
+function localAgentTranscription(local: AssistantLocalProject) {
+  const project = validateProject(local.project);
+  if (!Number.isFinite(local.playhead) || local.playhead < 0 || !Array.isArray(local.media))
+    throw new Error("Invalid local speech context.");
+  const media = assistantMediaSelection(project, local.media);
+  return async (args: Record<string, unknown>, signal: AbortSignal) => {
+    const request = assistantTranscriptionRequest(args.source, args.language, media);
+    const result = await generateProjectSpeech(randomUUID(), project, request, () => {}, signal);
+    if (result.mode !== "asr") throw new Error("Invalid speech result.");
+    return { request, time: local.playhead, cues: result.cues };
+  };
+}
 let audioAnalysisJob: { id: string; controller: AbortController; done: Promise<AudioAnalysisResult> } | undefined;
 let previewProxyJob: { id: string; controller: AbortController; done: Promise<void> } | undefined;
 const userFile = (name: string) => path.join(app.getPath("userData"), name);
@@ -179,7 +243,7 @@ async function atomicWrite(file: string, text: string) {
 async function updateSpeechSettings(patch: (settings: SpeechSettings) => SpeechSettings) {
   const write = speechSettingsWrites.catch(() => {}).then(async () => {
     const updated = patch(speechSettings);
-    await atomicWrite(userFile("speech-settings.json"), JSON.stringify(updated));
+    await atomicWrite(speechSettingsPath, JSON.stringify(updated));
     speechSettings = updated;
   });
   speechSettingsWrites = write;
@@ -460,12 +524,7 @@ function registerIPC() {
   handle("speech-reset-dependencies", () => updateSpeechSettings(() => ({})));
   handle("speech-generate", async (jobId: string, input: unknown, request: SpeechRequest) => {
     const project = validateProject(input), owner = window!.webContents;
-    if (request?.mode === "asr") {
-      if (typeof request.source !== "string") throw new Error("Invalid speech source");
-      const { asset } = speechSource(project, request.source);
-      if (!allowedMedia.has(path.resolve(asset.path))) throw new Error("Source is not authorized for import");
-    }
-    const result = await generateSpeech(jobId, project, request, speechSettings, userFile("speech-media"), event => {
+    const result = await generateProjectSpeech(jobId, project, request, event => {
       if (!owner.isDestroyed()) owner.send("speech-progress", event);
     });
     if (result.mode === "tts") authorizeAsset(result.asset);
@@ -518,34 +577,70 @@ function registerIPC() {
   });
   handle("import-builtin-asset", importBuiltinAsset);
   handle("assistant-providers", () => discoverAssistantProviders(assistantOverrides));
-  handle("assistant-choose-cli", async (provider: AssistantProvider) => {
+  handle("assistant-choose-cli", async (provider: AssistantCLI) => {
     if (provider !== "codex" && provider !== "claude") throw new Error("无效助手类型");
     const result = await dialog.showOpenDialog(window!, { title: nativeUI(`选择 ${provider === "codex" ? "Codex" : "Claude Code"} CLI`, `Choose ${provider === "codex" ? "Codex" : "Claude Code"} CLI`), properties: ["openFile"] });
     if (!result.canceled) {
+      if (provider === "codex" && codexAccountTask?.kind === "read") {
+        const task = codexAccountTask;
+        task.controller.abort();
+        await task.done.catch(() => {});
+      }
+      if (provider === "codex") codexModelsTask?.controller.abort();
       assistantOverrides[provider] = result.filePaths[0];
       await mkdir(path.dirname(userFile("assistant-clis.json")), { recursive: true });
       await writeFile(userFile("assistant-clis.json"), JSON.stringify(assistantOverrides), { mode: 0o600 });
     }
     return discoverAssistantProviders(assistantOverrides);
   });
-  handle("assistant-start", async (request: AssistantRequest) => {
+  handle("assistant-codex-account", () => codexAccountOperation("read", async signal => {
+    if (codexNeedsSignIn) return "signed-out";
+    const account = await readCodexAgentAccount(codexAgentOptions(), signal);
+    return codexNeedsSignIn ? "signed-out" : account;
+  }));
+  handle("assistant-codex-models", async () => {
+    if (codexModelsTask) return codexModelsTask.done;
+    const controller = new AbortController();
+    const done = listCodexAgentModels(codexAgentOptions(), controller.signal);
+    codexModelsTask = { controller, done };
+    try { return await done; } finally { codexModelsTask = undefined; }
+  });
+  handle("assistant-codex-sign-in", () => codexAccountOperation("sign-in", async signal => {
+    const account = await signInCodexAgent(codexAgentOptions(), url => shell.openExternal(url), signal);
+    if (account === "connected") codexNeedsSignIn = false;
+    return account;
+  }));
+  handle("assistant-codex-cancel-sign-in", async () => {
+    if (codexAccountTask?.kind !== "sign-in") return;
+    const task = codexAccountTask;
+    task.controller.abort();
+    await task.done.catch(() => {});
+  });
+  handle("assistant-codex-sign-out", () => codexAccountOperation("sign-out", signal => signOutCodexAgent(codexAgentOptions(), signal)));
+  handle("assistant-start", async (request: AssistantRequest, local?: AssistantLocalProject) => {
     if (assistantStarting || assistantRunning) throw new Error("助手正在处理上一条消息");
-    if (!request || typeof request.requestId !== "string" || !["codex", "claude"].includes(request.provider)) throw new Error("助手请求无效");
+    if (!request || typeof request.requestId !== "string" || !["codex", "claude", "codex-agent"].includes(request.provider)) throw new Error("助手请求无效");
+    if (request.provider === "codex-agent" && codexAccountTask && codexAccountTask.kind !== "read") throw new Error("请等待当前 Codex 登录操作完成。");
     assistantStarting = true;
     assistantPendingId = request.requestId; assistantCancelPending = false;
     let resolveStart!: () => void;
     assistantStartDone = new Promise<void>(resolve => { resolveStart = resolve; });
     const owner = window!.webContents;
     try {
-      const running = await startAssistantSession(request, event => {
+      const sendEvent = (event: AssistantEvent) => {
+        if (request.provider === "codex-agent" && event.type === "error" && event.account === "signed-out") codexNeedsSignIn = true;
         if (!owner.isDestroyed()) owner.send("assistant-event", event);
-      }, { executablePath: assistantOverrides[request.provider], sessionRoot: userFile("assistant-runs") });
+      };
+      const running = request.provider === "codex-agent"
+        ? startCodexAgentSession(request, sendEvent, codexAgentOptions(), local ? localAgentTranscription(local) : undefined)
+        : await startAssistantSession(request, sendEvent, { executablePath: assistantOverrides[request.provider], sessionRoot: assistantSessionRoot() });
       assistantRunning = { requestId: request.requestId, ...running };
       void running.done.finally(() => { if (assistantRunning?.requestId === request.requestId) assistantRunning = null; }).catch(() => {});
       if (owner.isDestroyed() || assistantCancelPending) running.cancel();
     } finally { assistantStarting = false; assistantPendingId = null; resolveStart(); }
   });
   handle("assistant-cancel", async (requestId: unknown) => {
+    if (typeof requestId !== "string") return;
     if (assistantPendingId === requestId) { assistantCancelPending = true; await assistantStartDone; }
     const running = assistantRunning;
     if (running && running.requestId === requestId) { running.cancel(); await running.done; }
@@ -1021,6 +1116,8 @@ function createWindow() {
     void cancelAllSpeech();
     assistantCancelPending = true;
     assistantRunning?.cancel();
+    codexAccountTask?.controller.abort();
+    codexModelsTask?.controller.abort();
     capcutSelections.clear();
     window = null;
     dirty = false;
@@ -1163,7 +1260,7 @@ void app.whenReady().then(async () => {
     /* system defaults */
   }
   try {
-    const input = JSON.parse(await readFile(userFile("speech-settings.json"), "utf8"));
+    const input = JSON.parse(await readFile(speechSettingsPath, "utf8"));
     for (const key of ["python", "model"] as const) if (typeof input[key] === "string" && path.isAbsolute(input[key])) speechSettings[key] = input[key];
   } catch { /* Optional local dependencies are never installed automatically. */ }
   await cleanSpeechTemporaries(userFile("speech-media"));
@@ -1191,6 +1288,8 @@ app.on("before-quit", (event) => {
   }
   void Promise.all([
     (async () => { assistantCancelPending = true; await assistantStartDone; const running = assistantRunning; running?.cancel(); await running?.done; await assistantHistoryWrites.catch(() => {}); })(),
+    (async () => { const task = codexAccountTask; task?.controller.abort(); await task?.done.catch(() => {}); })(),
+    (async () => { const task = codexModelsTask; task?.controller.abort(); await task?.done.catch(() => {}); })(),
     cancelAllExports(),
     cancelDerivatives(),
     cancelAllSpeech(),

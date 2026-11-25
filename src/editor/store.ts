@@ -1,6 +1,9 @@
 import { createEditorProject as createProject, createEditorTrack as createTrack, createEditorClip as createClip } from "./localizedDefaults";
 import { translateUI } from "../i18n/uiTranslation";
+import { useLanguageStore } from "../i18n/languageStore";
 import { create } from "zustand";
+import { assistantMediaSelection, previewAssistantEdits, type AssistantEditPreview } from "../core/assistantEdits";
+import { MAX_ASSISTANT_MEDIA, type AssistantMediaSelection, type AssistantResponse, type AssistantTranscription } from "../core/assistantTypes";
 import type {
   Clip,
   MediaAsset,
@@ -11,12 +14,42 @@ import type {
 import {
   clone,
   id,
+  projectDuration,
   snapToFrame,
   validateProject,
 } from "../core/model";
 import { linkedIds, moveLinked, speedLinked, slipLinked, placeAsset, trimLinked, splitLinked, unlinkClips, type PlacementMode } from "../core/timelineEdits";
 import { activateTimeline, addProjectTimeline, projectUsesAsset, renameProjectTimeline } from "../core/projectTimelines";
 import type { Subtitle } from "../core/subtitles";
+
+export interface AgentEditPlan {
+  id: string;
+  source: "agent" | "chatgpt";
+  summary?: string;
+  base: Project;
+  preview: AssistantEditPreview;
+  focus: number;
+  changedIds: string[];
+  status: "pending" | "applied" | "undone" | "unchanged";
+}
+
+interface AgentEditOptions {
+  source: AgentEditPlan["source"];
+  mode: Exclude<AssistantResponse["mode"], "answer">;
+  summary?: string;
+  transcriptions?: readonly AssistantTranscription[];
+}
+
+export function agentPlanStatus(plan: AgentEditPlan, project: Project) {
+  return plan.status === "pending" && project !== plan.base ? "stale" : plan.status;
+}
+
+interface ProjectHistoryEntry {
+  project: Project;
+  /** The plan whose edit is crossed when undoing or redoing this entry. */
+  agentPlanId?: string;
+}
+
 interface EditorState {
   project: Project;
   path?: string;
@@ -27,9 +60,20 @@ interface EditorState {
   snapping: boolean;
   magnetic: boolean;
   dirty: boolean;
-  past: Project[];
-  future: Project[];
+  past: ProjectHistoryEntry[];
+  future: ProjectHistoryEntry[];
   clipboard: Clip[];
+  agentOpen: boolean;
+  agentMedia: AssistantMediaSelection[];
+  agentPlan: AgentEditPlan | null;
+  agentPreviewId: string | null;
+  setAgentOpen: (open: boolean) => void;
+  attachAgentMedia: (selection: AssistantMediaSelection) => void;
+  removeAgentMedia: (assetId: string) => void;
+  submitAgentEdits: (base: Project, actions: unknown, options: AgentEditOptions) => AgentEditPlan;
+  clearAgentPlan: () => void;
+  setAgentPreview: (planId: string | null) => void;
+  applyAgentPlan: (planId: string) => void;
   setProject: (project: Project, path?: string) => void;
   commit: (project: Project) => void;
   beginTransaction: () => void;
@@ -127,6 +171,49 @@ function patchClip(
     clips: p.clips.map((c) => (c.id === clipId ? { ...c, ...rest } : c)),
   };
 }
+
+function sameProject(a: Project, b: Project) {
+  return a === b || JSON.stringify(a) === JSON.stringify(b);
+}
+
+function projectCommit(state: EditorState, project: Project, agentPlanId?: string) {
+  if (sameProject(project, state.project)) return;
+  return {
+    project: { ...clone(project), updatedAt: new Date().toISOString() },
+    dirty: true,
+    past: state.transactionOpen && state.transactionRecorded
+      ? state.past
+      : [...state.past, { project: clone(state.project), agentPlanId }].slice(-150),
+    future: [],
+    agentPreviewId: null,
+    transactionRecorded: state.transactionOpen,
+  };
+}
+
+function unchangedAgentPlan(plan: AgentEditPlan): AgentEditPlan {
+  return { ...plan, status: "unchanged", preview: { ...plan.preview, descriptions: [] } };
+}
+
+function applyAgentEdits(state: EditorState, plan: AgentEditPlan) {
+  if (agentPlanStatus(plan, state.project) !== "pending")
+    throw new Error(translateUI("项目已变化，请重新发送剪辑指令", "The project changed. Send the edit request again."));
+  if (state.transactionOpen)
+    throw new Error(translateUI("请完成当前编辑后重试", "Finish the active edit and try again."));
+  const commit = projectCommit(state, plan.preview.project, plan.id);
+  if (!commit) return { agentPlan: unchangedAgentPlan(plan), agentPreviewId: null };
+  const project = commit.project;
+  const clipIds = new Set(project.clips.map(clip => clip.id));
+  const selection = plan.changedIds.length ? plan.changedIds : state.selectedIds.filter(clipId => clipIds.has(clipId));
+  return {
+    ...commit,
+    agentPlan: { ...plan, status: "applied" as const },
+    agentPreviewId: null,
+    playing: false,
+    playhead: plan.focus,
+    selectedIds: linkedIds(project, selection),
+  };
+}
+
 export const useEditorStore = create<EditorState>((set, get) => ({
   project: createProject(),
   selectedIds: [],
@@ -139,6 +226,62 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   past: [],
   future: [],
   clipboard: [],
+  agentOpen: typeof window !== "undefined" && !!window.editorAPI,
+  agentMedia: [],
+  agentPlan: null,
+  agentPreviewId: null,
+  setAgentOpen: (agentOpen) => set(agentOpen ? { agentOpen } : { agentOpen, agentPreviewId: null }),
+  attachAgentMedia: (selection) => {
+    const s = get();
+    const [checked] = assistantMediaSelection(s.project, [selection]);
+    if (!checked) throw new Error(translateUI("此素材或选段当前不可用", "This media or source range is unavailable."));
+    const current = assistantMediaSelection(s.project, s.agentMedia);
+    const remaining = current.filter(item => item.assetId !== selection.assetId);
+    if (remaining.length >= MAX_ASSISTANT_MEDIA) throw new Error(translateUI(`最多可选择 ${MAX_ASSISTANT_MEDIA} 个素材`, `Select up to ${MAX_ASSISTANT_MEDIA} media assets.`));
+    const agentMedia = remaining.length === current.length
+      ? [...remaining, checked]
+      : current.map(item => item.assetId === selection.assetId ? checked : item);
+    set({ agentOpen: true, agentMedia });
+  },
+  removeAgentMedia: (assetId) => set({ agentMedia: get().agentMedia.filter(item => item.assetId !== assetId) }),
+  submitAgentEdits: (base, actions, { source, mode, summary, transcriptions }) => {
+    const s = get();
+    if (s.project.id !== base.id || (mode === "edit" && s.project !== base))
+      throw new Error(translateUI("项目已变化，请重新发送剪辑指令", "The project changed. Send the edit request again."));
+    const language = useLanguageStore.getState().language === "zh-CN" ? "zh-CN" : "en";
+    const preview = previewAssistantEdits(base, actions, language, transcriptions);
+    const existing = new Map(base.clips.map(clip => [clip.id, clip]));
+    const resulting = new Set(preview.project.clips.map(clip => clip.id));
+    const changed = preview.project.clips.filter(clip => JSON.stringify(existing.get(clip.id)) !== JSON.stringify(clip));
+    const affected = [...changed, ...base.clips.filter(clip => !resulting.has(clip.id))];
+    const focus = affected.length ? affected.reduce((first, clip) => Math.min(first, clip.start), Infinity) : s.playhead;
+    const plan: AgentEditPlan = {
+      id: id(), source, summary, base, preview, focus: Math.min(focus, projectDuration(preview.project)),
+      changedIds: changed.map(clip => clip.id), status: "pending",
+    };
+    const changes = mode === "edit"
+      ? applyAgentEdits(s, plan)
+      : {
+        agentPlan: s.project === base && sameProject(base, preview.project) ? unchangedAgentPlan(plan) : plan,
+        agentPreviewId: null,
+        agentOpen: true,
+      };
+    set(changes);
+    return changes.agentPlan;
+  },
+  clearAgentPlan: () => set({ agentPlan: null, agentPreviewId: null }),
+  setAgentPreview: (planId) => {
+    const s = get();
+    if (planId === null) { if (s.agentPreviewId) set({ agentPreviewId: null }); return; }
+    if (s.agentPlan?.id !== planId || agentPlanStatus(s.agentPlan, s.project) !== "pending" || s.transactionOpen) return;
+    set({ agentPreviewId: planId, playing: false });
+  },
+  applyAgentPlan: (planId) => {
+    const s = get(), plan = s.agentPlan;
+    if (!plan || plan.id !== planId)
+      throw new Error(translateUI("剪辑方案已变化，请重新审阅", "The edit plan changed. Review the current plan."));
+    set(applyAgentEdits(s, plan));
+  },
   transactionOpen: false,
   transactionRecorded: false,
   beginTransaction: () => {
@@ -158,33 +301,22 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       past: [],
       future: [],
       clipboard: [],
+      agentMedia: [],
+      agentPlan: null,
+      agentPreviewId: null,
       transactionOpen: false,
       transactionRecorded: false,
     }),
   commit: (project) => {
-    const s = get();
-    if (
-      project === s.project ||
-      JSON.stringify(project) === JSON.stringify(s.project)
-    )
-      return;
-    set({
-      project: { ...clone(project), updatedAt: new Date().toISOString() },
-      dirty: true,
-      past:
-        s.transactionOpen && s.transactionRecorded
-          ? s.past
-          : [...s.past, clone(s.project)].slice(-150),
-      future: [],
-      transactionRecorded: s.transactionOpen,
-    });
+    const changes = projectCommit(get(), project);
+    if (changes) set(changes);
   },
   updateProject: (patch) => get().commit({ ...get().project, ...clone(patch) }),
   openTimeline: (id) => {
     const current = get().project;
     const project = activateTimeline(current, id);
     if (project !== current) set({
-      project, selectedIds: [], playhead: 0, playing: false,
+      project, selectedIds: [], playhead: 0, playing: false, agentPreviewId: null,
       transactionOpen: false, transactionRecorded: false,
     });
   },
@@ -214,6 +346,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     if (projectUsesAsset(p, assetId))
       throw new Error("素材仍被时间线使用，请先删除对应片段");
     get().commit({ ...p, assets: p.assets.filter((a) => a.id !== assetId) });
+    get().removeAgentMedia(assetId);
   },
   addAssetClip: (assetId, start, trackId, range) => {
     let p = get().project;
@@ -476,12 +609,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       tracks: p.tracks.map((t) => (t.id === trackId ? { ...t, ...rest } : t)),
     });
   },
-  select: (selectedIds) => set({ selectedIds: linkedIds(get().project, selectedIds) }),
+  select: (selectedIds) => set({ selectedIds: linkedIds(get().project, selectedIds), agentPreviewId: null }),
   seek: (time) => {
     if (Number.isFinite(time))
-      set({ playhead: Math.max(0, time), playing: false });
+      set({ playhead: Math.max(0, time), playing: false, agentPreviewId: null });
   },
-  setPlaying: (playing) => set({ playing }),
+  setPlaying: (playing) => set(playing ? { playing, agentPreviewId: null } : { playing }),
   setZoom: (zoom) => {
     if (Number.isFinite(zoom)) set({ zoom: Math.min(400, Math.max(5, zoom)) });
   },
@@ -489,15 +622,18 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setMagnetic: (magnetic) => set({ magnetic }),
   undo: () => {
     const s = get();
-    if (s.past.length) {
+    const entry = s.past.at(-1);
+    if (entry) {
       const id = s.project.activeTimeline?.id ?? s.project.id;
-      const project = activateTimeline(clone(s.past[s.past.length - 1]), id);
+      const project = activateTimeline(clone(entry.project), id);
       set({
         project,
         past: s.past.slice(0, -1),
-        future: [clone(s.project), ...s.future],
+        future: [{ project: clone(s.project), agentPlanId: entry.agentPlanId }, ...s.future],
+        agentPlan: s.agentPlan && s.agentPlan.id === entry.agentPlanId ? { ...s.agentPlan, status: "undone" } : s.agentPlan,
         dirty: true,
         selectedIds: [],
+        agentPreviewId: null,
         playhead: (project.activeTimeline?.id ?? project.id) === id ? s.playhead : 0,
         playing: false,
         transactionOpen: false,
@@ -507,15 +643,18 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
   redo: () => {
     const s = get();
-    if (s.future.length) {
+    const entry = s.future[0];
+    if (entry) {
       const id = s.project.activeTimeline?.id ?? s.project.id;
-      const project = activateTimeline(clone(s.future[0]), id);
+      const project = activateTimeline(clone(entry.project), id);
       set({
         project,
-        past: [...s.past, clone(s.project)].slice(-150),
+        past: [...s.past, { project: clone(s.project), agentPlanId: entry.agentPlanId }].slice(-150),
         future: s.future.slice(1),
+        agentPlan: s.agentPlan && s.agentPlan.id === entry.agentPlanId ? { ...s.agentPlan, status: "applied" } : s.agentPlan,
         dirty: true,
         selectedIds: [],
+        agentPreviewId: null,
         playhead: (project.activeTimeline?.id ?? project.id) === id ? s.playhead : 0,
         playing: false,
         transactionOpen: false,

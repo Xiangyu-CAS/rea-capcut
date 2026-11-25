@@ -18,15 +18,19 @@ export interface SpeechInfo extends SpeechSettings {
   overrides: { python: boolean; model: boolean };
   configured: boolean;
 }
-export type SpeechRequest = { mode: 'asr'; source: string; language: SpeechLanguage } | { mode: 'tts'; text: string; voice: string; rate: number };
+export interface SpeechRange { sourceIn: number; duration: number }
+export type SpeechRecognitionRequest = { mode: 'asr'; source: string; language: SpeechLanguage; range?: SpeechRange };
+export type SpeechRequest = SpeechRecognitionRequest | { mode: 'tts'; text: string; voice: string; rate: number };
 export interface SpeechProgress { jobId: string; stage: 'prepare' | 'recognize' | 'synthesize' | 'import' | 'complete'; progress?: number }
 export type SpeechResult = { mode: 'asr'; cues: Subtitle[] } | { mode: 'tts'; asset: MediaAsset };
-export function speechSource(p: Project, source: string) {
+export function speechSource(p: Project, source: string, range?: SpeechRange) {
   const clip = source.startsWith('clip:') ? p.clips.find(c => c.id === source.slice(5)) : undefined;
   const asset = p.assets.find(a => a.id === (clip?.assetId ?? (source.startsWith('asset:') ? source.slice(6) : '')));
   if (!asset || asset.missing || !['audio','video'].includes(asset.kind) || !asset.hasAudio) throw new Error('Select an audio or video source with sound.');
-  const duration = clip ? clip.duration * clip.speed : asset.duration;
-  const sourceIn = clip?.sourceIn ?? 0;
+  const duration = clip ? clip.duration * clip.speed : range?.duration ?? asset.duration;
+  const sourceIn = clip?.sourceIn ?? range?.sourceIn ?? 0;
+  if (range && (clip || !Number.isFinite(sourceIn) || sourceIn < 0 || sourceIn + duration > asset.duration + 1e-6))
+    throw new Error('Invalid speech source range.');
   if (!Number.isFinite(duration) || duration <= 0 || duration > 3600 || sourceIn + duration > asset.duration + .1) throw new Error('Speech recognition supports up to 60 minutes within the source.');
   return { asset, clip, duration, sourceIn, speed: clip?.speed ?? 1 };
 }
@@ -46,19 +50,24 @@ export function applySpeech(p: Project, request: SpeechRequest, result: SpeechRe
     const track = createTrack('audio', names.voice), clip = createClip(result.asset, track.id, time, p.fps);
     next.assets.push(result.asset); next.tracks.push(track); next.clips.push(clip); selected.push(clip.id);
   } else if (request.mode === 'asr' && result.mode === 'asr') {
-    const source = speechSource(p, request.source), cues = validateCues(result.cues, source.duration);
+    const source = speechSource(p, request.source, request.range), cues = validateCues(result.cues, source.duration);
     if (!cues.length) throw new Error('No speech was detected.');
     const start = source.clip?.start ?? snapToFrame(time,p.fps);
     if (!source.clip) {
       const track = createTrack(source.asset.kind === 'video' ? 'video' : 'audio', source.asset.name);
-      next.tracks.push(track); next.clips.push(createClip(source.asset,track.id,start,p.fps));
+      const clip = createClip(source.asset, track.id, start, p.fps);
+      if (request.range) {
+        clip.sourceIn = source.sourceIn;
+        clip.duration = source.duration;
+      }
+      next.tracks.push(track); next.clips.push(clip);
     }
     const track = createTrack('text',names.captions); next.tracks.unshift(track);
     const position = (offset: number) => start + (source.clip ? timelineOffsetAt(source.clip, offset) : offset);
     for (const cue of cues) {
       const clip = createClip(undefined,track.id,position(cue.start),p.fps);
       clip.duration = Math.max(1/p.fps,snapToFrame(position(cue.end),p.fps)-clip.start);
-      clip.name=cue.text; clip.text={...clip.text!,text:wrapCaption(cue.text,p.width/(p.height*.05)*.8),fontSize:p.height*.05}; clip.transform.y=p.height*.36;
+      clip.name=cue.text.slice(0,80); clip.text={...clip.text!,text:wrapCaption(cue.text,p.width/(p.height*.05)*.8),fontSize:p.height*.05}; clip.transform.y=p.height*.36;
       next.clips.push(clip); selected.push(clip.id);
     }
   }

@@ -183,21 +183,22 @@ export async function speechInfo(settings: SpeechSettings): Promise<SpeechInfo> 
     overrides: { python: Boolean(process.env.REACUT_SPEECH_PYTHON), model: Boolean(process.env.REACUT_SPEECH_MODEL) },
   };
 }
-export function generateSpeech(jobId:string,p:Project,request:SpeechRequest,settings:SpeechSettings,directory:string,progress:(p:SpeechProgress)=>void):Promise<SpeechResult> {
+export function generateSpeech(jobId:string,p:Project,request:SpeechRequest,settings:SpeechSettings,directory:string,progress:(p:SpeechProgress)=>void, cancellation?:AbortSignal):Promise<SpeechResult> {
   if(typeof jobId!=='string'||!/^[a-zA-Z0-9-]{8,80}$/.test(jobId)) throw new Error('Invalid speech job.');
   if(jobs.size) throw new Error('A speech task is already running.');
   if(!request || !['asr','tts'].includes(request.mode)) throw new Error('Invalid speech request.');
   const controller=new AbortController();
   const done=Promise.resolve().then(generate).finally(()=>jobs.delete(jobId));jobs.set(jobId,{controller,done});return done;
   async function generate():Promise<SpeechResult>{
-    const {signal}=controller;let temp:string|undefined;
+    const signal = cancellation ? AbortSignal.any([controller.signal, cancellation]) : controller.signal;
+    let temp:string|undefined;
     const report=(stage:SpeechProgress['stage'],value?:number)=>{signal.throwIfAborted();progress({jobId,stage,progress:value});};
     try {
       report('prepare',0);await mkdir(directory,{recursive:true});temp=await mkdtemp(path.join(directory,'.speech-'));
       const wav=path.join(temp,'speech.wav');
       if(request.mode==='asr'){
         if(!['auto','zh','en'].includes(request.language)||typeof request.source!=='string') throw new Error('Invalid recognition language/source.');
-        const source=speechSource(p,request.source);
+        const source=speechSource(p,request.source,request.range);
         const models = !settings.model && !process.env.REACUT_SPEECH_MODEL && mlxSupported() ? await cachedSpeechModels() : [];
         const config=await localSpeechSettings(settings, models[0]?.folder);
         if(process.platform!=='darwin'||process.arch!=='arm64'||!config.python||!path.isAbsolute(config.python)||!config.model) throw new Error('Configure local MLX Whisper and Python first.');

@@ -1,5 +1,22 @@
 # 本机验证记录
 
+## Agent 自动字幕与对话活动（2026-11-25）
+
+- macOS arm64 打包版用已登录的 Codex Agent 和用户选定的 24 秒视频发送 `Add English subtitles to this video`。应用通过 `reacut_transcribe` 在本机识别，Codex 翻译六条带时间戳的文字，编辑器按原时间一次入轨。核对了原片段、保存结果、播放器字幕和展开后的活动明细。
+- macOS 打包版的插件另用真实语音验证了本地 MCP 发现、识别、入轨、转录 revision 过期和一次撤销。合成 App Server 的桌面回归校验活动分组、模型说明穿插、展开与重开恢复。类型检查、567 项单测、生产构建、插件协议和 macOS 打包签名检查通过。
+
+## 剪辑 Agent 与国际版对照（2026-11-25）
+
+- 本机官方 Codex CLI `0.169.1` 使用独立空白配置，通过 App Server 握手、读取未登录状态、生成 OpenAI 浏览器授权地址和取消登录。另核对了只读临时线程和模型列表的返回字段。
+- `npx tsx tests/codex-agent-electron.ts` 在 macOS arm64 的源码构建中通过。合成 App Server 覆盖登录、取消、流式回复及模型选择。两段合成 MP4 验证选段和参考帧发送、粗剪及定向裁剪直接入轨、一次撤销、只答建议、显式预览和确认。请求期间手动修改项目名后，迟到的编辑被拒绝。1470×834 和 1024×720 通过布局断言。截图位于 `.test-output/codex-agent-electron/`。
+- `npm run test:plugin` 在源码构建通过 9 组。实际 Electron 界面标记选段，从 MCP 读取时间线选择，验证直接入轨和可选预览、读回、撤销及重做。FFprobe 确认选段出片为 2.8 秒 H.264/AAC。macOS arm64 本地应用通过代码签名校验，解压后的插件 ZIP 通过启动器运行 5 组协议和应用检查。独立的启动器回归 6 项通过。英文剪辑结果和视频位于 `.test-output/plugin-electron/`。插件在正式 ChatGPT 桌面宿主中的在线回合待验收。
+- `npm run check` 通过类型检查、561 项单测与生产构建。原 CLI 助手、时间线编辑与轨道操作的桌面回归通过。
+- 英文 Agent 对话用合成 App Server 验证了公开工作更新、用时、流式 Markdown 和重开后的对话恢复。独立剪辑结果卡片在对话之外展示。可见截图为 `.test-output/codex-agent-electron/agent-panel-en.png` 和 `agent-working-en.png`。 [Codex App Server](https://learn.chatgpt.com/docs/app-server)
+- 源码构建和 macOS 本地应用均验证启动时属性收起，Agent 在 1470×834 和 1024×720 占满右栏。属性图标可展开和收起，关闭 Agent 后可见属性面板。
+- 源码和 macOS 打包版验证了时间线片段、素材选段和参考帧的缩略图。悬停和键盘聚焦可放大查看，按 Escape 收起预览时保留片段选择。1470×834 和 1024×720 的放大卡片均在右栏内，MCP 联动通过。原创素材演示截图位于 `.test-output/agent-attachment-demo/media-hover.png`。
+- 合成 App Server 对问答和预览请求返回了有效的直接剪辑动作。问答未生成方案，预览在用户应用后才入轨。模拟 401 后重开面板仍可启动浏览器授权。源码构建和清空 `PATH` 的 macOS arm64 本地应用均通过这套桌面回归。单测和 MCP 回归另覆盖跨时间线和连续撤销重做，以及无改动批次保留历史与 revision。
+- 既有草稿导入回归使用合成样本并通过。国际版 CapCut 9.8.0 的 REA 和界面证据另见对照报告，实际草稿互通待验证。 [国际版 CapCut 对照](research/CAPCUT_DESKTOP_9_8.md)
+
 ## 多时间线、节拍、曲线变速与硬件导出（2026-11-20）
 
 - `npm run check` 完成类型检查、47 个测试文件的 541 项单测和生产构建。实际 FFmpeg 回归逐帧核对了非整帧入点下的曲线取帧，核对了两段声音事件经曲线变速后的位置，并注入编码器初始化失败以验证软件回退及成片发布。

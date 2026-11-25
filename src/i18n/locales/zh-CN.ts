@@ -55,7 +55,7 @@ const dictionary = {
   "toolbar.projectName.aria": "项目名称",
   "toolbar.dirty": "有未保存修改",
   "toolbar.saved": "已保存",
-  "toolbar.assistant": "助手",
+  "toolbar.assistant": "Agent",
   "toolbar.assistant.aria": "剪辑助手",
   "toolbar.offline": "离线创作",
   "toolbar.saveProject.title": "保存项目 ⌘S",

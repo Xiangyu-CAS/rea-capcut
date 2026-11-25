@@ -1,4 +1,4 @@
-import { firstChineseWindow } from "./ui-language";
+import { firstChineseWindow, showProperties } from "./ui-language";
 /** Owned Electron UI, original captions, real restart/preview/FFmpeg export. */
 import {
   _electron as electron,
@@ -58,6 +58,7 @@ async function launch() {
     env,
   });
   page = await firstChineseWindow(app);
+  await showProperties(page);
   page.on("pageerror", (e) => errors.push(e.message));
   await app.evaluate(
     ({ dialog, BrowserWindow }, files) => {

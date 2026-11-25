@@ -114,7 +114,14 @@ describe("assistant input and response boundaries", () => {
     expect(() => validateAssistantRequest({ ...request(), context: "null" })).toThrow();
   });
   it("accepts fenced JSON and removes optional nulls only", () => {
-    expect(parseAssistantResponse('```json\n{"reply":"建议","actions":[{"type":"setVolume","clipId":null,"volume":1,"muted":null}]}\n```')).toEqual({ reply: "建议", actions: [{ type: "setVolume", clipId: null, volume: 1 }] });
+    expect(parseAssistantResponse('```json\n{"reply":"建议","actions":[{"type":"setVolume","clipId":null,"volume":1,"muted":null}]}\n```')).toEqual({ reply: "建议", mode: "preview", actions: [{ type: "setVolume", clipId: null, volume: 1 }] });
+  });
+  it("does not accept an editing batch from an answer-only reply", () => {
+    const actions = [{ type: "deleteClip", clipId: "clip" }];
+    expect(parseAssistantResponse({ reply: "剪掉片段。", mode: "edit", actions }).mode).toBe("edit");
+    expect(parseAssistantResponse({ reply: "可以剪掉片段。", mode: "answer", actions: [] }).mode).toBe("answer");
+    expect(() => parseAssistantResponse({ reply: "建议", mode: "answer", actions })).toThrow("编辑模式无效");
+    expect(() => parseAssistantResponse({ reply: "建议", mode: "unknown", actions })).toThrow("编辑模式无效");
   });
   it("streams only the reply string and buffers incomplete escapes", () => {
     expect(assistantReplyPrefix('{"reply":"建议添加')).toBe("建议添加");

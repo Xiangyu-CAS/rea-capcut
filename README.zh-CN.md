@@ -2,7 +2,7 @@
   <img src="public/icons/reacut.png" width="96" height="96" alt="ReaCut 图标" />
 </p>
 <h1 align="center">ReaCut · 映刻</h1>
-<p align="center"><strong>借助 <a href="https://github.com/morluto/rea">REA</a> 研究剪映 / CapCut，独立重实现的开源视频编辑器。</strong><br />macOS 优先；仅开展授权范围内的研究，不复制剪映专有代码或素材。</p>
+<p align="center"><strong>借助 <a href="https://github.com/morluto/rea">REA</a> 研究国际版 CapCut Desktop，独立实现的开源视频编辑器。</strong><br />macOS 优先，研究限于授权范围。</p>
 <p align="center">
   <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-0.8.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="下载 macOS Apple Silicon 版 v0.8.0" /></a><br />
   <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">全部 Releases / ZIP / 校验和</a> · <a href="#快速开始">安装说明</a><br />
@@ -20,11 +20,11 @@
   <a href="#快速开始">快速开始</a> · <a href="docs/USER_GUIDE.md">使用指南</a> · <a href="docs/WEEKLY_TODO.md">本周功能计划</a> · <a href="CHANGELOG.md">更新记录</a> · <a href="#参与贡献">参与贡献</a>
 </p>
 
-![ReaCut 的素材库、播放器、属性面板与多轨时间线](docs/screenshots/ui-parity-editor.png)
+![ReaCut 时间线中的英文字幕与剪辑 Agent 活动](docs/screenshots/agent-english-subtitles.png)
 
 ReaCut 将素材管理、多轨剪辑、字幕和视频导出放在一个熟悉的桌面工作区中。核心编辑流程在本地运行，无需账号或云服务。
 
-项目使用 [REA](https://github.com/morluto/rea) 辅助研究剪映的界面行为和本地项目格式，再以 Electron、React、TypeScript 和 FFmpeg 独立实现编辑器。REA 是开发研究工具，运行 ReaCut 不需要安装 REA、Ghidra 或剪映。
+剪辑工作流以国际版 CapCut Desktop 为对照。国内剪映的历史研究提供本地草稿导入的版本与样本依据。ReaCut 使用 Electron、React、TypeScript 和 FFmpeg。 [国际版对照](docs/research/CAPCUT_DESKTOP_9_8.md) · [草稿覆盖范围](docs/CAPCUT_INTEROP.md)
 
 > **v0.8.0 预览版**在语言设置中新增「跟随系统」，并将多时间线、节拍剪辑、曲线变速和声音处理纳入 macOS 安装包。 [发布说明](docs/RELEASE_NOTES_0.8.0.md)
 
@@ -48,8 +48,8 @@ ReaCut 将素材管理、多轨剪辑、字幕和视频导出放在一个熟悉�
 | **视频导出** | 导出整条时间线、选中区间或自定义区间，支持 H.264 / AAC 编码的 MP4 与 MOV。 |
 | **文字与效果库** | 16 款可编辑文字模板、16 款调色 / 动效预设、8 款转场，支持动态预览与一次撤销。 |
 | **离线素材** | 内置 64 款原创贴纸、背景、标题底板与合成音效，以及 Noto Sans SC 中文字体。 |
-| **Codex 插件** | 在 Codex 右侧操作完整编辑器；读取项目、导入素材、批量编辑与撤销。 |
-| **可选剪辑助手** | 连接已安装并登录的 Codex CLI / Claude Code，审阅编辑提案后应用，支持一次撤销。 |
+| **Codex 插件** | 在 Codex 侧栏操作完整编辑器，也可从对话直接编辑当前时间线。 [插件工作流](docs/CODEX_PLUGIN.md) |
+| **剪辑 Agent（开发构建）** | 默认打开右侧面板。用本机 Codex App Server 登录后，可直接编辑素材选段、用本地语音识别生成字幕，也可要求先预览。编辑支持一次撤销。 [操作说明](docs/ASSISTANT.md) |
 
 完整支持范围与限制见 [功能矩阵](docs/FEATURE_MATRIX.md)。
 
@@ -111,7 +111,7 @@ DMG 和 ZIP 输出到 `release/`。首次构建会下载并编译内置 FFmpeg /
 
 - **本地编辑**：媒体处理、预览、项目保存和导出均在本机完成；普通项目引用本地素材，跨机器使用时可收集项目素材或重新链接。
 - **Codex 插件**：媒体处理在本机运行；Codex 可接收工具读取的项目摘要、文字和显式截图。侧栏实时帧仅供界面使用。
-- **可选助手**：仅在用户发送消息时，向所选 CLI 服务发送文字和有限时间线摘要，不附带媒体文件。详情见 [助手说明](docs/ASSISTANT.md)。
+- **可选 Agent**：点击发送后，所选服务收到问题、近期对话和有限的当前时间线摘要。使用 Codex App Server 时，还会收到选中的参考帧，以及字幕请求产生的带时间戳文字。 [操作说明](docs/ASSISTANT.md)
 - **实验性剪映导入**：支持已验证格式中的基础片段转换；复杂文字样式、特效与关键帧可能丢失，不支持写回剪映格式。版本范围见 [互通说明](docs/CAPCUT_INTEROP.md)。
 
 云同步、SaaS、直接 API AI 与 AI 人像抠像尚未实现。ReaCut 是独立项目，与剪映 / CapCut 无隶属关系。

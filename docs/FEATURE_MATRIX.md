@@ -48,17 +48,18 @@
 | MP4 / MOV 视频导出 | supported | H.264 / AAC，进度、取消、错误、目标保护与关闭进程测试。源码增加可选 VideoToolbox H.264 和软件回退。 |
 | classic 剪映明文导入 | limited | 合成 JSON 测试的基础片段有损转换；不是已验证历史版本互通 |
 | 本轮剪映嵌入 AES-256-GCM 草稿 | limited | 本机 11.0.12922 / 构建 11.1.0-beta3，两个受控项目的四个载荷已独立认证解码；只支持该已验证封装，未知或认证失败拒绝导入，不代表任意版本兼容 |
+| 国际版 CapCut 9.8.0 草稿 | unverified | REA 确认本机应用使用同类文件名，独立样本的导入和画面保真待验证。 [国际版对照](research/CAPCUT_DESKTOP_9_8.md) |
 | 剪映项目文件夹与时间线选择 | limited | 桌面读取项目和布局清单。支持选择一条或整组导入，推荐活动时间线。 |
 | 剪映基础片段与画布转换 | limited | 微秒时间、基础速度、音量和静态变换映射；缺失画布由首个可导入视觉片段推断并警告。位移几何仅有受控预览近似证据，尚无原生导出逐像素保真证明 |
 | 剪映文字、复杂效果及写回 | limited | 支持基础文字样式、矩形裁切、线性关键帧和可核对源范围的变速曲线。富文本、复杂效果和写回尚不支持。 |
 | macOS 桌面 | supported | arm64 本机开发构建、visual 实际导出与最终 DMG 内 app 工作流均通过 |
 | Windows / Linux | limited | 跨平台代码及构建目标；尚未在对应系统验证 |
 | 浏览器完整视频编辑器 | limited | 预览与基础交互；缺少桌面文件操作及本地导出桥接 |
-| 账号、云项目、SaaS | unused | 没有服务端与云同步 |
+| ReaCut 账号、云项目、SaaS | unused | 工程存储在本机。Codex 自行管理可选 Agent 的登录。 |
 | 直接 API AI、人物抠像 | unused | 未实现 |
 | Codex 插件 | limited | 本地 stdio MCP、fullscreen App 画面桥接、鼠标/键盘操作和版本校验编辑；协议、真实编辑器交互及导出已验，Codex 宿主打开留待用户重连后验收；见 CODEX_PLUGIN.md |
 | Codex 模板批量出片 | supported（源码协议） | 占位查询、原子批量替换、同目录保存、导出进度与取消。 [插件流程](CODEX_PLUGIN.md#从同一模板生成多支视频) |
-| CLI 剪辑助手 | limited | Codex / Claude Code，项目对话、取消、受限编辑建议与一次撤销；真实 Codex 合成问答通过，Claude 本机需重新登录；见 ASSISTANT.md |
+| 剪辑 Agent（开发构建） | limited | 默认打开右侧。读取素材选段和所选片段，支持直接剪辑和一次撤销，也可要求先预览。Codex 插件可直接编辑并读回结果。 [剪辑 Agent](ASSISTANT.md) |
 | 原创离线素材 | supported | 64 款原创 PNG / WAV，SVG 源与 MIT 许可；分类、搜索、试听、添加 |
 | HDR 与专业颜色管理 | unused | 本期无完整实现 |
 | 商业素材、贴纸、付费模板、专业转场库 | unused | 不复制或分发剪映资源 |

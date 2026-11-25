@@ -2,7 +2,7 @@
   <img src="public/icons/reacut.png" width="96" height="96" alt="ReaCut icon" />
 </p>
 <h1 align="center">ReaCut</h1>
-<p align="center"><strong>An independently implemented, open-source video editor informed by <a href="https://github.com/morluto/rea">REA</a>-assisted research into Jianying / CapCut.</strong><br />macOS first. Research is limited to authorized scope, without copying proprietary Jianying / CapCut code or assets.</p>
+<p align="center"><strong>An independently implemented, open-source video editor informed by <a href="https://github.com/morluto/rea">REA</a>-assisted research into CapCut Desktop.</strong><br />macOS first. Research is limited to authorized scope, without copying proprietary Jianying or CapCut code or assets.</p>
 <p align="center">
   <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-0.8.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="Download for macOS — v0.8.0 · Apple Silicon" /></a><br />
   <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">All releases / ZIP / checksums</a> · <a href="#getting-started">Installation guide</a><br />
@@ -21,11 +21,11 @@
   <a href="#getting-started">Getting started</a> · <a href="docs/USER_GUIDE.md">User guide</a> · <a href="docs/WEEKLY_TODO.md">Weekly feature plan (in Chinese)</a> · <a href="CHANGELOG.md">Changelog</a> · <a href="#contributing">Contributing</a>
 </p>
 
-![ReaCut media library, player, inspector and multitrack timeline](docs/screenshots/ui-parity-editor.png)
+![ReaCut timeline with English subtitles and editing Agent activity](docs/screenshots/agent-english-subtitles.png)
 
 ReaCut brings media management, multitrack editing, subtitles and video export into a familiar desktop workspace. Core editing runs locally, without an account or cloud service.
 
-The project uses [REA](https://github.com/morluto/rea) to study Jianying's interface behavior and local project formats, then independently implements an editor with Electron, React, TypeScript and FFmpeg. REA supports development research; REA, Ghidra and Jianying are not runtime dependencies.
+CapCut Desktop is the reference for editing workflows. Earlier research into domestic Jianying covers the versions and samples used for local draft import. ReaCut uses Electron, React, TypeScript and FFmpeg. [CapCut Desktop comparison](docs/research/CAPCUT_DESKTOP_9_8.md) · [Draft import coverage](docs/CAPCUT_INTEROP.md)
 
 > **v0.8.0 Preview** adds **Follow System** to language settings and ships multiple timelines, beat editing, speed curves and audio mixing in the macOS installer. See the [release notes](docs/RELEASE_NOTES_0.8.0.md).
 
@@ -45,8 +45,8 @@ The project uses [REA](https://github.com/morluto/rea) to study Jianying's inter
 | **Video export** | Render the full timeline, a selection or a custom range to MP4 / MOV with H.264 and AAC. |
 | **Text & effect libraries** | 16 editable text templates, 16 color / motion presets, and 8 transitions with animated previews and one-step undo. |
 | **Offline assets** | Use 64 original stickers, backgrounds, title plates and synthesized sounds, plus the bundled Noto Sans SC font. |
-| **Codex plugin** | Use the full editor in the Codex side panel; read projects, import media, apply batch edits and undo them. |
-| **Optional editing assistant** | Connect an installed, authenticated Codex CLI / Claude Code; review edit proposals before applying them and undo in one step. |
+| **Codex plugin** | Edit the open timeline from the Codex side panel or chat. [Plugin workflow](docs/CODEX_PLUGIN.md) |
+| **Editing Agent (development build)** | Opens on the right. Sign in with ChatGPT through Codex App Server, edit selected media ranges, or ask for subtitles from local speech recognition. Apply edits with one-step undo or request a preview first. [Editing Agent](docs/ASSISTANT.md) |
 
 See the [feature matrix](docs/FEATURE_MATRIX.md) for detailed support and limitations.
 
@@ -114,7 +114,7 @@ Current builds use local ad-hoc signing and are not Apple-notarized. See [valida
 
 - **Local editing:** media processing, preview, project storage and export run on your machine. Ordinary projects reference local media; collect project media or relink files when moving between machines.
 - **Codex plugin:** media processing runs locally. Codex can receive project summaries, text and explicitly requested screenshots read through its tools. The live side-panel frames are only used by the interface. See the [plugin guide](docs/CODEX_PLUGIN.md).
-- **Optional assistant:** when you send a message, text and a limited timeline summary are sent to the selected CLI service. Media files are not attached. See the [assistant guide](docs/ASSISTANT.md).
+- **Optional agent:** sending shares your message, recent chat and a limited summary of the active timeline with the selected service. The Codex App Server also receives any selected reference frames and timed text from caption requests. [Editing agent](docs/ASSISTANT.md)
 - **Experimental Jianying import:** converts basic clips from verified formats. Complex text styles, effects and keyframes may be lost; writing back to Jianying format is unsupported. See [interoperability](docs/CAPCUT_INTEROP.md) for version coverage.
 
 Cloud sync, SaaS, direct AI API integration and AI portrait cutout are not implemented. ReaCut is an independent project and is not affiliated with Jianying / CapCut.

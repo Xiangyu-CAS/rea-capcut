@@ -1,8 +1,9 @@
 import { localizeMessage } from "../i18n/messages";
 import { useUITranslation } from "../i18n";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { AudioLines, Brackets, ChevronLeft, ChevronRight, CircleAlert, Pause, Play, Plus, RotateCcw, Volume2, VolumeX, X } from "lucide-react";
+import { AudioLines, Brackets, ChevronLeft, ChevronRight, CircleAlert, Pause, Play, Plus, RotateCcw, Sparkles, Volume2, VolumeX, X } from "lucide-react";
 import type { PlacementMode } from "../core/timelineEdits";
+import type { AssistantMediaSelection } from "../core/assistantTypes";
 import type { MediaAsset, Track } from "../core/types";
 import { formatTime } from "../core/model";
 import "./SourcePreview.css";
@@ -12,16 +13,18 @@ export interface SourcePreviewProps {
   fps: number;
   onClose: () => void;
   tracks?: Track[];
+  initialRange?: AssistantMediaSelection["range"];
   onAddRange: (sourceIn: number, duration: number, mode?: PlacementMode, trackId?: string) => void;
+  onUseInAgent?: (range?: AssistantMediaSelection["range"]) => void;
 }
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 /** A new asset owns a fresh media element and range, so delayed media events cannot affect another source. */
 export default function SourcePreview(props: SourcePreviewProps) {
-  const ui = useUITranslation();
-  return <SourcePreviewSession key={`${props.asset.id}:${props.asset.url}:${props.asset.previewUrl ?? ""}`} {...props} />;
+  const { asset, initialRange } = props;
+  return <SourcePreviewSession key={JSON.stringify([asset.id, asset.url, asset.previewUrl, initialRange])} {...props} />;
 }
-function SourcePreviewSession({ asset, fps, onClose, onAddRange, tracks }: SourcePreviewProps) {
+function SourcePreviewSession({ asset, fps, onClose, onAddRange, onUseInAgent, tracks, initialRange }: SourcePreviewProps) {
   const ui = useUITranslation();
   const media = useRef<HTMLMediaElement | null>(null);
   const panel = useRef<HTMLElement>(null);
@@ -116,7 +119,10 @@ function SourcePreviewSession({ asset, fps, onClose, onAddRange, tracks }: Sourc
     const value = media.current?.duration ?? 0;
     if (!Number.isFinite(value) || value <= 0) { setError(ui("无法读取素材时长。", "Cannot read media duration.")); return; }
     const end = knownDuration > 0 ? Math.min(knownDuration, value) : value;
-    setDuration(end);setSourceOut(end);setReady(true);
+    const start = clamp(initialRange?.sourceIn ?? 0, 0, Math.max(0, end - frame));
+    const out = initialRange ? clamp(initialRange.sourceIn + initialRange.duration, Math.min(end, start + frame), end) : end;
+    if (media.current && start > 0) media.current.currentTime = start;
+    setDuration(end);setSourceIn(start);setSourceOut(out);setTime(start);setReady(true);
   };
   const mediaError = () => {
     if (!alive.current) return;
@@ -177,7 +183,13 @@ function SourcePreviewSession({ asset, fps, onClose, onAddRange, tracks }: Sourc
           <label> {ui("入轨方式", "Placement mode")} <select aria-label={ui("入轨方式", "Placement mode")} value={mode} onChange={e => setMode(e.target.value as PlacementMode)}><option value="insert"> {ui("插入（整体后移）", "Insert (ripple all tracks)")} </option><option value="overwrite"> {ui("覆盖（保留两侧）", "Overwrite (keep surrounding clips)")} </option><option value="overlay"> {ui("叠加（不移动）", "Overlay (keep positions)")} </option></select></label>
           <label> {ui("目标轨道", "Target track")} <select aria-label={ui("目标轨道", "Target track")} value={trackId} onChange={e => setTrackId(e.target.value)}><option value=""> {ui("自动选择 / 新建", "Auto select / Create")} </option>{tracks.map(t => <option key={t.id} value={t.id} disabled={t.locked}>{t.name}{t.locked ? ui(" · 已锁定", " · Locked") : ""}</option>)}</select></label>
         </div>}
-        <div className="source-add-row"><span>{image ? ui(`${asset.width} × ${asset.height} · 图片`, `${asset.width} × ${asset.height} · Image`) : <><Brackets size={12} />  {ui("已选", "Selected")} {formatTime(Math.max(0, sourceOut-sourceIn),frameRate)}</>}</span><button className="primary" disabled={unavailable} onClick={add}><Plus size={14} />{image ? ui("添加图片", "Add image") : ui("添加选中片段", "Add selected range")}</button></div>
+        <div className="source-add-row">
+          <span>{image ? ui(`${asset.width} × ${asset.height} · 图片`, `${asset.width} × ${asset.height} · Image`) : <><Brackets size={12} />{ui("已选", "Selected")} {formatTime(Math.max(0, sourceOut-sourceIn),frameRate)}</>}</span>
+          <div className="source-edit-actions">
+            {onUseInAgent && <button disabled={unavailable} onClick={() => { pause(); onUseInAgent(image ? undefined : { sourceIn, duration: sourceOut - sourceIn }); }}><Sparkles size={14} />{image ? ui("用于 Agent", "Use in Agent") : ui("选段用于 Agent", "Use range in Agent")}</button>}
+            <button className="primary" disabled={unavailable} onClick={add}><Plus size={14} />{image ? ui("添加图片", "Add image") : ui("添加选中片段", "Add selected range")}</button>
+          </div>
+        </div>
         {!image && <p className="source-tip">{tracks ? (mode === "insert" ? ui("在播放头插入，所有轨道后续内容一起后移；受影响锁轨会阻止操作。", "Insert at the playhead and shift later content on all tracks. Locked affected tracks block the operation.") : mode === "overwrite" ? ui("覆盖目标轨及关联画声区间，其他轨道保留。", "Overwrite the target track and linked audio/video range; preserve other tracks.") : ui("叠加到播放头，不移动或裁掉已有内容。", "Overlay at the playhead without moving or trimming existing clips.")) : ui("聚焦预览后按 I / O 标记，空格播放选段，← / → 逐帧定位", "Focus the preview: I / O to mark, Space to play the range, ← / → to step frames")}</p>}
         {!image && ready && duration < frame - 1e-8 && <p className="source-error"> {ui("素材不足项目的一帧，暂时无法添加。", "This asset is shorter than one project frame and cannot be added.")} </p>}
       </footer>

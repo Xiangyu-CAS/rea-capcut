@@ -38,7 +38,13 @@ sh scripts/install-plugin.sh --app /absolute/path/ReaCut.app
 
 > 用内置海洋背景做一个 5 秒标题视频，添加“我的第一支视频”，然后让我检查。
 
-Codex 可读取当前项目、导入指定素材、添加文字与片段、裁剪、分割、移动、调整画面/声音、播放、定位、撤销和重做。批量编辑需带当前 revision；你在界面中修改后，旧提案会被拒绝，防止覆盖新编辑。每次批量编辑都可一次撤销。
+使用同一份源码构建的 ReaCut 应用与插件，可从宿主对话编辑当前时间线。
+
+1. 在素材库中把素材或带入点、出点的选段加入 Agent，也可直接选中时间线上的片段。宿主用 `reacut_state` 读取这些选择、当前时间线、播放头和 revision。
+2. 宿主用 `reacut_edit` 把粗剪或调整直接写入时间线，右侧 Agent 会显示结果，整批可一次撤销。用户明确要求先预览时，宿主用 `reacut_propose_edit` 暂存方案，编辑器可以预览并应用。已修改的项目会拒绝旧 revision。
+
+需要从语音添加字幕时，先配置 [本地语音识别](LOCAL_SPEECH.md)，再用 `reacut_transcribe` 传入当前 revision 和 `clip:<id>` 或 `asset:<id>`。工具返回相对源选段的时间戳、文字和 `transcriptionId`。通过 `addCaptions` 和该 ID 将字幕入轨。需要翻译时传入按原顺序逐条对应的 `translations`。同一次转录绑定当时的项目 revision。
+3. 宿主再次调用 `reacut_state` 可确认实际时间线和剪辑结果，再继续编辑、保存或导出。方案状态随对应批次的撤销和重做更新。无变化的批次返回 `unchanged`，保留当前 revision。插件侧栏与它打开的桌面窗口操作同一个工程，编辑器的连接菜单也可单独连接本机 Codex。
 
 ## 从同一模板生成多支视频
 
@@ -57,7 +63,7 @@ Codex 可读取当前项目、导入指定素材、添加文字与片段、裁�
 - 采用与 [iPhone-use](https://github.com/zhongerxin/iPhone-use) 类似的 MCP App 实时画面桥接。侧栏约 6 fps，实际速度受宿主和窗口大小影响；这是交互画面，不是原帧率视频监看。声音由本机 ReaCut 播放。精细预览可显示桌面窗口。
 - 侧栏不支持直接从 Finder 拖入文件；使用“导入素材”或明确指定路径。中文输入推荐底部输入栏。
 - 插件会话独立运行，每次连接的恢复数据隔离保存在 `~/Library/Application Support/ReaCut-Plugin/sessions/<会话>/`，`reacut_state` 返回 recoveryPath；重连后可打开该 `autosave.reacut` 恢复。重要项目应主动保存。不会自动接管桌面版未保存的项目；通过保存、打开 `.reacut` 文件交换。
-- 本地 stdio 插件面向 Codex 桌面端；Codex CLI 可使用工具，但没有图形侧栏。不是 ChatGPT 网页插件，也尚未提交公共插件目录。
+- 本地 stdio 插件面向 ChatGPT / Codex 桌面端的 Codex 工作区；Codex CLI 可使用工具。图形侧栏由桌面宿主提供。
 - 首版在 macOS Apple Silicon 验证。Windows / Linux 需要平台应用路径及独立验收。
 
 ## 数据与权限

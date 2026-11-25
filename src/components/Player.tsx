@@ -11,6 +11,7 @@ import {
   SkipForward,
   Volume2,
   VolumeX,
+  X,
   ZoomIn,
 } from "lucide-react";
 import type { Clip, MediaAsset, Project } from "../core/types";
@@ -25,17 +26,19 @@ import {
   textPreviewLayer,
   clearPreviewLayers,
 } from "../editor/previewLayers";
-import { useEditorStore } from "../editor/store";
+import { useEditorStore, type AgentEditPlan } from "../editor/store";
 interface PlayerProps {
   project: Project;
   proxies: ReturnType<typeof usePreviewProxies>;
   selectedIds: string[];
   playhead: number;
   playing: boolean;
-  onSelect: (ids: string[]) => void;
-  onUpdateClip: (id: string, patch: Partial<Clip>) => void;
+  onSelect?: (ids: string[]) => void;
+  onUpdateClip?: (id: string, patch: Partial<Clip>) => void;
   onSeek: (time: number) => void;
   onPlayingChange: (playing: boolean) => void;
+  onPlaybackFrame?: (time: number, playing: boolean) => void;
+  onClosePreview?: () => void;
 }
 interface Source {
   element: HTMLVideoElement | HTMLAudioElement | HTMLImageElement;
@@ -45,6 +48,25 @@ interface Source {
   frameCallback?: number;
   performanceProxy?: boolean;
 }
+
+export function AgentPlanPreview({ plan, proxies, onClose }: {
+  plan: AgentEditPlan;
+  proxies: PlayerProps["proxies"];
+  onClose: () => void;
+}) {
+  const [transport, setTransport] = useState({ playhead: plan.focus, playing: false });
+  return <Player
+    project={plan.preview.project}
+    proxies={proxies}
+    selectedIds={[]}
+    {...transport}
+    onSeek={playhead => setTransport({ playhead, playing: false })}
+    onPlayingChange={playing => setTransport(current => ({ ...current, playing }))}
+    onPlaybackFrame={(playhead, playing) => setTransport({ playhead, playing })}
+    onClosePreview={onClose}
+  />;
+}
+
 export default function Player({
   project,
   proxies,
@@ -53,8 +75,9 @@ export default function Player({
   playing,
   onSeek,
   onPlayingChange,
-  onSelect,
   onUpdateClip,
+  onPlaybackFrame,
+  onClosePreview,
 }: PlayerProps) {
   const ui = useUITranslation();
   const { urls: proxyURLs, discard: discardProxy } = proxies;
@@ -65,8 +88,8 @@ export default function Player({
   const ducking = useMemo(() => new Map(project.tracks.flatMap(track =>
     track.audioDucking ? [[track.id, duckingEnvelope(track.audioDucking)] as const] : [],
   )), [project.tracks]);
-  const current = useRef({ project, playhead, playing, ducking });
-  current.current = { project, playhead, playing, ducking };
+  const current = useRef({ project, playhead, playing, ducking, onPlaybackFrame });
+  current.current = { project, playhead, playing, ducking, onPlaybackFrame };
   const [muted, setMuted] = useState(false),
     [errors, setErrors] = useState<string[]>([]),
     [viewScale, setViewScale] = useState(1),
@@ -210,12 +233,11 @@ export default function Player({
         const elapsed = Math.min((now - previous) / 1000, 0.12);
         time += elapsed;
         const end = projectDuration(state.project);
-        if (time >= end) {
-          time = end;
-          useEditorStore.setState({ playing: false });
-        }
-        useEditorStore.setState({ playhead: time });
-        current.current = { ...state, playhead: time, playing: time < end };
+        time = Math.min(time, end);
+        const playing = time < end;
+        if (state.onPlaybackFrame) state.onPlaybackFrame(time, playing);
+        else useEditorStore.setState({ playhead: time, playing });
+        current.current = { ...state, playhead: time, playing };
       }
       previous = now;
       const p = state.project,
@@ -365,10 +387,11 @@ export default function Player({
   const aspect = project.width / project.height,
     displayW = Math.min(size.w, size.h * aspect) * viewScale,
     displayH = displayW / aspect;
+  const title = onClosePreview ? ui("Agent 方案预览", "Agent edit preview") : ui("播放器", "Player");
   return (
-    <section className="player-panel panel" aria-label={ui("播放器", "Player")}>
+    <section className="player-panel panel" aria-label={title}>
       <div className="panel-heading">
-        <span> {ui("播放器", "Player")} </span>
+        <span>{title}</span>
         <div className="player-preview-controls">
           {proxies.active && <span className="muted small" role="status">
             {proxies.processed < proxies.total
@@ -385,6 +408,7 @@ export default function Player({
             onClick={proxies.toggle}
           >{ui("代理", "Proxy")}</button>}
           <span className="muted small">{project.width} × {project.height} · {project.fps} fps</span>
+          {onClosePreview && <button aria-label={ui("返回时间线播放器", "Back to timeline player")} onClick={onClosePreview}><X size={15} /></button>}
         </div>
       </div>
       <div className="player-stage" ref={hostRef}>
@@ -401,7 +425,7 @@ export default function Player({
           )}
           style={{ width: displayW, height: displayH }}
           onPointerDown={(event) => {
-            if (selectedIds.length !== 1 || event.button !== 0) return;
+            if (!onUpdateClip || selectedIds.length !== 1 || event.button !== 0) return;
             const clip = project.clips.find((c) => c.id === selectedIds[0]);
             if (
               !clip ||
@@ -450,7 +474,7 @@ export default function Player({
               Math.abs(event.clientX - d.x) + Math.abs(event.clientY - d.y) >
               2
             )
-              onUpdateClip(latest.id, {
+              onUpdateClip?.(latest.id, {
                 transform: {
                   ...latest.transform,
                   x: latest.transform.x + d.dx,
@@ -494,6 +518,18 @@ export default function Player({
              {ui("素材无法预览，导出仍使用原文件 · 点击收起", "Preview unavailable. Export still uses the original file · Click to dismiss")} </button>
         )}
       </div>
+      {onClosePreview && <input
+        className="agent-preview-seek"
+        type="range"
+        aria-label={ui("方案预览进度", "Edit preview position")}
+        aria-valuetext={formatTime(playhead, project.fps)}
+        min={0}
+        max={duration || 1}
+        step={1 / project.fps}
+        value={playhead}
+        disabled={!duration}
+        onChange={event => onSeek(Number(event.target.value))}
+      />}
       <div className="player-controls">
         <div className="timecode">
           <strong>{formatTime(playhead, project.fps)}</strong>

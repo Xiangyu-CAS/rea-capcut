@@ -15,6 +15,9 @@ const geometry=()=>page.locator('.editor-workspace').evaluate(el=>{const panels=
 try{
  await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setSize(1470,834));await expect.poll(()=>page.evaluate(()=>window.innerWidth)).toBe(1470);
  await expect(page.locator('.tl-clip')).toHaveCount(1);await expect(page.getByRole('button',{name:'撤销',exact:true})).toBeDisabled();
+ const assistant=()=>page.getByRole('button',{name:'剪辑助手',exact:true});
+ await expect(assistant()).toHaveAttribute('aria-pressed','true');
+ await assistant().click();
  const original=await geometry();const left=page.getByRole('separator',{name:'调整素材区宽度'}),right=page.getByRole('separator',{name:'调整属性区宽度'});
  const rect=await left.boundingBox();assert(rect);await page.mouse.move(rect.x+3,rect.y+80);await page.mouse.down();await page.mouse.move(rect.x+83,rect.y+80,{steps:8});await page.mouse.up();
  await expect.poll(async()=>Math.round((await geometry()).left-original.left)).toBe(80);
@@ -22,13 +25,15 @@ try{
  await expect(page.getByRole('button',{name:'撤销',exact:true})).toBeDisabled();const adjusted=await geometry();checks.push('pointer drag and arrow keys resize adjacent panels without changing project undo history');
  await app.close();app=await launch();page=await firstChineseWindow(app);page.on('pageerror',e=>errors.push(e.message));await expect(page.locator('.tl-clip')).toHaveCount(1);
  await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setSize(1470,834));await expect.poll(()=>page.evaluate(()=>window.innerWidth)).toBe(1470);
+ await expect(assistant()).toHaveAttribute('aria-pressed','true');
+ await assistant().click();
  await expect.poll(async()=>Math.round((await geometry()).left)).toBe(Math.round(adjusted.left));checks.push('panel widths persist across an actual application restart');
  await app.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0];w.setMinimumSize(1024,600);w.setSize(1024,720);});await expect.poll(()=>page.evaluate(()=>window.innerWidth)).toBe(1024);
- await expect.poll(async()=>{const g=await geometry();return g.document<=g.window;}).toBe(true);let small=await geometry();assert(small.center>=319.9&&small.left>=279.9&&small.right>=279.9&&small.document<=small.window);await page.getByRole('button',{name:'剪辑助手',exact:true}).click();small=await geometry();assert(small.center>=319.9&&small.right>=309.9&&small.document<=small.window);checks.push('saved widths adapt at 1024px and maintain usable player/assistant minimums without page overflow');
+ await expect.poll(async()=>{const g=await geometry();return g.document<=g.window;}).toBe(true);let small=await geometry();assert(small.center>=319.9&&small.left>=279.9&&small.right>=279.9&&small.document<=small.window);await assistant().click();small=await geometry();assert(small.center>=319.9&&small.right>=309.9&&small.document<=small.window);checks.push('Agent opens on launch and restart; saved widths at 1024px preserve usable panel minimums without page overflow');
  const edge=page.getByRole('separator',{name:'调整素材区宽度'});await edge.focus();for(let i=0;i<15;i++)await page.keyboard.press('Shift+ArrowRight');
  await expect.poll(async()=>Math.round((await geometry()).center)).toBe(320);
  const controls=await page.locator('.player-controls').evaluate(el=>{const parent=el.getBoundingClientRect();return [...el.querySelectorAll('button')].every(b=>{const r=b.getBoundingClientRect();return r.left>=parent.left&&r.right<=parent.right;});});assert(controls,'all player controls remain within their panel at maximum resource width');checks.push('maximum-width clamp preserves the complete player control row');
- await page.screenshot({path:path.join(output,'workspace-small.png')});await page.getByRole('button',{name:'剪辑助手',exact:true}).click();
+ await page.screenshot({path:path.join(output,'workspace-small.png')});await assistant().click();
  const reset=page.getByRole('separator',{name:'调整素材区宽度'});await reset.dblclick();await expect.poll(()=>page.evaluate(()=>localStorage.getItem('reacut-panel-widths-v1'))).toBeNull();
  await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setSize(1470,834));await expect.poll(async()=>Math.round((await geometry()).left)).toBe(Math.round(original.left));checks.push('double click resets preferences and restores responsive default widths');
  assert.deepEqual(errors,[]);await writeFile(path.join(output,'evidence.json'),JSON.stringify({at:new Date().toISOString(),packaged:!!packaged,checks,original,adjusted,small,errors},null,2));console.log(`Workspace: ${checks.length} checks passed (packaged=${!!packaged})`);

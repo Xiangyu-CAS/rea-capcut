@@ -22,3 +22,11 @@ export async function firstChineseWindow(app: ElectronApplication): Promise<Page
   await expect(page.locator(".titlebar-actions button").filter({ hasText: "设置 / Settings" })).toBeVisible();
   return page;
 }
+
+export async function showProperties(page: Page) {
+  const inspector = page.locator(".editor-right-dock .inspector");
+  if (!(await inspector.isVisible())) {
+    await page.getByRole("button", { name: "显示属性面板", exact: true }).click();
+  }
+  await expect(inspector).toBeVisible();
+}

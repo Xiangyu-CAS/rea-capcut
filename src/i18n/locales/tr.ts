@@ -57,7 +57,7 @@ export const tr: Record<TranslationKey, string> = {
   "toolbar.projectName.aria": "Proje adı",
   "toolbar.dirty": "Kaydedilmemiş değişiklikler",
   "toolbar.saved": "Kaydedildi",
-  "toolbar.assistant": "Asistan",
+  "toolbar.assistant": "Agent",
   "toolbar.assistant.aria": "Düzenleme asistanı",
   "toolbar.offline": "Çevrimdışı düzenleme",
   "toolbar.saveProject.title": "Projeyi kaydet ⌘S",
