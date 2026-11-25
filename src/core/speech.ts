@@ -19,6 +19,11 @@ export interface SpeechInfo extends SpeechSettings {
   configured: boolean;
 }
 export interface SpeechRange { sourceIn: number; duration: number }
+export class LocalSpeechSetupRequired extends Error {
+  constructor() {
+    super("Configure local MLX Whisper and Python first.");
+  }
+}
 export type SpeechRecognitionRequest = { mode: 'asr'; source: string; language: SpeechLanguage; range?: SpeechRange };
 export type SpeechRequest = SpeechRecognitionRequest | { mode: 'tts'; text: string; voice: string; rate: number };
 export interface SpeechProgress { jobId: string; stage: 'prepare' | 'recognize' | 'synthesize' | 'import' | 'complete'; progress?: number }

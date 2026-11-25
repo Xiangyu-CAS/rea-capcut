@@ -79,7 +79,7 @@ import { useUITranslation, translateUI, useTranslation, useLanguageStore, type L
 import { createEditorProject } from "./editor/localizedDefaults";
 import { localizeMessage } from "./i18n/messages";
 import "./styles.css";
-type Modal = "updates" | "templates" | "reverse" | "freeze" | "package" | "export" | "settings" | "shortcuts" | "about" | "capcut" | "normalize" | "duck" | "speech-setup" | null;
+type Modal = "updates" | "templates" | "reverse" | "freeze" | "package" | "export" | "settings" | "shortcuts" | "about" | "capcut" | "normalize" | "duck" | "speech-setup" | "agent-speech-setup" | null;
 type PendingCapcutImport = {
   selection: CapcutImportSelection;
   capturedProject: Project;
@@ -736,6 +736,7 @@ export default function App() {
   const newProject = () => {
     if (confirmReplace()) s.setProject(createEditorProject());
   };
+  const closeSpeechSetup = () => setModal(modal === "speech-setup" ? "settings" : null);
   const handleAction = async (action: string) => {
     // Native menu accelerators bypass DOM key handlers; keep modal workflows intact.
     if ((modal || speechMode || recover) && action !== "save-and-close") return;
@@ -1335,6 +1336,7 @@ export default function App() {
             importing={importing}
             onImportMedia={() => void safe(() => importMedia())}
             onPreviewMedia={selection => { setTab("素材"); showSource(selection); }}
+            onSpeechSetup={() => { s.setPlaying(false); setModal("agent-speech-setup"); }}
             onClose={() => setAssistantOpen(false)}
           />}
         </div>
@@ -1575,10 +1577,14 @@ export default function App() {
         </ModalShell>
       )}
       {modal === "updates" && <UpdateDialog autoCheck onClose={() => setModal(null)} />}
-      {modal === "speech-setup" && (
-        <ModalShell title={ui("本地字幕设置", "Local caption setup")} onClose={() => setModal("settings")}>
+      {(modal === "speech-setup" || modal === "agent-speech-setup") && (
+        <ModalShell title={ui("本地字幕设置", "Local caption setup")} onClose={closeSpeechSetup}>
           <div className="modal-body"><SpeechSetup /></div>
-          <footer><button onClick={() => setModal("settings")}>{ui("返回设置", "Back to settings")}</button></footer>
+          <footer>
+            <button onClick={closeSpeechSetup}>
+              {modal === "speech-setup" ? ui("返回设置", "Back to settings") : ui("完成", "Done")}
+            </button>
+          </footer>
         </ModalShell>
       )}
       {modal === "settings" && (

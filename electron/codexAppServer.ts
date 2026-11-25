@@ -11,6 +11,7 @@ import {
 } from "./assistantBackend";
 import { transcriptionTool } from "./pluginProtocol";
 import { speechMcpConfig, speechMcpName, speechSocketVariable, startSpeechMcp } from "./agentSpeechMcp";
+import { LocalSpeechSetupRequired } from "../src/core/speech";
 
 interface CodexOptions extends AssistantSessionOptions { profileDirectory: string; sessionRoot: string }
 type Fields = Record<string, unknown>;
@@ -32,7 +33,7 @@ const speechErrors = new Set([
   "Select an audio or video source with sound.",
   "Speech recognition supports up to 60 minutes within the source.",
   "Source is not authorized for import",
-  "Configure local MLX Whisper and Python first.",
+  "Local speech recognition requires Apple Silicon macOS.",
   "A speech task is already running.",
   "Source has no audio stream.",
   "Source changed during recognition.",
@@ -441,6 +442,10 @@ export function startCodexAgentSession(request: AssistantRequest, onEvent: (even
             return { content: [{ type: "text", text: JSON.stringify({ transcriptionId: id, source: recognized.request.source, cues: recognized.cues }) }] };
           } catch (error) {
             const message = error instanceof Error ? error.message : "";
+            if (error instanceof LocalSpeechSetupRequired) {
+              emit({ type: "speech-setup-required" });
+              return { isError: true, content: [{ type: "text", text: message }] };
+            }
             return { isError: true, content: [{ type: "text", text: speechErrors.has(message) ? message : "Local speech recognition failed. Check the local speech setup and selected source in ReaCut." }] };
           }
         });

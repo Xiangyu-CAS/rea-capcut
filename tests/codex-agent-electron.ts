@@ -15,15 +15,22 @@ const profile = path.join(userData, "codex-agent");
 const fixture = path.join(output, "codex fixture.cjs");
 const clips = [path.join(output, "山景.mp4"), path.join(output, "海景.mp4")];
 const saved = path.join(output, "rough-cut.reacut");
+const localSpeechSupported = process.platform === "darwin" && process.arch === "arm64";
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 await writeCodexAppServerFixture(fixture);
 for (const [index, file] of clips.entries()) {
-  execFileSync(process.env.REACUT_FFMPEG || "ffmpeg", ["-v", "error", "-y", "-f", "lavfi", "-i", `color=c=${index ? "blue" : "red"}:s=320x180:r=30:d=3`, "-c:v", "libx264", "-pix_fmt", "yuv420p", file]);
+  const audio = index === 0 ? ["-f", "lavfi", "-i", "sine=frequency=440:sample_rate=48000:duration=3"] : [];
+  execFileSync(process.env.REACUT_FFMPEG || "ffmpeg", [
+    "-v", "error", "-y", "-f", "lavfi", "-i", `color=c=${index ? "blue" : "red"}:s=320x180:r=30:d=3`, ...audio,
+    "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest", file,
+  ]);
 }
 
 const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined));
 env.REACUT_USER_DATA = userData;
+env.REACUT_SPEECH_PYTHON = "unconfigured-speech-fixture";
+env.HF_HUB_CACHE = path.join(output, "empty-whisper-cache");
 env.OPENAI_API_KEY = "sentinel-not-a-real-api-key";
 delete env.ELECTRON_RUN_AS_NODE;
 delete env.VITE_DEV_SERVER_URL;
@@ -370,6 +377,22 @@ try {
   await writeFile(path.join(profile, "browser-completed"), "fixture");
   await expect(connection).toHaveAttribute("title", "已连接");
   await expect(panel.getByRole("alert")).toHaveCount(0);
+  if (localSpeechSupported) {
+    await setLanguage("en");
+    await englishComposer.fill(subtitlePrompt);
+    await englishComposer.press("Enter");
+    await expect(englishPanel.getByRole("alert")).toContainText("Configure local MLX Whisper and Python first.");
+    await expect(englishChat.locator("summary").filter({ hasText: "Transcription stopped" })).toBeVisible();
+    await capture("agent-caption-setup-required-en");
+    await englishPanel.getByRole("button", { name: "Open caption setup", exact: true }).click();
+    const setup = page.getByRole("dialog", { name: "Local caption setup", exact: true });
+    await expect(setup).toBeVisible();
+    await setup.getByRole("button", { name: "Done", exact: true }).click();
+    await expect(setup).toHaveCount(0);
+    await expect(englishChat.getByText(subtitlePrompt, { exact: true })).toBeVisible();
+    await expect(page.locator(".tl-clip")).toHaveCount(0);
+    await setLanguage("zh-CN");
+  }
   await connection.click();
   await panel.getByRole("button", { name: "退出登录", exact: true }).click();
   await expect(signIn).toBeVisible();
@@ -391,8 +414,8 @@ try {
   assert.deepEqual(summaryOf(turns[1]).selectedIds, [project.clips.find(clip => clip.name === "山景.mp4")?.id]);
   assert(turns.every(call => call.effort === "high"));
   const threads = trace.filter(call => call.method === "thread/start");
-  assert.equal(threads.length, turns.length + 1);
-  assert(threads.slice(1).every(call => call.params.model === "fixture-astra"));
+  assert.equal(threads.length, turns.length + (localSpeechSupported ? 2 : 1));
+  assert(threads.slice(1, turns.length + 1).every(call => call.params.model === "fixture-astra"));
   assert(turns[0].images[0].jpeg && turns[0].images[0].bytes > 100);
   assert(turns.every(call => !call.prompt.includes(output) && !call.prompt.includes("reacut-media:")));
   assert(trace.filter(call => call.method === "spawn").every(call => !call.apiKeyInherited));

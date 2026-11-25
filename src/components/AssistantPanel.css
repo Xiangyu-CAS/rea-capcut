@@ -95,6 +95,7 @@
 .assistant-status.running::before { content: ""; flex: 0 0 5px; height: 5px; border-radius: 50%; background: var(--agent-accent); }
 .assistant-status.running span { white-space: nowrap; }
 .assistant-error { margin-bottom: 6px; padding: 7px 8px; border-radius: 6px; background: #3d3030; color: #ffcdc4; line-height: 1.45; font-size: 11px; overflow-wrap: anywhere; }
+.assistant-caption-setup { margin-bottom: 6px; color: var(--agent-accent); font-size: 11px; }
 .assistant-proposal {
   flex: none;
   margin: 0 12px 8px;

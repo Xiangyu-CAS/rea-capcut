@@ -149,10 +149,11 @@ interface Props {
   onToggleInspector(): void;
   onImportMedia(): void;
   onPreviewMedia(selection: AssistantMediaSelection): void;
+  onSpeechSetup(): void;
   onClose(): void;
 }
 
-export default function AssistantPanel({ inspectorVisible, importing, onToggleInspector, onImportMedia, onPreviewMedia, onClose }: Props) {
+export default function AssistantPanel({ inspectorVisible, importing, onToggleInspector, onImportMedia, onPreviewMedia, onSpeechSetup, onClose }: Props) {
   const ui = useUITranslation();
   const api = window.editorAPI;
   const project = useEditorStore(s => s.project);
@@ -175,6 +176,7 @@ export default function AssistantPanel({ inspectorVisible, importing, onToggleIn
   const [loaded, setLoaded] = useState(false);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
+  const [speechSetupRequired, setSpeechSetupRequired] = useState(false);
   const [stream, setStream] = useState("");
   const [workEntries, setWorkEntries] = useState<AssistantWorkEntry[]>([]);
   const [elapsedMs, setElapsedMs] = useState(0);
@@ -287,7 +289,7 @@ export default function AssistantPanel({ inspectorVisible, importing, onToggleIn
     const current = ++generation.current;
     history.current = [];
     followChat.current = true;
-    setMessages([]); setBusy(false); setStream(""); setError(""); setStatus(""); setLoaded(false);
+    setMessages([]); setBusy(false); setStream(""); setError(""); setStatus(""); setLoaded(false); setSpeechSetupRequired(false);
     setWorkEntries([]); setElapsedMs(0);
     setPrompt(""); setRequestMode("edit"); setReferenceIds([]); setMenu(null);
     void api?.getAssistantHistory(project.id).then(items => {
@@ -321,7 +323,14 @@ export default function AssistantPanel({ inspectorVisible, importing, onToggleIn
       setWorkEntries(request.work);
     };
     if (event.type === "status") { setStatus(event.message); return; }
+    if (event.type === "speech-setup-required") {
+      request.work = finishActivity(request.work, "stopped", "transcription", ui("语音识别已停止", "Transcription stopped"));
+      setWorkEntries(request.work);
+      setSpeechSetupRequired(true);
+      return;
+    }
     if (event.type === "activity") {
+      if (event.kind === "transcription" && event.state === "done") setSpeechSetupRequired(false);
       const text = localizeMessage(event.message);
       if (event.state === "done" && request.work.some(entry => entry.type === "activity" && entry.kind === event.kind && entry.state === "active")) {
         request.work = finishActivity(request.work, "done", event.kind, text);
@@ -411,7 +420,7 @@ export default function AssistantPanel({ inspectorVisible, importing, onToggleIn
     active.current = request;
     followChat.current = true;
     if (state.agentPlan?.source === "agent") state.clearAgentPlan();
-    setBusy(true); setError(""); setStream(""); setMenu(null);
+    setBusy(true); setError(""); setStream(""); setMenu(null); setSpeechSetupRequired(false);
     setWorkEntries([]); setElapsedMs(0);
     setStatus(ui("正在准备项目上下文…", "Preparing project context…"));
     try {
@@ -506,7 +515,7 @@ export default function AssistantPanel({ inspectorVisible, importing, onToggleIn
           <button disabled={busy || !messages.length} onClick={() => {
             persist([], project.id);
             if (proposal?.source === "agent") useEditorStore.getState().clearAgentPlan();
-            setError(""); setStatus(""); setWorkEntries([]); setMenu(null);
+            setError(""); setStatus(""); setWorkEntries([]); setMenu(null); setSpeechSetupRequired(false);
           }}><Trash2 size={13} />{ui("清空对话", "Clear chat")}</button>
         </div>
       </div>}
@@ -537,6 +546,9 @@ export default function AssistantPanel({ inspectorVisible, importing, onToggleIn
       {stream && <div className="assistant-message assistant"><ReplyText content={stream} streaming /></div>}
       {!busy && status && <p className="assistant-status">{localizeMessage(status)}</p>}
       {error && <p className="assistant-error" role="alert">{localizeMessage(error)}</p>}
+      {isAgent && !busy && speechSetupRequired && <button type="button" className="assistant-caption-setup" onClick={onSpeechSetup}>
+        {ui("打开字幕设置", "Open caption setup")}
+      </button>}
     </div>
     {proposal && <section className="assistant-proposal" aria-label={ui("剪辑方案", "Edit plan")}>
       <div className="assistant-plan-row">
