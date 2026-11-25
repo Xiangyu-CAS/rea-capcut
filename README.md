@@ -2,10 +2,10 @@
   <img src="public/icons/reacut.png" width="96" height="96" alt="ReaCut icon" />
 </p>
 <h1 align="center">ReaCut</h1>
-<p align="center"><strong>An independently implemented, open-source video editor informed by <a href="https://github.com/morluto/rea">REA</a>-assisted research into CapCut Desktop.</strong><br />macOS first. Research is limited to authorized scope, without copying proprietary Jianying or CapCut code or assets.</p>
+<p align="center"><strong>An open-source video editor for Mac.</strong><br />Cut, caption, and export locally. Use the optional Codex Agent to edit the same timeline.</p>
 <p align="center">
-  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-0.8.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="Download for macOS — v0.8.0 · Apple Silicon" /></a><br />
-  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">All releases / ZIP / checksums</a> · <a href="#getting-started">Installation guide</a><br />
+  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="Download for macOS — v0.9.0 · Apple Silicon" /></a><br />
+  <a href="https://reacut.app/">Website</a> · <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">All releases / ZIP / checksums</a> · <a href="#getting-started">Installation guide</a><br />
   <sub>Apple Silicon (M-series) only · Preview · Ad-hoc signed, not notarized. ASR requires separate local Python/MLX and model setup.</sub>
 </p>
 <p align="center">Building a complete video editor is a substantial undertaking, and this project is still in its early stages.<br /><strong>Contributors are welcome to help with features, usability, cross-platform support, tests and documentation.</strong> <a href="#contributing">Get involved →</a></p>
@@ -25,9 +25,9 @@
 
 ReaCut brings media management, multitrack editing, subtitles and video export into a familiar desktop workspace. Core editing runs locally, without an account or cloud service.
 
-CapCut Desktop is the reference for editing workflows. Earlier research into domestic Jianying covers the versions and samples used for local draft import. ReaCut uses Electron, React, TypeScript and FFmpeg. [CapCut Desktop comparison](docs/research/CAPCUT_DESKTOP_9_8.md) · [Draft import coverage](docs/CAPCUT_INTEROP.md)
+[REA](https://github.com/morluto/rea)-assisted research into CapCut Desktop informed the editing workflows. Earlier research into domestic Jianying covers the versions and samples used for local draft import. ReaCut uses Electron, React, TypeScript and FFmpeg. [CapCut Desktop comparison](docs/research/CAPCUT_DESKTOP_9_8.md) · [Draft import coverage](docs/CAPCUT_INTEROP.md)
 
-> **v0.8.0 Preview** adds **Follow System** to language settings and ships multiple timelines, beat editing, speed curves and audio mixing in the macOS installer. See the [release notes](docs/RELEASE_NOTES_0.8.0.md).
+> **v0.9.0 Preview** brings the editing Agent to the standalone app. Try “Add English subtitles to this video” to transcribe speech locally, translate it with Codex, and add editable captions to the timeline. See the [release notes](docs/RELEASE_NOTES_0.9.0.md).
 
 ## Features
 
@@ -46,7 +46,7 @@ CapCut Desktop is the reference for editing workflows. Earlier research into dom
 | **Text & effect libraries** | 16 editable text templates, 16 color / motion presets, and 8 transitions with animated previews and one-step undo. |
 | **Offline assets** | Use 64 original stickers, backgrounds, title plates and synthesized sounds, plus the bundled Noto Sans SC font. |
 | **Codex plugin** | Edit the open timeline from the Codex side panel or chat. [Plugin workflow](docs/CODEX_PLUGIN.md) |
-| **Editing Agent (development build)** | Opens on the right. Sign in with ChatGPT through Codex App Server, edit selected media ranges, or ask for subtitles from local speech recognition. Apply edits with one-step undo or request a preview first. [Editing Agent](docs/ASSISTANT.md) |
+| **Editing Agent** | Opens on the right. Sign in with ChatGPT through Codex App Server, edit selected media ranges, or ask for subtitles from local speech recognition. Apply edits with one-step undo or request a preview first. [Editing Agent](docs/ASSISTANT.md) |
 
 See the [feature matrix](docs/FEATURE_MATRIX.md) for detailed support and limitations.
 
@@ -62,11 +62,11 @@ ReaCut supports multiple timelines per project, group import of supported Jianyi
 
 ### Option 1: standalone DMG
 
-Download the [ReaCut 0.8.0 DMG for macOS Apple Silicon](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-0.8.0-arm64.dmg), open it, drag the app into Applications, and launch it. FFmpeg and FFprobe are bundled. This preview uses ad-hoc signing and lacks Apple notarization.
+Download the [ReaCut 0.9.0 DMG for macOS Apple Silicon](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg), open it, drag the app into Applications, and launch it. FFmpeg and FFprobe are bundled. This preview uses ad-hoc signing and lacks Apple notarization.
 
 ### Option 2: inside the Codex side panel
 
-Install **ReaCut 0.8.0**, Codex desktop, its `codex` CLI, and Python 3. Download the [Codex plugin ZIP](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-plugin-0.8.0.zip), then run from its extracted directory or this repository:
+Install **ReaCut 0.9.0**, Codex desktop, its `codex` CLI, and Python 3. Download the [Codex plugin ZIP](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-plugin-0.9.0.zip), then run from its extracted directory or this repository:
 
 ```sh
 sh scripts/install-plugin.sh
