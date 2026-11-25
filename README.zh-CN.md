@@ -2,10 +2,10 @@
   <img src="public/icons/reacut.png" width="96" height="96" alt="ReaCut 图标" />
 </p>
 <h1 align="center">ReaCut · 映刻</h1>
-<p align="center"><strong>借助 <a href="https://github.com/morluto/rea">REA</a> 研究国际版 CapCut Desktop，独立实现的开源视频编辑器。</strong><br />macOS 优先，研究限于授权范围。</p>
+<p align="center"><strong>面向 Mac 的开源视频编辑器。</strong><br />在本机剪辑、加字幕和导出，也可用 Codex Agent 编辑同一条时间线。</p>
 <p align="center">
-  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-0.8.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="下载 macOS Apple Silicon 版 v0.8.0" /></a><br />
-  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">全部 Releases / ZIP / 校验和</a> · <a href="#快速开始">安装说明</a><br />
+  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="下载 macOS Apple Silicon 版 v0.9.0" /></a><br />
+  <a href="https://reacut.app/zh-cn/">产品网站</a> · <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">全部 Releases / ZIP / 校验和</a> · <a href="#快速开始">安装说明</a><br />
   <sub>仅 Apple Silicon（M 系列）· 预览版 · ad-hoc 签名，未公证。ASR 需另配本地 Python/MLX 与模型。</sub>
 </p>
 <p align="center">完整视频编辑器的实现工作量很大，项目仍处于早期阶段。<br /><strong>欢迎贡献者一起完善功能、交互、跨平台支持、测试和文档。</strong> <a href="#参与贡献">参与贡献 →</a></p>
@@ -24,9 +24,9 @@
 
 ReaCut 将素材管理、多轨剪辑、字幕和视频导出放在一个熟悉的桌面工作区中。核心编辑流程在本地运行，无需账号或云服务。
 
-剪辑工作流以国际版 CapCut Desktop 为对照。国内剪映的历史研究提供本地草稿导入的版本与样本依据。ReaCut 使用 Electron、React、TypeScript 和 FFmpeg。 [国际版对照](docs/research/CAPCUT_DESKTOP_9_8.md) · [草稿覆盖范围](docs/CAPCUT_INTEROP.md)
+剪辑工作流参考了用 [REA](https://github.com/morluto/rea) 对国际版 CapCut Desktop 所做的授权研究。国内剪映的历史研究提供本地草稿导入的版本与样本依据。ReaCut 使用 Electron、React、TypeScript 和 FFmpeg。 [国际版对照](docs/research/CAPCUT_DESKTOP_9_8.md) · [草稿覆盖范围](docs/CAPCUT_INTEROP.md)
 
-> **v0.8.0 预览版**在语言设置中新增「跟随系统」，并将多时间线、节拍剪辑、曲线变速和声音处理纳入 macOS 安装包。 [发布说明](docs/RELEASE_NOTES_0.8.0.md)
+> 独立桌面版 **v0.9.0** 加入了剪辑 Agent。试试「给这个视频加英文字幕」，ReaCut 本机识别语音，Codex 翻译文字，字幕可直接在时间线上编辑。 [发布说明](docs/RELEASE_NOTES_0.9.0.md)
 
 ## 核心功能
 
@@ -49,7 +49,7 @@ ReaCut 将素材管理、多轨剪辑、字幕和视频导出放在一个熟悉�
 | **文字与效果库** | 16 款可编辑文字模板、16 款调色 / 动效预设、8 款转场，支持动态预览与一次撤销。 |
 | **离线素材** | 内置 64 款原创贴纸、背景、标题底板与合成音效，以及 Noto Sans SC 中文字体。 |
 | **Codex 插件** | 在 Codex 侧栏操作完整编辑器，也可从对话直接编辑当前时间线。 [插件工作流](docs/CODEX_PLUGIN.md) |
-| **剪辑 Agent（开发构建）** | 默认打开右侧面板。用本机 Codex App Server 登录后，可直接编辑素材选段、用本地语音识别生成字幕，也可要求先预览。编辑支持一次撤销。 [操作说明](docs/ASSISTANT.md) |
+| **剪辑 Agent** | 默认打开右侧面板。用本机 Codex App Server 登录后，可直接编辑素材选段、用本地语音识别生成字幕，也可要求先预览。编辑支持一次撤销。 [操作说明](docs/ASSISTANT.md) |
 
 完整支持范围与限制见 [功能矩阵](docs/FEATURE_MATRIX.md)。
 
@@ -59,11 +59,11 @@ ReaCut 将素材管理、多轨剪辑、字幕和视频导出放在一个熟悉�
 
 ### 方式一：独立 DMG 桌面版
 
-下载 [ReaCut 0.8.0 DMG（macOS Apple Silicon）](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-0.8.0-arm64.dmg)，打开后将应用拖入“应用程序”，直接启动即可剪辑。安装包自带 FFmpeg / FFprobe，不需要另外安装。当前为预览版，采用 ad-hoc 签名，尚未完成 Apple 公证。
+下载 [ReaCut 0.9.0 DMG（macOS Apple Silicon）](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg)，打开后将应用拖入“应用程序”，直接启动即可剪辑。安装包自带 FFmpeg / FFprobe，不需要另外安装。当前为预览版，采用 ad-hoc 签名，尚未完成 Apple 公证。
 
 ### 方式二：作为 Codex 插件在右侧打开
 
-先安装 **ReaCut 0.8.0** 和 Codex 桌面端，确保终端有 `codex` CLI 与 Python 3。下载 [Codex 插件包](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-plugin-0.8.0.zip)，在解压目录或仓库目录运行：
+先安装 **ReaCut 0.9.0** 和 Codex 桌面端，确保终端有 `codex` CLI 与 Python 3。下载 [Codex 插件包](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-plugin-0.9.0.zip)，在解压目录或仓库目录运行：
 
 ```sh
 sh scripts/install-plugin.sh

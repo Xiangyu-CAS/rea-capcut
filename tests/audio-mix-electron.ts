@@ -87,8 +87,12 @@ async function open() {
   page = await firstChineseWindow(app);
   await showProperties(page);
   page.on("pageerror", error => errors.push(error.message));
-  await app.evaluate(({ dialog }, destination) => {
+  await app.evaluate(({ dialog, ipcMain }, destination) => {
     dialog.showSaveDialog = async () => ({ canceled: false, filePath: destination });
+    Reflect.set(globalThis, "audioMixProjectDirty", false);
+    ipcMain.on("set-dirty", (_event, dirty) => {
+      Reflect.set(globalThis, "audioMixProjectDirty", dirty);
+    });
   }, exported);
   await expect(page.locator(".tl-clip")).toHaveCount(3);
 }
@@ -96,6 +100,9 @@ const save = async (): Promise<Project> => {
   const mtime = (await stat(saved)).mtimeMs;
   await page.getByRole("button", { name: "保存项目", exact: true }).click();
   await expect.poll(async () => (await stat(saved)).mtimeMs).toBeGreaterThan(mtime);
+  // The file is replaced before the renderer clears the native close guard.
+  await expect(page.locator(".app-status").getByText("项目就绪", { exact: true })).toBeVisible();
+  await expect.poll(() => app.evaluate(() => Reflect.get(globalThis, "audioMixProjectDirty"))).toBe(false);
   return JSON.parse(await readFile(saved, "utf8"));
 };
 try {
@@ -202,4 +209,9 @@ try {
     rendererErrors: errors, sourceUnchanged: true };
   await writeFile(path.join(root, "evidence.json"), JSON.stringify(evidence, null, 2));
   console.log(evidence);
-} finally { await app?.close(); }
+} finally {
+  await app?.evaluate(({ dialog }) => {
+    dialog.showMessageBox = async () => ({ response: 2, checkboxChecked: false });
+  }).catch(() => {});
+  await app?.close();
+}
