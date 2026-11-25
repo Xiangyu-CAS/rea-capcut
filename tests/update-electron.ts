@@ -1,6 +1,6 @@
 /** Native updater integration, using isolated profiles and in-process synthetic responses.
  * Run after build on a desktop runner: npx tsx tests/update-electron.ts.
- * REACUT_TEST_APP selects an app extracted from the actual DMG.
+ * REACUT_TEST_APP selects the installed Windows directory or extracted macOS app.
  * REACUT_TEST_LIVE_UPDATES=1 adds one explicit UI-driven public API check.
  * No test opens an external browser, downloads an installer or installs an app. */
 import { _electron as electron, expect, type ElectronApplication, type Page } from '@playwright/test';
@@ -14,6 +14,7 @@ const apiURL = 'https://api.github.com/repos/Xiangyu-CAS/rea-capcut/releases?per
 const repo = 'https://github.com/Xiangyu-CAS/rea-capcut';
 const future = '999.0.0';
 const bundle = process.env.REACUT_TEST_APP ? path.resolve(process.env.REACUT_TEST_APP) : undefined;
+const windows = process.platform === 'win32';
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 const results: Array<Record<string, unknown>> = [];
@@ -23,7 +24,8 @@ async function launch(): Promise<{ app: ElectronApplication; page: Page; errors:
   env.REACUT_USER_DATA = path.join(output, `profile-${++sequence}`);
   delete env.ELECTRON_RUN_AS_NODE; delete env.VITE_DEV_SERVER_URL;
   const app = await electron.launch({
-    ...(bundle ? { executablePath: path.join(bundle, 'Contents/MacOS/ReaCut'), args: [], cwd: output } : { args: [root], cwd: root }),
+    ...(bundle ? { executablePath: path.join(bundle, windows ? 'ReaCut.exe' : 'Contents/MacOS/ReaCut'), args: [], cwd: output }
+      : { args: [root], cwd: root }),
     env, timeout: 45000,
   });
   try {
@@ -39,8 +41,11 @@ async function launch(): Promise<{ app: ElectronApplication; page: Page; errors:
     return { app, page, errors };
   } catch (error) { await app.close(); throw error; }
 }
+function installerName(tag: string, arch: string) {
+  return windows ? `ReaCut-${tag}-${arch}-Setup.exe` : `ReaCut-${tag}-${arch}.dmg`;
+}
 function release(tag: string, arch: string, withAsset = true) {
-  const name = `ReaCut-${tag}-${arch}.dmg`;
+  const name = installerName(tag, arch);
   return { tag_name: `v${tag}`, draft: false, prerelease: true, html_url: `${repo}/releases/tag/v${tag}`,
     body: '<script>window.__unsafeRelease = true</script>\n[Untrusted link](https://example.invalid/)\nPreview notes',
     assets: withAsset ? [{ name, state: 'uploaded', size: 12345, browser_download_url: `${repo}/releases/download/v${tag}/${name}` }] : [],
@@ -101,7 +106,7 @@ async function checkRequests(app: ElectronApplication, expected = 1) {
     await page.getByRole('button', { name: 'GitHub release page', exact: true }).click();
     await page.getByRole('button', { name: 'Download installer', exact: true }).click();
     expect(await app.evaluate(() => (globalThis as any).__updateOpens)).toEqual([
-      `${repo}/releases/tag/v${future}`, `${repo}/releases/download/v${future}/ReaCut-${future}-${arch}.dmg`,
+      `${repo}/releases/tag/v${future}`, `${repo}/releases/download/v${future}/${installerName(future, arch)}`,
     ]);
     expect(await page.evaluate(async () => {
       try { await window.editorAPI!.openUpdateTarget('https://example.invalid/' as never); return false; }
