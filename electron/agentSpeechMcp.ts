@@ -30,8 +30,14 @@ export async function startSpeechMcp(transcribe: (args: Record<string, unknown>,
   const server = createServer(socket => {
     sockets.add(socket);
     socket.on("error", () => socket.destroy());
-    socket.once("close", () => sockets.delete(socket));
-    createInterface({ input: socket, crlfDelay: Infinity }).on("line", async line => {
+    const lines = createInterface({ input: socket, crlfDelay: Infinity });
+    // readline also emits errors from the input socket when the relay disconnects.
+    lines.on("error", () => lines.close());
+    socket.once("close", () => {
+      lines.close();
+      sockets.delete(socket);
+    });
+    lines.on("line", async line => {
       if (Buffer.byteLength(line) > 16_384) { socket.destroy(); return; }
       let input;
       try { input = JSON.parse(line); } catch { socket.destroy(); return; }
