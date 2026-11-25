@@ -207,8 +207,11 @@ async function preview() {
 }
 try {
   await launch();
-  for (const def of TEMPLATE_EXAMPLES) {
-    await openTemplates();
+  await page.getByRole("button", { name: "浏览示例工程", exact: true }).click();
+  await expect(dialog()).toBeVisible();
+  checks.push("the empty Media tab opens the built-in examples");
+  for (const [index, def] of TEMPLATE_EXAMPLES.entries()) {
+    if (index > 0) await openTemplates();
     await dialog()
       .getByRole("button", { name: new RegExp(def.name) })
       .click();

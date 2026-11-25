@@ -31,6 +31,7 @@ export interface MediaLibraryProps {
   onRemoveAsset: (assetId: string) => void;
   importing?: boolean;
   onImportFiles?: (files: File[]) => void;
+  onBrowseExamples?: () => void;
   onRevealAsset?: (assetId: string) => void;
   onPreviewAsset?: (assetId: string) => void;
   agentAssetIds?: ReadonlySet<string>;
@@ -58,6 +59,7 @@ export default function MediaLibrary({
   onRemoveAsset,
   importing = false,
   onImportFiles,
+  onBrowseExamples,
   onRevealAsset,
   onPreviewAsset,
   agentAssetIds,
@@ -448,7 +450,18 @@ export default function MediaLibrary({
             >
               <Upload size={13} /> {importing ? ui("正在读取素材…", "Loading media…") : ui("导入素材", "Import media")}
             </button>
-            <span> {ui("支持 MP4、MOV、MP3、PNG 等格式", "Supports MP4, MOV, MP3, PNG and more")} </span>
+            {onBrowseExamples ? (
+              <button
+                type="button"
+                className="media-empty-examples"
+                onClick={onBrowseExamples}
+                disabled={importing}
+              >
+                {ui("浏览示例工程", "Browse sample projects")}
+              </button>
+            ) : (
+              <span>{ui("支持 MP4、MOV、MP3、PNG 等格式", "Supports MP4, MOV, MP3, PNG and more")}</span>
+            )}
           </div>
         )}
       </div>
