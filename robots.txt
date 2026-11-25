@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://xiangyu-cas.github.io/rea-capcut/sitemap.xml
