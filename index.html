@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0b11">
   <title>ReaCut — Open-source video editing for Mac</title>
-  <meta name="description" content="A free, open-source video editor for macOS. Cut footage, style captions, and mix sound on your Mac with ReaCut.">
+  <meta name="description" content="An open-source video editor for Apple Silicon Macs. Cut footage, mix sound, and use the optional Codex Agent for editable captions.">
   <link rel="canonical" href="https://reacut.app/">
   <link rel="alternate" hreflang="en" href="https://reacut.app/">
   <link rel="alternate" hreflang="zh-CN" href="https://reacut.app/zh-cn/">
@@ -14,12 +14,12 @@
   <meta property="og:site_name" content="ReaCut">
   <meta property="og:locale" content="en_US">
   <meta property="og:title" content="ReaCut — Open-source video editing for Mac">
-  <meta property="og:description" content="A free, open-source video editor for macOS. Cut footage, style captions, and mix sound on your Mac with ReaCut.">
+  <meta property="og:description" content="An open-source video editor for Apple Silicon Macs. Cut footage, mix sound, and use the optional Codex Agent for editable captions.">
   <meta property="og:url" content="https://reacut.app/">
-  <meta property="og:image" content="https://reacut.app/assets/blue-hour-share.jpg">
+  <meta property="og:image" content="https://reacut.app/assets/reacut-09-share.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Blue Hour, a 9-second sample cut of a coastal road at dusk">
+  <meta property="og:image:alt" content="ReaCut preview with editable English subtitles over Blue Hour">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/png" href="./assets/reacut.png">
   <link rel="preload" href="./assets/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -50,8 +50,8 @@
         <p class="eyebrow">Free and open source</p>
         <h1 id="hero-title">A video editor<br><em>for your Mac.</em></h1>
         <p class="hero-description">Cut footage, style captions, and mix sound. From import to export, the core editing tools run on your Mac.</p>
-        <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-0.8.0-arm64.dmg">Download for macOS</a>
-        <p class="release-note">Apple Silicon <span aria-hidden="true">·</span> <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.8.0">v0.8.0 Preview</a></p>
+        <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg">Download for macOS</a>
+        <p class="release-note">Apple Silicon <span aria-hidden="true">·</span> <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.9.0">v0.9.0 Preview</a> <span aria-hidden="true">·</span> <a href="#agent">See the Agent</a></p>
       </div>
 
       <figure class="film" data-film>
@@ -66,7 +66,7 @@
           </button>
         </div>
         <figcaption class="film-caption">
-          <span class="film-name"><strong>Blue Hour</strong><span>Sample edit</span></span>
+          <span class="film-name"><strong>Blue Hour</strong><a class="text-link" href="./assets/Blue-Hour-ReaCut.zip" download>Download the project</a></span>
           <span class="film-clock" aria-hidden="true"><span data-clock>00:00</span> / 00:09</span>
         </figcaption>
         <div class="film-strip" role="group" aria-label="Play a shot from the sample" hidden>
@@ -80,6 +80,27 @@
             <img src="./assets/surf-thumb.webp" width="384" height="216" alt="" decoding="async">
           </button>
         </div>
+      </figure>
+    </section>
+
+    <section class="wrap agent-section" id="agent" aria-labelledby="agent-title">
+      <div class="section-heading studio-heading">
+        <h2 id="agent-title">English subtitles you can edit.</h2>
+        <p>ReaCut recognizes speech on your Mac. Codex translates the text into editable subtitles with the original timing.</p>
+      </div>
+      <figure class="agent-demo">
+        <a class="editor-screen" href="./assets/editor-agent.webp" aria-label="Open the full screenshot">
+          <img src="./assets/editor-agent.webp" width="1440" height="810" alt="ReaCut shows an English subtitle over a coastal road, two editable subtitle clips, and the Agent’s activity in the right panel" loading="lazy" decoding="async">
+        </a>
+        <figcaption class="agent-caption">
+          <q>Add English subtitles to this video</q>
+          <div>
+            <a class="text-link" href="./assets/reacut-subtitle-demo.mp4">Watch the demo</a>
+            <span>Optional · Requires Codex and MLX Whisper</span>
+            <a class="text-link" href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/docs/LOCAL_SPEECH.md">Set up local speech</a>
+            <a class="text-link" href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/docs/ASSISTANT.md">Editing Agent guide</a>
+          </div>
+        </figcaption>
       </figure>
     </section>
 
@@ -129,7 +150,7 @@
     <section class="wrap section" id="features" aria-labelledby="feature-title">
       <div class="section-heading">
         <h2 id="feature-title">Shaping the final cut.</h2>
-        <a class="text-link" href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/FEATURE_MATRIX.md">All features</a>
+        <a class="text-link" href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/docs/FEATURE_MATRIX.md">All features</a>
       </div>
       <div class="feature-grid">
         <article class="feature-card motion-card">
@@ -160,8 +181,8 @@
           <h2 id="codex-title">Edit in the Codex sidebar.</h2>
           <p>Open ReaCut inside Codex and work directly on the timeline. Ask Codex to fill a template and export a batch of videos.</p>
           <div class="actions">
-            <a class="button secondary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-plugin-0.8.0.zip">Download plugin</a>
-            <a class="text-link" href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/README.md#option-2-inside-the-codex-side-panel">Setup guide</a>
+            <a class="button secondary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-plugin-0.9.0.zip">Download plugin</a>
+            <a class="text-link" href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/README.md#option-2-inside-the-codex-side-panel">Setup guide</a>
           </div>
         </div>
         <img src="./assets/codex.webp" width="1280" height="720" loading="lazy" decoding="async" alt="ReaCut open inside a Codex panel, with the viewer and timeline visible">
@@ -174,11 +195,11 @@
         <div class="download-copy">
           <h2 id="download-title">Get ReaCut.</h2>
           <p>The preview installer is available for Macs with Apple Silicon.</p>
-          <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-0.8.0-arm64.dmg">Download DMG</a>
+          <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg">Download DMG</a>
           <div class="download-links">
             <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">All releases</a>
-            <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/SHA256SUMS.txt">Checksums</a>
-            <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/README.md#getting-started">Install guide</a>
+            <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/SHA256SUMS.txt">Checksums</a>
+            <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/README.md#getting-started">Install guide</a>
           </div>
         </div>
       </div>
@@ -189,15 +210,15 @@
       <div class="faq-list">
         <details>
           <summary>How do I install the macOS preview?</summary>
-          <p>Open the DMG and drag ReaCut into Applications. This preview is ad-hoc signed and has yet to be notarized by Apple. <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/README.md#getting-started">Installation guide</a></p>
+          <p>Open the DMG and drag ReaCut into Applications. This preview is ad-hoc signed and lacks Apple notarization. If macOS asks you to verify the developer, check the download’s SHA-256 before following <a href="https://support.apple.com/en-us/102445">Apple’s instructions</a>. <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/README.md#getting-started">Installation guide</a></p>
         </details>
         <details>
           <summary>Can I edit offline?</summary>
-          <p>Yes. Import, editing, project storage, and export run locally without an account. Automatic transcription needs an initial setup with MLX Whisper and a local model. <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/LOCAL_SPEECH.md">Local speech guide</a></p>
+          <p>Yes. Import, editing, project storage, and export run locally without an account. Automatic transcription needs an initial setup with MLX Whisper and a local model. <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/docs/LOCAL_SPEECH.md">Local speech guide</a></p>
         </details>
         <details>
           <summary>Can I open a Jianying draft?</summary>
-          <p>ReaCut can import basic edits from supported local Jianying drafts. Import coverage is experimental, and some text styles, effects, and keyframes may be lost. <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/CAPCUT_INTEROP.md">Supported formats</a></p>
+          <p>ReaCut can import basic edits from supported local Jianying drafts. Import coverage is experimental, and some text styles, effects, and keyframes may be lost. <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/docs/CAPCUT_INTEROP.md">Supported formats</a></p>
         </details>
       </div>
     </section>
@@ -209,7 +230,7 @@
       <nav aria-label="Project links">
         <a href="https://github.com/Xiangyu-CAS/rea-capcut">Source code</a>
         <a href="https://github.com/Xiangyu-CAS/rea-capcut/issues">Report an issue</a>
-        <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/LICENSE">MIT license</a>
+        <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/LICENSE">MIT license</a>
       </nav>
     </div>
   </footer>

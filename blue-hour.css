@@ -463,6 +463,33 @@ h3 {
   text-wrap: pretty;
 }
 
+.agent-section {
+  padding-bottom: clamp(3.5rem, 7vw, 6rem);
+}
+
+.agent-demo .editor-screen img {
+  aspect-ratio: auto;
+}
+
+.agent-caption, .agent-caption > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 1rem;
+}
+
+.agent-caption {
+  justify-content: space-between;
+  padding-top: 1rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.agent-caption q {
+  color: var(--foreground);
+  font-weight: 535;
+}
+
 .editor-stage {
   padding: clamp(0.75rem, 2.3vw, 1.8rem);
   border: 1px solid #6f649368;

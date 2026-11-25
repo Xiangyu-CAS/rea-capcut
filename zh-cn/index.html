@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0b11">
   <title>ReaCut 映刻 — Mac 上的开源视频剪辑器</title>
-  <meta name="description" content="ReaCut 映刻是一款免费开源的 Mac 视频剪辑器，支持多轨时间线、字幕、混音和本地导出。">
+  <meta name="description" content="ReaCut 映刻是一款面向 Apple 芯片 Mac 的开源视频剪辑器，支持本地剪辑和混音，也可用 Codex Agent 生成可编辑字幕。">
   <link rel="canonical" href="https://reacut.app/zh-cn/">
   <link rel="alternate" hreflang="en" href="https://reacut.app/">
   <link rel="alternate" hreflang="zh-CN" href="https://reacut.app/zh-cn/">
@@ -14,12 +14,12 @@
   <meta property="og:site_name" content="ReaCut">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="ReaCut 映刻 — Mac 上的开源视频剪辑器">
-  <meta property="og:description" content="ReaCut 映刻是一款免费开源的 Mac 视频剪辑器，支持多轨时间线、字幕、混音和本地导出。">
+  <meta property="og:description" content="ReaCut 映刻是一款面向 Apple 芯片 Mac 的开源视频剪辑器，支持本地剪辑和混音，也可用 Codex Agent 生成可编辑字幕。">
   <meta property="og:url" content="https://reacut.app/zh-cn/">
-  <meta property="og:image" content="https://reacut.app/assets/blue-hour-share.jpg">
+  <meta property="og:image" content="https://reacut.app/assets/reacut-09-share.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="剪辑样片《蓝调时刻》，一段 9 秒的暮色公路短片">
+  <meta property="og:image:alt" content="ReaCut 在样片《蓝调时刻》上显示可编辑的英文字幕">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/png" href="../assets/reacut.png">
   <link rel="preload" href="../assets/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -50,8 +50,8 @@
         <p class="eyebrow">免费开源</p>
         <h1 id="hero-title">为 Mac 而做的<br><em>视频剪辑器</em></h1>
         <p class="hero-description">剪视频、加字幕、调声音。导入、编辑和导出，都在你的 Mac 上完成。</p>
-        <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-0.8.0-arm64.dmg">下载 macOS 版</a>
-        <p class="release-note">Apple Silicon <span aria-hidden="true">·</span> <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.8.0">v0.8.0 预览版</a></p>
+        <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg">下载 macOS 版</a>
+        <p class="release-note">Apple Silicon <span aria-hidden="true">·</span> <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.9.0">v0.9.0 预览版</a> <span aria-hidden="true">·</span> <a href="#agent">查看剪辑 Agent</a></p>
       </div>
 
       <figure class="film" data-film>
@@ -66,7 +66,7 @@
           </button>
         </div>
         <figcaption class="film-caption">
-          <span class="film-name"><strong>蓝调时刻</strong><span>剪辑样片</span></span>
+          <span class="film-name"><strong>蓝调时刻</strong><a class="text-link" href="../assets/Blue-Hour-ReaCut.zip" download>下载示例工程</a></span>
           <span class="film-clock" aria-hidden="true"><span data-clock>00:00</span> / 00:09</span>
         </figcaption>
         <div class="film-strip" role="group" aria-label="从指定镜头开始播放" hidden>
@@ -80,6 +80,27 @@
             <img src="../assets/surf-thumb.webp" width="384" height="216" alt="" decoding="async">
           </button>
         </div>
+      </figure>
+    </section>
+
+    <section class="wrap agent-section" id="agent" aria-labelledby="agent-title">
+      <div class="section-heading studio-heading">
+        <h2 id="agent-title">生成可编辑的英文字幕</h2>
+        <p>ReaCut 在本机识别语音，Codex 翻译文字，字幕按原有时间写入可编辑的时间线。</p>
+      </div>
+      <figure class="agent-demo">
+        <a class="editor-screen" href="../assets/editor-agent.webp" aria-label="查看完整截图">
+          <img src="../assets/editor-agent.webp" width="1440" height="810" alt="ReaCut 播放器在暮色公路画面上显示英文字幕，下方显示两条可编辑字幕，右侧显示 Agent 活动" loading="lazy" decoding="async">
+        </a>
+        <figcaption class="agent-caption">
+          <q>给这个视频加英文字幕</q>
+          <div>
+            <a class="text-link" href="../assets/reacut-subtitle-demo.mp4">观看演示</a>
+            <span>可选功能 · 需要 Codex 与 MLX Whisper</span>
+            <a class="text-link" href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/docs/LOCAL_SPEECH.md">配置本地语音</a>
+            <a class="text-link" href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/docs/ASSISTANT.md">剪辑 Agent 指南</a>
+          </div>
+        </figcaption>
       </figure>
     </section>
 
@@ -129,7 +150,7 @@
     <section class="wrap section" id="features" aria-labelledby="feature-title">
       <div class="section-heading">
         <h2 id="feature-title">从粗剪到出片。</h2>
-        <a class="text-link" href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/FEATURE_MATRIX.md">完整功能列表</a>
+        <a class="text-link" href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/docs/FEATURE_MATRIX.md">完整功能列表</a>
       </div>
       <div class="feature-grid">
         <article class="feature-card motion-card">
@@ -160,8 +181,8 @@
           <h2 id="codex-title">在 Codex 侧栏里剪片。</h2>
           <p>在 Codex 里打开 ReaCut，直接操作时间线。也可以让 Codex 填充模板，再批量导出视频。</p>
           <div class="actions">
-            <a class="button secondary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-plugin-0.8.0.zip">下载插件</a>
-            <a class="text-link" href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/CODEX_PLUGIN.md">安装指南</a>
+            <a class="button secondary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-plugin-0.9.0.zip">下载插件</a>
+            <a class="text-link" href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/docs/CODEX_PLUGIN.md">安装指南</a>
           </div>
         </div>
         <img src="../assets/codex.webp" width="1280" height="720" loading="lazy" decoding="async" alt="在 Codex 侧栏内打开的 ReaCut 编辑器，显示预览画面与时间线">
@@ -174,11 +195,11 @@
         <div class="download-copy">
           <h2 id="download-title">下载 ReaCut。</h2>
           <p>预览安装包适用于搭载 Apple 芯片的 Mac。</p>
-          <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/ReaCut-0.8.0-arm64.dmg">下载 DMG</a>
+          <a class="button primary" href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg">下载 DMG</a>
           <div class="download-links">
             <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">所有版本</a>
-            <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.8.0/SHA256SUMS.txt">校验和</a>
-            <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/README.zh-CN.md">安装说明</a>
+            <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/SHA256SUMS.txt">校验和</a>
+            <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/README.zh-CN.md">安装说明</a>
           </div>
         </div>
       </div>
@@ -189,15 +210,15 @@
       <div class="faq-list">
         <details>
           <summary>如何安装 macOS 预览版？</summary>
-          <p>打开 DMG 后，把 ReaCut 拖到「应用程序」。预览版采用临时签名，尚未经过 Apple 公证。 <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/README.zh-CN.md">安装说明</a></p>
+          <p>打开 DMG 后，把 ReaCut 拖到「应用程序」。预览版采用临时签名，尚未经过 Apple 公证。如果 macOS 提示无法验证开发者，请先核对下载文件的 SHA-256，再参考 <a href="https://support.apple.com/en-us/102445">Apple 的说明</a>。 <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/README.zh-CN.md">安装说明</a></p>
         </details>
         <details>
           <summary>可以离线剪辑吗？</summary>
-          <p>可以。导入、编辑、保存和导出都在本机运行，无需账号。自动识别字幕需要先配置 MLX Whisper 和本地模型。 <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/LOCAL_SPEECH.md">本地语音指南</a></p>
+          <p>可以。导入、编辑、保存和导出都在本机运行，无需账号。自动识别字幕需要先配置 MLX Whisper 和本地模型。 <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/docs/LOCAL_SPEECH.md">本地语音指南</a></p>
         </details>
         <details>
           <summary>能打开剪映草稿吗？</summary>
-          <p>可以从受支持的本地剪映草稿导入基础剪辑。这个功能仍在实验阶段，部分文字样式、效果和关键帧可能丢失。 <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/docs/CAPCUT_INTEROP.md">查看兼容范围</a></p>
+          <p>可以从受支持的本地剪映草稿导入基础剪辑。这个功能仍在实验阶段，部分文字样式、效果和关键帧可能丢失。 <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/docs/CAPCUT_INTEROP.md">查看兼容范围</a></p>
         </details>
       </div>
     </section>
@@ -209,7 +230,7 @@
       <nav aria-label="项目链接">
         <a href="https://github.com/Xiangyu-CAS/rea-capcut">源代码</a>
         <a href="https://github.com/Xiangyu-CAS/rea-capcut/issues">反馈问题</a>
-        <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.8.0/LICENSE">MIT 许可证</a>
+        <a href="https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/LICENSE">MIT 许可证</a>
       </nav>
     </div>
   </footer>
