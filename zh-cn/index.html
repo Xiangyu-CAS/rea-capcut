@@ -23,9 +23,9 @@
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/png" href="../assets/reacut.png">
   <link rel="preload" href="../assets/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="../blue-hour.css">
+  <link rel="stylesheet" href="../blue-hour.css?v=chatgpt-install">
   <style>.hero .actions .button, .download-copy .actions .button { margin-top: 0; }</style>
-  <script src="../site.js" defer></script>
+  <script src="../site.js?v=chatgpt-install" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">跳到正文</a>
@@ -56,6 +56,7 @@
           <a class="button secondary" href="https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe">下载 Windows 预览版</a>
         </div>
         <p class="release-note">Apple Silicon <a href="https://github.com/Xiangyu-CAS/ReaCut/releases/tag/v0.9.0">v0.9.0</a> <span aria-hidden="true">·</span> Windows 10/11 x64 <a href="https://github.com/Xiangyu-CAS/ReaCut/releases/tag/v0.9.1">v0.9.1</a> <span aria-hidden="true">·</span> <a href="#agent">体验 AI 字幕</a></p>
+        <a class="text-link install-jump" href="#chatgpt-install">在 ChatGPT 中使用 <span aria-hidden="true">↓</span></a>
       </div>
 
       <figure class="film" data-film>
@@ -85,6 +86,23 @@
           </button>
         </div>
       </figure>
+    </section>
+
+    <section class="wrap chatgpt-install" id="chatgpt-install" aria-labelledby="install-title">
+      <div>
+        <h2 id="install-title">在 ChatGPT 中使用 ReaCut</h2>
+        <p>适用于搭载 Apple 芯片的 Mac。复制提示词，粘贴到 ChatGPT 桌面应用的本地 Codex 对话中发送。<a href="https://github.com/Xiangyu-CAS/ReaCut/blob/main/docs/CODEX_PLUGIN.md">安装指南</a></p>
+      </div>
+      <div data-install>
+        <div class="install-prompt">
+          <details>
+            <summary><span>请在这台 Mac 上安装 ReaCut 和桌面插件…</span></summary>
+            <pre data-install-text tabindex="0">请在这台 Mac 上安装 ReaCut 和桌面插件。按照官方指南 https://github.com/Xiangyu-CAS/ReaCut/blob/main/docs/CODEX_PLUGIN.md 完成安装，然后在当前本地 Codex 对话的右侧打开编辑器。</pre>
+          </details>
+          <button class="button install-copy" type="button" data-copy-install data-copied="已复制安装提示词。" data-fallback="请复制已展开的提示词。" hidden>复制安装提示词</button>
+        </div>
+        <p class="install-status" role="status"></p>
+      </div>
     </section>
 
     <section class="wrap agent-section" id="agent" aria-labelledby="agent-title">
@@ -184,8 +202,8 @@
           <h2 id="codex-title">在 Codex 侧栏里剪片。</h2>
           <p>在 ChatGPT 桌面应用的 Codex 对话旁打开 ReaCut。你可以在右侧修剪片段、添加文字，也可以让 Codex 编辑同一条时间线。</p>
           <div class="actions">
-            <a class="button secondary" href="https://github.com/Xiangyu-CAS/ReaCut/blob/main/docs/CODEX_PLUGIN.md">构建 v0.9.1</a>
-            <a class="text-link" href="https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.0/ReaCut-plugin-0.9.0.zip">v0.9.0 插件 ZIP</a>
+            <a class="button secondary" href="#chatgpt-install">在 ChatGPT 中使用</a>
+            <a class="text-link" href="https://github.com/Xiangyu-CAS/ReaCut/blob/main/docs/CODEX_PLUGIN.md">手动安装</a>
           </div>
         </div>
         <a class="codex-panel-shot" href="../assets/reacut-chatgpt-sidebar.png" aria-label="查看 ChatGPT 桌面插件截图大图">

@@ -272,6 +272,15 @@ img, video {
   color: var(--foreground);
 }
 
+.install-jump {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  min-height: 2.75rem;
+  margin-top: 0.2rem;
+  font-size: 0.92rem;
+}
+
 .film {
   min-width: 0;
 }
@@ -461,6 +470,117 @@ h3 {
   color: var(--muted);
   font-size: 1rem;
   text-wrap: pretty;
+}
+
+.chatgpt-install {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  align-items: center;
+  gap: clamp(1rem, 2.5vw, 2rem);
+  margin-bottom: clamp(3.5rem, 7vw, 6rem);
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 1px solid #7866ab63;
+  border-radius: 1rem;
+  background: linear-gradient(115deg, #242039, #15141f 78%);
+}
+
+.chatgpt-install h2 {
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+  letter-spacing: -0.038em;
+  text-wrap: pretty;
+}
+
+.chatgpt-install p {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.chatgpt-install h2 + p {
+  margin-top: 0.4rem;
+}
+
+.chatgpt-install p a {
+  color: var(--accent);
+}
+
+.install-prompt {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.45rem;
+  padding: 0.35rem;
+  border: 1px solid #796e9b57;
+  border-radius: 0.75rem;
+  background: #101019;
+}
+
+.install-prompt summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.7rem;
+  color: var(--muted);
+  cursor: pointer;
+  list-style: none;
+}
+
+.install-prompt summary::-webkit-details-marker {
+  display: none;
+}
+
+.install-prompt summary span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.9rem;
+}
+
+.install-prompt summary::after {
+  flex: none;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-right: 0.15rem;
+  border: solid currentColor;
+  border-width: 0 1.5px 1.5px 0;
+  transform: translateY(-0.12rem) rotate(45deg);
+  content: "";
+}
+
+.install-prompt details[open] summary::after {
+  transform: translateY(0.12rem) rotate(225deg);
+}
+
+.install-prompt pre {
+  margin: 0.35rem 0.7rem 0.65rem;
+  color: var(--foreground);
+  font: inherit;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.install-prompt pre:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.install-copy {
+  min-height: 2.75rem;
+  padding-inline: 0.85rem;
+  border-radius: 0.48rem;
+  background: var(--accent);
+  color: #181425;
+  cursor: pointer;
+}
+
+.install-copy:hover {
+  background: #efe6ff;
+}
+
+.install-status:not(:empty) {
+  margin-top: 0.4rem;
 }
 
 .agent-section {
@@ -805,7 +925,7 @@ h3 {
     background: radial-gradient(ellipse 19rem 24rem at 80% 22rem, #201b39, transparent), var(--background);
   }
 
-  .hero, .codex, .faq {
+  .hero, .chatgpt-install, .codex, .faq {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -842,6 +962,10 @@ h3 {
 
   .studio-heading > p {
     max-width: unset;
+  }
+
+  .install-prompt {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .film-screen, .feature-card, .codex, .download-panel {

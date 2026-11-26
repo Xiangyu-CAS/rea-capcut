@@ -1,3 +1,31 @@
+const install = document.querySelector("[data-install]");
+
+if (install) {
+  const installDetails = install.querySelector("details");
+  const installText = install.querySelector("[data-install-text]");
+  const copyInstall = install.querySelector("[data-copy-install]");
+  const installStatus = install.querySelector("[role='status']");
+
+  copyInstall.hidden = false;
+  copyInstall.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(installText.textContent.trim());
+      installStatus.textContent = copyInstall.dataset.copied;
+    } catch {
+      installDetails.open = true;
+      installText.focus({ preventScroll: true });
+      const selection = window.getSelection();
+      if (selection) {
+        const range = document.createRange();
+        range.selectNodeContents(installText);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+      installStatus.textContent = copyInstall.dataset.fallback;
+    }
+  });
+}
+
 const film = document.querySelector("[data-film]");
 const video = film.querySelector("video");
 const playButton = film.querySelector("[data-play]");

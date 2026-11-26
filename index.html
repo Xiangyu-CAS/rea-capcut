@@ -23,9 +23,9 @@
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/png" href="./assets/reacut.png">
   <link rel="preload" href="./assets/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="./blue-hour.css">
+  <link rel="stylesheet" href="./blue-hour.css?v=chatgpt-install">
   <style>.hero .actions .button, .download-copy .actions .button { margin-top: 0; }</style>
-  <script src="./site.js" defer></script>
+  <script src="./site.js?v=chatgpt-install" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -56,6 +56,7 @@
           <a class="button secondary" href="https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe">Get Windows preview</a>
         </div>
         <p class="release-note">Apple Silicon <a href="https://github.com/Xiangyu-CAS/ReaCut/releases/tag/v0.9.0">v0.9.0</a> <span aria-hidden="true">·</span> Windows 10/11 x64 <a href="https://github.com/Xiangyu-CAS/ReaCut/releases/tag/v0.9.1">v0.9.1</a> <span aria-hidden="true">·</span> <a href="#agent">Try AI captions</a></p>
+        <a class="text-link install-jump" href="#chatgpt-install">Use in ChatGPT <span aria-hidden="true">↓</span></a>
       </div>
 
       <figure class="film" data-film>
@@ -85,6 +86,23 @@
           </button>
         </div>
       </figure>
+    </section>
+
+    <section class="wrap chatgpt-install" id="chatgpt-install" aria-labelledby="install-title">
+      <div>
+        <h2 id="install-title">Use ReaCut in ChatGPT</h2>
+        <p>For Apple Silicon Macs. Paste the prompt into a local Codex chat in the ChatGPT desktop app. <a href="https://github.com/Xiangyu-CAS/ReaCut/blob/main/docs/CODEX_PLUGIN.md">Setup guide</a></p>
+      </div>
+      <div data-install>
+        <div class="install-prompt">
+          <details>
+            <summary><span>Install ReaCut and its desktop plugin on this Mac…</span></summary>
+            <pre data-install-text tabindex="0">Install ReaCut and its desktop plugin on this Mac. Use the official setup guide at https://github.com/Xiangyu-CAS/ReaCut/blob/main/docs/CODEX_PLUGIN.md and open the editor in the right sidebar of this local Codex chat when ready.</pre>
+          </details>
+          <button class="button install-copy" type="button" data-copy-install data-copied="Install prompt copied." data-fallback="Copy the expanded prompt." hidden>Copy install prompt</button>
+        </div>
+        <p class="install-status" role="status"></p>
+      </div>
     </section>
 
     <section class="wrap agent-section" id="agent" aria-labelledby="agent-title">
@@ -184,8 +202,8 @@
           <h2 id="codex-title">Edit in the Codex sidebar.</h2>
           <p>Open ReaCut next to your conversation in the ChatGPT desktop app. Cut clips, add text, or ask Codex to edit the same timeline.</p>
           <div class="actions">
-            <a class="button secondary" href="https://github.com/Xiangyu-CAS/ReaCut/blob/main/docs/CODEX_PLUGIN.md">Build v0.9.1</a>
-            <a class="text-link" href="https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.0/ReaCut-plugin-0.9.0.zip">v0.9.0 plugin ZIP</a>
+            <a class="button secondary" href="#chatgpt-install">Use in ChatGPT</a>
+            <a class="text-link" href="https://github.com/Xiangyu-CAS/ReaCut/blob/main/docs/CODEX_PLUGIN.md">Manual setup</a>
           </div>
         </div>
         <a class="codex-panel-shot" href="./assets/reacut-chatgpt-sidebar.png" aria-label="Open the ChatGPT desktop screenshot at full size">
