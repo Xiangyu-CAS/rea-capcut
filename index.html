@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0b11">
-  <title>ReaCut — Open-source video editing for macOS and Windows</title>
-  <meta name="description" content="A local, open-source video editor for Apple Silicon Macs and Windows 10/11 x64. Cut footage, style captions, and mix sound.">
+  <title>ReaCut — A free, AI-powered CapCut alternative</title>
+  <meta name="description" content="Ask AI for a rough cut, then fine-tune each clip on a familiar timeline and export locally. Free and open source.">
   <link rel="canonical" href="https://reacut.app/">
   <link rel="alternate" hreflang="en" href="https://reacut.app/">
   <link rel="alternate" hreflang="zh-CN" href="https://reacut.app/zh-cn/">
@@ -13,8 +13,8 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="ReaCut">
   <meta property="og:locale" content="en_US">
-  <meta property="og:title" content="ReaCut — Open-source video editing for macOS and Windows">
-  <meta property="og:description" content="A local, open-source video editor for Apple Silicon Macs and Windows 10/11 x64. Cut footage, style captions, and mix sound.">
+  <meta property="og:title" content="ReaCut — A free, AI-powered CapCut alternative">
+  <meta property="og:description" content="Ask AI for a rough cut, then fine-tune each clip on a familiar timeline and export locally. Free and open source.">
   <meta property="og:url" content="https://reacut.app/">
   <meta property="og:image" content="https://reacut.app/assets/reacut-09-share.jpg">
   <meta property="og:image:width" content="1200">
@@ -48,40 +48,40 @@
   <main id="main">
     <section class="hero wrap" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="eyebrow">Free and open source</p>
-        <h1 id="hero-title">A local<br><em>video editor.</em></h1>
-        <p class="hero-description">Cut footage, style captions, and mix sound. Edit and export locally on macOS and Windows.</p>
+        <p class="eyebrow">Open source · macOS &amp; Windows</p>
+        <h1 id="hero-title">A free, AI-powered<br><em>CapCut alternative.</em></h1>
+        <p class="hero-description">Ask AI for a rough cut, then fine-tune each clip on a familiar timeline and export locally.</p>
         <div class="actions">
           <a class="button primary" href="https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg">Download for macOS</a>
           <a class="button secondary" href="https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe">Get Windows preview</a>
         </div>
-        <p class="release-note">Apple Silicon <a href="https://github.com/Xiangyu-CAS/ReaCut/releases/tag/v0.9.0">v0.9.0</a> <span aria-hidden="true">·</span> Windows 10/11 x64 <a href="https://github.com/Xiangyu-CAS/ReaCut/releases/tag/v0.9.1">v0.9.1</a> <span aria-hidden="true">·</span> <a href="#agent">See the Agent</a></p>
+        <p class="release-note">Apple Silicon <a href="https://github.com/Xiangyu-CAS/ReaCut/releases/tag/v0.9.0">v0.9.0</a> <span aria-hidden="true">·</span> Windows 10/11 x64 <a href="https://github.com/Xiangyu-CAS/ReaCut/releases/tag/v0.9.1">v0.9.1</a> <span aria-hidden="true">·</span> <a href="#agent">Try AI captions</a></p>
       </div>
 
       <figure class="film" data-film>
         <div class="film-screen">
-          <video width="1280" height="720" controls playsinline preload="none" poster="./assets/blue-hour-poster.webp" aria-label="Blue Hour, a 9-second sample cut of a coastal road at dusk">
-            <source src="./assets/blue-hour.mp4" type="video/mp4">
-            <a href="./assets/blue-hour.mp4">Open the sample video</a>
+          <video width="1600" height="900" controls playsinline preload="none" poster="./assets/reacut-ai-demo-poster.jpg" aria-label="A 31-second ReaCut desktop recording showing an AI editing proposal, preview, and editable subtitles">
+            <source src="./assets/reacut-ai-demo-en.mp4" type="video/mp4">
+            <a href="./assets/reacut-ai-demo-en.mp4">Open the ReaCut demo</a>
           </video>
-          <button class="film-play" type="button" data-play hidden aria-label="Play sample edit">
+          <button class="film-play" type="button" data-play hidden aria-label="Play the AI editing demo">
             <span class="play-mark" aria-hidden="true"></span>
-            <span>Play sample edit</span>
+            <span>Play AI editing demo</span>
           </button>
         </div>
         <figcaption class="film-caption">
-          <span class="film-name"><strong>Blue Hour</strong><a class="text-link" href="./assets/Blue-Hour-ReaCut.zip" download>Download the project</a></span>
-          <span class="film-clock" aria-hidden="true"><span data-clock>00:00</span> / 00:09</span>
+          <span class="film-name"><strong>ReaCut in action</strong><span>Recorded on macOS</span></span>
+          <span class="film-clock" aria-hidden="true"><span data-clock>00:00</span> / 00:31</span>
         </figcaption>
-        <div class="film-strip" role="group" aria-label="Play a shot from the sample" hidden>
-          <button type="button" class="shot" data-shot="0" aria-label="Coast road" title="Coast road" aria-current="true">
-            <img src="./assets/coast-thumb.webp" width="384" height="216" alt="" decoding="async">
+        <div class="film-strip" role="group" aria-label="Jump to a part of the demo" hidden>
+          <button type="button" class="shot" data-shot="2.5" aria-label="Give AI a brief" title="Give AI a brief" aria-current="false">
+            <img src="./assets/reacut-ai-demo-plan.jpg" width="384" height="216" alt="" decoding="async">
           </button>
-          <button type="button" class="shot" data-shot="3" aria-label="Driving at dusk" title="Driving at dusk" aria-current="false">
-            <img src="./assets/road-thumb.webp" width="384" height="216" alt="" decoding="async">
+          <button type="button" class="shot" data-shot="7.1" aria-label="Preview and apply" title="Preview and apply" aria-current="false">
+            <img src="./assets/reacut-ai-demo-preview.jpg" width="384" height="216" alt="" decoding="async">
           </button>
-          <button type="button" class="shot" data-shot="6" aria-label="Breaking waves" title="Breaking waves" aria-current="false">
-            <img src="./assets/surf-thumb.webp" width="384" height="216" alt="" decoding="async">
+          <button type="button" class="shot" data-shot="17.5" aria-label="Editable subtitles" title="Editable subtitles" aria-current="false">
+            <img src="./assets/reacut-ai-demo-captions.jpg" width="384" height="216" alt="" decoding="async">
           </button>
         </div>
       </figure>
@@ -111,7 +111,7 @@
       <div class="wrap">
         <div class="section-heading studio-heading">
           <h2 id="editor-title">Inside ReaCut.</h2>
-          <p>Explore three parts of the editor with the Blue Hour project open.</p>
+          <p>Explore the editor with Blue Hour. <a class="text-link" href="./assets/blue-hour.mp4">Watch the cut</a> · <a class="text-link" href="./assets/Blue-Hour-ReaCut.zip" download>Download the project</a></p>
         </div>
         <div class="editor-stage" data-tour>
           <div class="tour-tabs" role="tablist" aria-label="Editor views" hidden>

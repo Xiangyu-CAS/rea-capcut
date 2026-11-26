@@ -178,7 +178,7 @@ img, video {
 
 .hero h1 {
   margin-top: 0.9rem;
-  font-size: clamp(3.3rem, 5.65vw, 5.35rem);
+  font-size: clamp(2rem, 4.25vw, 4.4rem);
   font-weight: 530;
   letter-spacing: -0.073em;
   line-height: 1.01;
@@ -188,14 +188,14 @@ img, video {
   display: inline-block;
   color: var(--accent);
   font-family: "Instrument Serif", Georgia, serif;
-  font-size: 1.23em;
+  font-size: 1.17em;
   font-weight: 400;
   letter-spacing: -0.043em;
   line-height: 0.92;
 }
 
 :lang(zh-CN) .hero h1 {
-  font-size: clamp(2.75rem, 5.5vw, 4.85rem);
+  font-size: clamp(1.95rem, 3.6vw, 3.25rem);
   letter-spacing: -0.069em;
   line-height: 1.12;
 }
@@ -814,19 +814,11 @@ h3 {
   }
 
   .hero h1 {
-    font-size: clamp(3rem, 8.8vw, 4.55rem);
-  }
-
-  .hero h1 em {
-    font-size: 1.2em;
+    font-size: clamp(2rem, 8.35vw, 4.4rem);
   }
 
   :lang(zh-CN) .hero h1 {
-    font-size: clamp(2.65rem, 8.7vw, 4rem);
-  }
-
-  :lang(zh-CN) .hero h1 em {
-    font-size: 1.07em;
+    font-size: clamp(1.95rem, 7.65vw, 3.25rem);
   }
 
   .hero-description {
