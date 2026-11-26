@@ -6,7 +6,7 @@
 <p align="center">
   <a href="https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe"><img src="docs/download-windows.svg" width="340" height="76" alt="下载 Windows 10/11 x64 EXE 安装包 v0.9.1" /></a>
   <a href="https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="下载 macOS Apple Silicon 版 v0.9.0" /></a><br />
-  <a href="https://reacut.app/zh-cn/">产品网站</a> · <a href="https://github.com/Xiangyu-CAS/ReaCut/releases">全部 Releases / ZIP / 校验和</a> · <a href="#快速开始">安装说明</a><br />
+  <a href="https://reacut.app/zh-cn/">产品网站</a> · <a href="#在-chatgpt-中使用-reacut">在 ChatGPT 中使用</a> · <a href="https://github.com/Xiangyu-CAS/ReaCut/releases">全部 Releases / ZIP / 校验和</a> · <a href="#快速开始">安装说明</a><br />
   <sub>预览版安装包 · Windows EXE 未签名 · macOS DMG 采用 ad-hoc 签名，尚未公证。</sub>
 </p>
 <p align="center">完整视频编辑器的实现工作量很大，项目仍处于早期阶段。<br /><strong>欢迎贡献者一起完善功能、交互、跨平台支持、测试和文档。</strong> <a href="#参与贡献">参与贡献 →</a></p>
@@ -65,17 +65,17 @@ ReaCut 将素材管理、多轨剪辑、字幕和视频导出放在一个熟悉�
 
 下载 [ReaCut 0.9.0 DMG（macOS Apple Silicon）](https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg)，打开后将应用拖入“应用程序”，直接启动即可剪辑。安装包自带 FFmpeg / FFprobe，不需要另外安装。当前为预览版，采用 ad-hoc 签名，尚未完成 Apple 公证。
 
-### 方式二：作为 Codex 插件在右侧打开
+### 在 ChatGPT 中使用 ReaCut
 
-先安装 **ReaCut 0.9.0** 和 Codex 桌面端，确保终端有 `codex` CLI 与 Python 3。下载 [Codex 插件包](https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.0/ReaCut-plugin-0.9.0.zip)，在解压目录或仓库目录运行：
+在搭载 Apple 芯片的 Mac 上复制下面这行提示词，粘贴到 **ChatGPT 桌面应用的本地 Codex 对话**中发送。
 
-```sh
-sh scripts/install-plugin.sh
+```text
+请在这台 Mac 上安装 ReaCut 和桌面插件。按照官方指南 https://github.com/Xiangyu-CAS/ReaCut/blob/main/docs/CODEX_PLUGIN.md 完成安装，然后在当前本地 Codex 对话的右侧打开编辑器。
 ```
 
-重连或新开 Codex 聊天，输入 **“用 ReaCut 在右侧打开视频编辑器”**。可直接在侧栏点击、拖动、输入、保存和导出，也可让 Codex 根据当前项目进行可撤销的批量剪辑。
+从源码构建 ReaCut 需要 Node.js 和 Xcode 命令行工具。按提示确认安装。如果需要重新加载插件，新开本地 Codex 对话并发送 **“@ReaCut 在右侧打开编辑器”**。 [手动安装](docs/CODEX_PLUGIN.md)
 
-插件复用本机编辑器；实时画面约 6 fps，文件选择使用系统对话框。应用不在“应用程序”目录时使用 `--app /absolute/path/ReaCut.app`。完整安装、操作方式与限制见 [Codex 插件说明](docs/CODEX_PLUGIN.md)。
+侧栏直接显示时间线、播放器、素材库和属性面板，支持中文输入法、粘贴和系统文件对话框。也可以让 Codex 对同一项目进行可撤销的批量剪辑。 [插件工作流](docs/CODEX_PLUGIN.md)
 
 ### 从源码运行
 
@@ -118,7 +118,7 @@ DMG 和 ZIP 输出到 `release/`。首次构建会下载并编译内置 FFmpeg /
 ## 项目与数据
 
 - **本地编辑**：媒体处理、预览、项目保存和导出均在本机完成；普通项目引用本地素材，跨机器使用时可收集项目素材或重新链接。
-- **Codex 插件**：媒体处理在本机运行；Codex 可接收工具读取的项目摘要、文字和显式截图。侧栏实时帧仅供界面使用。
+- **Codex 插件**在本机处理媒体。Codex 可通过工具读取项目摘要、文字和显式请求的截图。侧栏可预览导入插件会话的素材。
 - **可选 Agent**：点击发送后，所选服务收到问题、近期对话和有限的当前时间线摘要。使用 Codex App Server 时，还会收到选中的参考帧，以及字幕请求产生的带时间戳文字。 [操作说明](docs/ASSISTANT.md)
 - **实验性剪映导入**：支持已验证格式中的基础片段转换；复杂文字样式、特效与关键帧可能丢失，不支持写回剪映格式。版本范围见 [互通说明](docs/CAPCUT_INTEROP.md)。
 

@@ -4,12 +4,39 @@ ReaCut 的桌面插件直接在侧栏显示播放器、素材库、属性面板�
 
 ## 安装本地插件
 
-1. 准备同一版本构建的 **ReaCut 0.9.1 或更新版本**应用和插件 ZIP。源码构建命令见下文。macOS 可把 ReaCut 放入“应用程序”并启动一次。
-2. 安装 Codex 桌面端、`codex` CLI 和 Python 3。
-3. 在源码目录或解压后的插件包目录运行 `sh scripts/install-plugin.sh`。应用位于其他目录时使用 `sh scripts/install-plugin.sh --app /absolute/path/ReaCut.app`。
-4. 重连或新开一个加载了 ReaCut 的 Codex 聊天，然后输入“用 ReaCut 在右侧打开视频编辑器”。
+在搭载 Apple 芯片的 Mac 上，从官网或 README 复制安装提示词，粘贴到 ChatGPT 桌面应用的本地 Codex 对话并发送。当前对话已经加载匹配版本时，可以直接打开编辑器。也可以按下面的步骤手动安装。桌面插件在本机以 stdio 运行。 [OpenAI 桌面插件说明](https://developers.openai.com/plugins/deploy/desktop-only)
 
-安装脚本通过 Codex CLI 注册插件，将自定义应用路径保存至 `~/.config/reacut/plugin.json`。`REACUT_APP` 可以覆盖该路径。默认寻找 `/Applications/ReaCut.app` 和 `~/Applications/ReaCut.app`。支持本地执行的 ChatGPT 桌面聊天也可以使用 stdio 插件结构。公开目录有单独的本地插件审核条件。[OpenAI 桌面插件说明](https://developers.openai.com/plugins/deploy/desktop-only)
+### 准备应用和插件
+
+需要当前桌面应用的 `codex` CLI 和 Python 3。先用 `codex plugin --help` 和 `python3 --version` 确认可用。如果终端找不到 `codex`，可使用 ChatGPT 桌面应用自带的 CLI（如存在）。
+
+```sh
+export PATH="/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS:$PATH"
+```
+
+已有 **ReaCut 0.9.1 或更新版本**的 Mac 应用和配套插件时，可直接注册。用源码构建当前版本时，需要本机 arm64 Node.js 24.11+（24.x）或 26+、npm 和 Xcode Command Line Tools。首次打包会构建随应用分发的 FFmpeg 与 FFprobe。 [媒体工具构建说明](MEDIA_TOOLS.md)
+
+在准备长期保留源码的目录中运行下面的命令。已克隆仓库时可进入已有的匹配版本目录。
+
+```sh
+git clone https://github.com/Xiangyu-CAS/ReaCut.git
+cd ReaCut
+npm ci
+node node_modules/electron/install.js
+npm run dist:mac
+```
+
+### 注册并打开编辑器
+
+在对应版本的源码目录或解压后的插件包目录运行安装脚本。将应用路径换成实际位置。源码构建的应用位于 `$PWD/release/mac-arm64/ReaCut.app`。
+
+```sh
+sh scripts/install-plugin.sh --app "/absolute/path/ReaCut.app"
+```
+
+脚本通过 Codex CLI 注册 `reacut@reacut-local`，将应用路径保存至 `~/.config/reacut/plugin.json`。请保留注册的插件目录。如果已从其他目录安装过 ReaCut，先运行 `codex plugin marketplace list --json` 查看当前来源。需要切换来源时，确认后只移除原有的 ReaCut 来源（`codex plugin marketplace remove reacut-local --json`），再运行新版安装脚本。
+
+安装后在已加载插件的本地 Codex 对话中发送 **“@ReaCut 在右侧打开编辑器”**。如果需要重新加载插件，先新开本地对话，必要时重启 ChatGPT 桌面应用。系统安装或权限提示由用户确认。
 
 ## 用侧栏剪辑
 

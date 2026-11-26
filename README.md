@@ -6,7 +6,7 @@
 <p align="center">
   <a href="https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe"><img src="docs/download-windows.svg" width="340" height="76" alt="Download the Windows 10/11 x64 EXE installer — v0.9.1" /></a>
   <a href="https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="Download for macOS — v0.9.0 · Apple Silicon" /></a><br />
-  <a href="https://reacut.app/">Website</a> · <a href="https://github.com/Xiangyu-CAS/ReaCut/releases">All releases / ZIP / checksums</a> · <a href="#getting-started">Installation guide</a><br />
+  <a href="https://reacut.app/">Website</a> · <a href="#use-reacut-in-chatgpt">Use in ChatGPT</a> · <a href="https://github.com/Xiangyu-CAS/ReaCut/releases">All releases / ZIP / checksums</a> · <a href="#getting-started">Installation guide</a><br />
   <sub>Preview installers · Windows EXE is unsigned · macOS DMG uses ad-hoc signing and lacks notarization.</sub>
 </p>
 <p align="center">Building a complete video editor is a substantial undertaking, and this project is still in its early stages.<br /><strong>Contributors are welcome to help with features, usability, cross-platform support, tests and documentation.</strong> <a href="#contributing">Get involved →</a></p>
@@ -68,15 +68,15 @@ On **Windows 10/11 x64**, download and run the [ReaCut 0.9.1 EXE installer](http
 
 Download the [ReaCut 0.9.0 DMG for macOS Apple Silicon](https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg), open it, drag the app into Applications, and launch it. FFmpeg and FFprobe are bundled. This preview uses ad-hoc signing and lacks Apple notarization.
 
-### Option 2: inside the Codex side panel
+### Use ReaCut in ChatGPT
 
-On macOS, use a matching ReaCut **0.9.1+** app and plugin ZIP, Codex desktop, its `codex` CLI, and Python 3. Run the installer from the extracted plugin package or this repository. The [plugin guide](docs/CODEX_PLUGIN.md) has the build commands.
+On an Apple Silicon Mac, copy this prompt and send it in a **local Codex chat** in the ChatGPT desktop app.
 
-```sh
-sh scripts/install-plugin.sh
+```text
+Install ReaCut and its desktop plugin on this Mac. Use the official setup guide at https://github.com/Xiangyu-CAS/ReaCut/blob/main/docs/CODEX_PLUGIN.md and open the editor in the right sidebar of this local Codex chat when ready.
 ```
 
-Reconnect or open a new Codex chat and ask: **“Open ReaCut in the side panel.”** Click, drag, type, save and export directly in the side panel, or ask Codex to make reversible batch edits to the current project. If the app is outside Applications, pass `--app /absolute/path/ReaCut.app`.
+If you need to build ReaCut from source, the setup uses Node.js and Xcode Command Line Tools. Confirm any installation prompts. If the chat needs to reload plugins, open a new local Codex chat and ask **“@ReaCut open the editor.”** [Manual setup](docs/CODEX_PLUGIN.md)
 
 The sidebar renders ReaCut's timeline, player, media library and inspector directly. Text fields support the host input method and clipboard. File selection uses system dialogs, and the sidebar and MCP tools share a project. The desktop plugin uses local stdio. A tools-only profile is available for private ChatGPT MCP connections through [Secure MCP Tunnel](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels).
 
@@ -121,7 +121,7 @@ Prepare the Windows x64 media bundle with the [MinGW-w64 build recipe](docs/MEDI
 ## Projects and data
 
 - **Local editing:** media processing, preview, project storage and export run on your machine. Ordinary projects reference local media; collect project media or relink files when moving between machines.
-- **Codex plugin:** media processing runs locally. Codex can receive project summaries, text and explicitly requested screenshots read through its tools. The live side-panel frames are only used by the interface. See the [plugin guide](docs/CODEX_PLUGIN.md).
+- **Codex plugin** processes media locally. Codex can receive project summaries, text and explicitly requested screenshots through its tools. The sidebar previews media imported into the plugin session. [Plugin guide](docs/CODEX_PLUGIN.md)
 - **Optional agent:** sending shares your message, recent chat and a limited summary of the active timeline with the selected service. The Codex App Server also receives any selected reference frames and timed text from caption requests. [Editing agent](docs/ASSISTANT.md)
 - **Experimental Jianying import:** converts basic clips from verified formats. Complex text styles, effects and keyframes may be lost; writing back to Jianying format is unsupported. See [interoperability](docs/CAPCUT_INTEROP.md) for version coverage.
 
