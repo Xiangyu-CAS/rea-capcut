@@ -678,6 +678,12 @@ h3 {
   margin-block: 0.48rem 0.9rem;
 }
 
+.codex-panel-shot {
+  display: block;
+  justify-self: center;
+  width: min(100%, 29rem);
+}
+
 .codex img {
   width: 100%;
   border: 1px solid #b2a5d64d;
