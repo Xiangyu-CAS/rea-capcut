@@ -21,10 +21,10 @@ ReaCut v0.7.0 preview expands English editing support and packages the creative 
 
 The publication workflow gates publication on the full unit/typecheck/build suite, plugin launcher checks, native arm64 packaging, strict signature/DMG integrity checks, and tests against the application extracted from the DMG: bundled media tools under empty PATH, fonts/canvas, security isolation, preview/export, language switching, native menus/picker labels and restart persistence. Its post-publication step downloads the public DMG and compares its SHA-256. Consult the exact workflow result before treating that final download check as passed.
 
-[Release workflow and evidence](https://github.com/Xiangyu-CAS/rea-capcut/actions/workflows/release-0.7.0.yml) · [Validation scope](https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.7.0/docs/RELEASE_0.7.0.md) · [Language behavior](https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.7.0/docs/LOCALIZATION.md).
+[Release workflow and evidence](https://github.com/Xiangyu-CAS/ReaCut/actions/workflows/release-0.7.0.yml) · [Validation scope](https://github.com/Xiangyu-CAS/ReaCut/blob/v0.7.0/docs/RELEASE_0.7.0.md) · [Language behavior](https://github.com/Xiangyu-CAS/ReaCut/blob/v0.7.0/docs/LOCALIZATION.md).
 
 Windows has 15 known baseline test failures. A previous main macOS template workflow also encountered a save-file polling `ENOENT`; this release does not claim every historical/cross-platform workflow is green. New CI results must be reviewed separately.
 
-The installer does **not** bundle Python, MLX, Whisper weights or additional system voices. ASR needs separately configured Apple Silicon MLX Whisper/model dependencies; TTS uses installed macOS voices. No model is downloaded automatically. This publication does not claim new live-model speech testing or Codex-host integration. [Speech setup](https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.7.0/docs/LOCAL_SPEECH.md).
+The installer does **not** bundle Python, MLX, Whisper weights or additional system voices. ASR needs separately configured Apple Silicon MLX Whisper/model dependencies; TTS uses installed macOS voices. No model is downloaded automatically. This publication does not claim new live-model speech testing or Codex-host integration. [Speech setup](https://github.com/Xiangyu-CAS/ReaCut/blob/v0.7.0/docs/LOCAL_SPEECH.md).
 
 This release does **not** add an in-app updater and does not change your installed application automatically.

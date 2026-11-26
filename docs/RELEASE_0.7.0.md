@@ -1,10 +1,10 @@
 # v0.7.0 preview: release scope and verification
 
-This release packages the English-interface fix for [issue #6](https://github.com/Xiangyu-CAS/rea-capcut/issues/6), plus keyframe curves, subtitle editing/animation and reusable project templates previously available only in source. It preserves Chinese and user-authored content. There is no in-app updater in this release.
+This release packages the English-interface fix for [issue #6](https://github.com/Xiangyu-CAS/ReaCut/issues/6), plus keyframe curves, subtitle editing/animation and reusable project templates previously available only in source. It preserves Chinese and user-authored content. There is no in-app updater in this release.
 
 ## Status and provenance
 
-This document describes the **publication gates**, not a claim that a pending run has passed. Check the [Publish 0.7.0 preview workflow](https://github.com/Xiangyu-CAS/rea-capcut/actions/workflows/release-0.7.0.yml) for the exact merged commit, completed steps and downloadable validation evidence. A successful run publishes a new [v0.7.0 prerelease](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.7.0); it never replaces v0.6.0 assets or changes a user installation.
+This document describes the **publication gates**, not a claim that a pending run has passed. Check the [Publish 0.7.0 preview workflow](https://github.com/Xiangyu-CAS/ReaCut/actions/workflows/release-0.7.0.yml) for the exact merged commit, completed steps and downloadable validation evidence. A successful run publishes a new [v0.7.0 prerelease](https://github.com/Xiangyu-CAS/ReaCut/releases/tag/v0.7.0); it never replaces v0.6.0 assets or changes a user installation.
 
 The one-version workflow runs only for release-preparation changes pushed to main, verifies exact 0.7.0 metadata and refuses an existing release/tag. It uses GitHub-hosted macOS arm64, with ordinary repository-scoped release permission. No user computer or signing credential is required. If a run leaves a draft or tag behind, it stops instead of overwriting it; inspect that state before any separately authorized recovery.
 

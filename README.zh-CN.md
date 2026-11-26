@@ -4,9 +4,9 @@
 <h1 align="center">ReaCut · 映刻</h1>
 <p align="center"><strong>适用于 Windows 和 Mac 的开源视频编辑器。</strong><br />在本机剪辑、加字幕和导出，也可用 Codex Agent 编辑同一条时间线。</p>
 <p align="center">
-  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe"><img src="docs/download-windows.svg" width="340" height="76" alt="下载 Windows 10/11 x64 EXE 安装包 v0.9.1" /></a>
-  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="下载 macOS Apple Silicon 版 v0.9.0" /></a><br />
-  <a href="https://reacut.app/zh-cn/">产品网站</a> · <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">全部 Releases / ZIP / 校验和</a> · <a href="#快速开始">安装说明</a><br />
+  <a href="https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe"><img src="docs/download-windows.svg" width="340" height="76" alt="下载 Windows 10/11 x64 EXE 安装包 v0.9.1" /></a>
+  <a href="https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="下载 macOS Apple Silicon 版 v0.9.0" /></a><br />
+  <a href="https://reacut.app/zh-cn/">产品网站</a> · <a href="https://github.com/Xiangyu-CAS/ReaCut/releases">全部 Releases / ZIP / 校验和</a> · <a href="#快速开始">安装说明</a><br />
   <sub>预览版安装包 · Windows EXE 未签名 · macOS DMG 采用 ad-hoc 签名，尚未公证。</sub>
 </p>
 <p align="center">完整视频编辑器的实现工作量很大，项目仍处于早期阶段。<br /><strong>欢迎贡献者一起完善功能、交互、跨平台支持、测试和文档。</strong> <a href="#参与贡献">参与贡献 →</a></p>
@@ -60,13 +60,13 @@ ReaCut 将素材管理、多轨剪辑、字幕和视频导出放在一个熟悉�
 
 ### 方式一：独立桌面版
 
-**Windows 10/11 x64** 用户可下载并运行 [ReaCut 0.9.1 EXE 安装包](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe)。包内自带 FFmpeg 和 FFprobe。预览版安装包未签名，Windows 可能显示 SmartScreen 提示。MLX 本地识别、macOS 系统配音和 Codex 插件暂未纳入 Windows 预览版。
+**Windows 10/11 x64** 用户可下载并运行 [ReaCut 0.9.1 EXE 安装包](https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe)。包内自带 FFmpeg 和 FFprobe。预览版安装包未签名，Windows 可能显示 SmartScreen 提示。MLX 本地识别、macOS 系统配音和 Codex 插件暂未纳入 Windows 预览版。
 
-下载 [ReaCut 0.9.0 DMG（macOS Apple Silicon）](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg)，打开后将应用拖入“应用程序”，直接启动即可剪辑。安装包自带 FFmpeg / FFprobe，不需要另外安装。当前为预览版，采用 ad-hoc 签名，尚未完成 Apple 公证。
+下载 [ReaCut 0.9.0 DMG（macOS Apple Silicon）](https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg)，打开后将应用拖入“应用程序”，直接启动即可剪辑。安装包自带 FFmpeg / FFprobe，不需要另外安装。当前为预览版，采用 ad-hoc 签名，尚未完成 Apple 公证。
 
 ### 方式二：作为 Codex 插件在右侧打开
 
-先安装 **ReaCut 0.9.0** 和 Codex 桌面端，确保终端有 `codex` CLI 与 Python 3。下载 [Codex 插件包](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-plugin-0.9.0.zip)，在解压目录或仓库目录运行：
+先安装 **ReaCut 0.9.0** 和 Codex 桌面端，确保终端有 `codex` CLI 与 Python 3。下载 [Codex 插件包](https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.0/ReaCut-plugin-0.9.0.zip)，在解压目录或仓库目录运行：
 
 ```sh
 sh scripts/install-plugin.sh

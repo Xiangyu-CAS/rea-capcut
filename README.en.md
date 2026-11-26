@@ -6,6 +6,6 @@ The English README is now the default: [read the full README](README.md).
 
 This file keeps existing links to `README.en.md` working.
 
-[Download for macOS — v0.9.0 Apple Silicon](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg) · [All releases](https://github.com/Xiangyu-CAS/rea-capcut/releases)
+[Download for macOS — v0.9.0 Apple Silicon](https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg) · [All releases](https://github.com/Xiangyu-CAS/ReaCut/releases)
 
 Preview, ad-hoc signed and not notarized. See the main README for installation and optional local speech dependencies.

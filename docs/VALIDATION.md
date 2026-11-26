@@ -59,7 +59,7 @@ Apple M4、macOS 26.6.2、Electron 44.7.0、FFmpeg 9.0.2。三份不同的 8 秒
 - Electron 六组工作流：三套示例新建/替换/保存与实际导出、一次撤销重做、短源拒绝、实际封面及命名占位、本机库、导出取消、模板包搬移导入、原模板校验不变、未授权媒体路径拒绝及进程重启。移走原素材和导入包后仍可预览；renderer errors 为空。
 - 三支成片各 **12 秒、640×360、30 fps、360 帧**。取 1 秒画面两点比较播放器和导出 RGB，实测最大差 1/255（测试上限 14/255）；另核对竖图留边及合成视频声音 RMS >0.05。该采样证明当前替换流程，不宣称任意素材逐像素一致。
 - 既有素材包/区间 6 组、存储恢复 7 组、基础编辑 14 组桌面回归通过。均使用隔离用户目录和自造媒体，未替换安装应用、DMG、插件或 Release。
-- 提交前读取前一提交的 [CI 39940085629](https://github.com/Xiangyu-CAS/rea-capcut/actions/runs/39940085629)：macOS/Linux/package 成功，Windows 的 `npm run check` 仍失败。本轮 macOS 本机成功不代表跨平台 CI 全绿，Codex 宿主和最终包留待集成验收。
+- 提交前读取前一提交的 [CI 39940085629](https://github.com/Xiangyu-CAS/ReaCut/actions/runs/39940085629)：macOS/Linux/package 成功，Windows 的 `npm run check` 仍失败。本轮 macOS 本机成功不代表跨平台 CI 全绿，Codex 宿主和最终包留待集成验收。
 
 [操作与边界](PROJECT_TEMPLATES.md) · [截图](screenshots/project-template-library.png) · [证据](validation/project-templates-2026-10-25.json)。复现：`npm run test:templates`；三支视频位于本机 `.test-output/templates-electron/`。
 
@@ -69,7 +69,7 @@ Apple M4、macOS 26.6.2、Electron 44.7.0、FFmpeg 9.0.2。三份不同的 8 秒
 - Electron 四组新增工作流通过：中英文/长句/重叠 SRT 导入、光标与播放头拆分、连续合并、锁轨/过时计划重新检查、直接批量样式、三阶段动画、单次撤销/重做、SRT 输出及实际进程重启。
 - 实际 UI 导出 8 秒、320×180、30 fps 的 240 帧成片；动画字幕 12 个采样点与播放器对比，中心误差 <3 项目像素、宽度差 <6 像素。按字形亮度和缩放面积测量的预览/导出透明度各自与模型差 <0.06。`renderer errors` 为空。
 - 既有字幕桌面 8 组、大字幕项目 3 组、基础编辑 14 组通过。大字幕项目为 300 句/15 分钟自造数据；不代表任意规模性能保证。
-- macOS Apple Silicon 源码验证；未构建/替换 DMG、插件包或 Release，未做 Codex 宿主和 Windows/Linux 实机验收。提交前读取前一提交的 [CI 39763595409](https://github.com/Xiangyu-CAS/rea-capcut/actions/runs/39763595409)：macOS/Linux/package 成功，Windows `npm run check` 仍失败，不将其计为本次跨平台通过。
+- macOS Apple Silicon 源码验证；未构建/替换 DMG、插件包或 Release，未做 Codex 宿主和 Windows/Linux 实机验收。提交前读取前一提交的 [CI 39763595409](https://github.com/Xiangyu-CAS/ReaCut/actions/runs/39763595409)：macOS/Linux/package 成功，Windows `npm run check` 仍失败，不将其计为本次跨平台通过。
 
 [操作与边界](SUBTITLE_WORKFLOW.md) · [截图](screenshots/subtitle-workflow-editor.png) · [采样数据](validation/subtitle-workflow-2026-10-23.json)。运行 `npm run test:subtitle-workflow` 生成本地 `.test-output/subtitle-workflow-electron/captions.mp4` 及保存工程。
 
@@ -80,7 +80,7 @@ Apple M4、macOS 26.6.2、Electron 44.7.0、FFmpeg 9.0.2。三份不同的 8 秒
 - 真实 Electron 五组流程：三属性动画、真实拖点与单次撤销、精确输入/删除/复制粘贴/锁轨、保存与进程重启、UI 导出；renderer errors 为空。
 - 原创透明矩形在同一两秒工程中进行平移、推近和透明度动画；**60 个预览帧及 60 个输出帧**全部满足记录的坐标、宽度和内部亮度误差限。另以合成视频/正弦音验证裁剪后的缓入/缓出画面及音量，验证同时缩放与透明度含裁剪路径。修复固定尺寸 alpha 滤镜放在动态缩放之后导致的导出失败。
 - 既有基础编辑 14 组、播放器 5 组、转场 7 组、时间线 5 组、倒放/定格 5 组桌面回归通过；源码插件协议 4 组、断连保存与退出通过。未替换安装应用、构建 DMG 或在 Codex 宿主内验收本次曲线。
-- 提交前读取远端基线 [CI 39734735174](https://github.com/Xiangyu-CAS/rea-capcut/actions/runs/39734735174)：macOS/Linux/package 成功，Windows `npm run check` 失败。此为开发前的基线状态，不能视作本次提交的跨平台 CI 结果。
+- 提交前读取远端基线 [CI 39734735174](https://github.com/Xiangyu-CAS/ReaCut/actions/runs/39734735174)：macOS/Linux/package 成功，Windows `npm run check` 失败。此为开发前的基线状态，不能视作本次提交的跨平台 CI 结果。
 
 [操作与边界](KEYFRAME_CURVES.md) · [截图](screenshots/keyframe-curves-editor.png) · [逐帧数据](validation/keyframe-curves-2026-10-22.json)。本地成片 `.test-output/keyframe-curves-electron/curves.mp4`；运行 `npm run test:curves` 可重新生成。
 
@@ -91,7 +91,7 @@ Apple M4、macOS 26.6.2、Electron 44.7.0、FFmpeg 9.0.2。三份不同的 8 秒
 - 复用已有 mlx-whisper 0.4.3 和 459.01 MiB small 权重；无模型下载/安装。Tingting 中文与 Samantha 英文真实合成后，经实际模型识别出正确主要内容和带时间戳短字幕。另验证静音拒绝、运行中取消及清理。
 - Electron 七组真实流程：依赖缺失提示与本地选择保存、取消、双语配音/识别/撤销重做、阻止对话框底层快捷键/原生菜单、视频导入/静音偏移/字幕编辑/SRT、实际重启与遗留临时文件清理、UI 导出。
 - 最终 **24 秒、320×180 H.264/AAC** 成片解码有效；播放 RMS 分别 0.1495 / 0.1352 / 重启后 0.1543，导出英文音段 RMS 0.1556；独立字幕区检出 539 个亮像素。16 秒入轨且含一秒静音的视频，首字幕为 16.9333 秒。无 renderer errors，无 renderer HTTP 请求；Python worker 禁止网络连接。
-- 本轮仅 macOS Apple Silicon 源码构建；未做安装包或 Windows/Linux 验收。既有 Windows 基线问题未修改。提交前复核 main 的 [CI 39584437334](https://github.com/Xiangyu-CAS/rea-capcut/actions/runs/39584437334)：macOS/Linux/package 成功，Windows 4 文件 15 项失败（assistantBackend、export.shutdown、mediaTools、portableProject）。
+- 本轮仅 macOS Apple Silicon 源码构建；未做安装包或 Windows/Linux 验收。既有 Windows 基线问题未修改。提交前复核 main 的 [CI 39584437334](https://github.com/Xiangyu-CAS/ReaCut/actions/runs/39584437334)：macOS/Linux/package 成功，Windows 4 文件 15 项失败（assistantBackend、export.shutdown、mediaTools、portableProject）。
 
 [详细证据](validation/local-speech-2026-10-22.json) · [操作与边界](LOCAL_SPEECH.md) · [真实界面](screenshots/local-speech-editor.png)
 
@@ -140,7 +140,7 @@ Apple M4、macOS 26.6.2、Electron 44.7.0、FFmpeg 9.0.2。三份不同的 8 秒
 - 实际打包应用在仓库外工作目录、空 `PATH` 和隔离用户目录中启动，通过字体、缩略图、预览、渲染隔离及内置 FFmpeg / FFprobe 核对，导出 1280×720、9 秒、含中文字幕与混音的视频，renderer errors 为空。
 - 实际打包应用通过插件协议、素材导入、原子编辑、版本冲突、撤销重做、截图、断连保存与退出测试。应用中的主进程、preload 和插件 HTML 与本次构建逐字节一致。
 - `codesign --verify --deep --strict`、`hdiutil verify` 与插件 ZIP 完整性检查通过。包内含媒体工具对应源码、构建脚本和许可证；未包含私人项目或研究原始目录。
-- GitHub 首轮 CI 的 Linux 核心任务通过，macOS / Windows 核心任务及云端打包任务存在失败，尚未解决；本地安装包验收不能代替 CI 全绿。详见 [首次运行](https://github.com/Xiangyu-CAS/rea-capcut/actions/runs/38387098585)。
+- GitHub 首轮 CI 的 Linux 核心任务通过，macOS / Windows 核心任务及云端打包任务存在失败，尚未解决；本地安装包验收不能代替 CI 全绿。详见 [首次运行](https://github.com/Xiangyu-CAS/ReaCut/actions/runs/38387098585)。
 
 附件与 SHA-256：
 

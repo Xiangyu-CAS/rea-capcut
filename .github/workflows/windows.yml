@@ -103,7 +103,7 @@ jobs:
           if-no-files-found: error
   publish:
     if: >-
-      github.repository == 'Xiangyu-CAS/rea-capcut'
+      github.repository == 'Xiangyu-CAS/ReaCut'
       && github.event_name == 'workflow_dispatch'
       && github.ref == 'refs/heads/main'
       && inputs.publish

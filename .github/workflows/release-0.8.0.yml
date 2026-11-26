@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   release:
-    if: github.repository == 'Xiangyu-CAS/rea-capcut' && github.ref == 'refs/heads/main'
+    if: github.repository == 'Xiangyu-CAS/ReaCut' && github.ref == 'refs/heads/main'
     runs-on: macos-15
     timeout-minutes: 60
     permissions:

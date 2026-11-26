@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { compareVersions, createUpdateService, UPDATE_API } from "../electron/updateCheck";
 
-const repo = "https://github.com/Xiangyu-CAS/rea-capcut";
+const repo = "https://github.com/Xiangyu-CAS/ReaCut";
 function release(version = "0.8.0", changes: Record<string, unknown> = {}) {
   const name = `ReaCut-${version}-arm64.dmg`;
   return { tag_name: `v${version}`, draft: false, prerelease: true, html_url: `${repo}/releases/tag/v${version}`, body: "Release notes", assets: [{ name, state: "uploaded", size: 100, browser_download_url: `${repo}/releases/download/v${version}/${name}` }], ...changes };
@@ -83,9 +83,9 @@ describe("manual preview update service", () => {
   });
   it.each([
     "https://evil.test/releases/tag/v0.8.0", `${repo}/releases/tag/v0.8.0?redirect=evil`,
-    `${repo}/releases/tag/v0.8.0#evil`, "http://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.8.0",
-    "https://github.com@evil.test/Xiangyu-CAS/rea-capcut/releases/tag/v0.8.0",
-    "https://user:password@github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.8.0",
+    `${repo}/releases/tag/v0.8.0#evil`, "http://github.com/Xiangyu-CAS/ReaCut/releases/tag/v0.8.0",
+    "https://github.com@evil.test/Xiangyu-CAS/ReaCut/releases/tag/v0.8.0",
+    "https://user:password@github.com/Xiangyu-CAS/ReaCut/releases/tag/v0.8.0",
     "https://github.com/other/repo/releases/tag/v0.8.0", `${repo}/releases/tag/v0.9.0`,
   ])("rejects untrusted release source %s", async html_url => {
     const service = setup([release("0.8.0", { html_url })]);

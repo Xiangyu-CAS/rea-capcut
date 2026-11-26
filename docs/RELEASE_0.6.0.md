@@ -1,6 +1,6 @@
 # v0.6.0 macOS preview validation
 
-This release packages merged local speech PR [#4](https://github.com/Xiangyu-CAS/rea-capcut/pull/4), merge `a38d3d709723e6ef4b9ae1a5435ed683d8948c0c`, plus version, download documentation and packaged-test support. It also includes the timeline and reverse/freeze changes already on main. See the [machine-readable evidence](validation/release-0.6.0.json) and [Release](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.6.0).
+This release packages merged local speech PR [#4](https://github.com/Xiangyu-CAS/ReaCut/pull/4), merge `a38d3d709723e6ef4b9ae1a5435ed683d8948c0c`, plus version, download documentation and packaged-test support. It also includes the timeline and reverse/freeze changes already on main. See the [machine-readable evidence](validation/release-0.6.0.json) and [Release](https://github.com/Xiangyu-CAS/ReaCut/releases/tag/v0.6.0).
 
 ## Actual DMG validation
 
@@ -40,4 +40,4 @@ The speech test records `sourceBuild: false` and the native application version 
 
 ASR requires Apple Silicon, Metal, separately installed Python/MLX and local weights. The tested MLX Community Whisper small weights are 481,307,592 bytes (459.01 MiB), converted from OpenAI Whisper; neither weights nor Python are bundled. TTS uses available macOS voices. Chinese can be transcribed in traditional script; recognition and timing require review. See setup instructions for pinned source, revision and checksum.
 
-Local typecheck, all 343 tests in 30 files and the production build passed. Feature head `054085f` passed macOS, Linux and package CI in [run 39719906045](https://github.com/Xiangyu-CAS/rea-capcut/actions/runs/39719906045). Its 15 Windows failures exactly matched main's existing baseline across assistantBackend, export.shutdown, mediaTools and portableProject. This release does not repair or hide those failures. No Intel, Windows or Linux binaries are published or claimed verified; there is no live-model CI coverage. The packaged plugin archive is updated to the release version; this run does not claim a fresh Codex-host integration test.
+Local typecheck, all 343 tests in 30 files and the production build passed. Feature head `054085f` passed macOS, Linux and package CI in [run 39719906045](https://github.com/Xiangyu-CAS/ReaCut/actions/runs/39719906045). Its 15 Windows failures exactly matched main's existing baseline across assistantBackend, export.shutdown, mediaTools and portableProject. This release does not repair or hide those failures. No Intel, Windows or Linux binaries are published or claimed verified; there is no live-model CI coverage. The packaged plugin archive is updated to the release version; this run does not claim a fresh Codex-host integration test.

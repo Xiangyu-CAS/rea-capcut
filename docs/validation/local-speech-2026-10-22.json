@@ -117,7 +117,7 @@
   "explicitModelDirectoryVerified": true,
   "baselineCI": {
     "sha": "427742ee9022e68c44d9c9398331530b89678a53",
-    "run": "https://github.com/Xiangyu-CAS/rea-capcut/actions/runs/39584437334",
+    "run": "https://github.com/Xiangyu-CAS/ReaCut/actions/runs/39584437334",
     "macOS": "success",
     "linux": "success",
     "package": "success",
