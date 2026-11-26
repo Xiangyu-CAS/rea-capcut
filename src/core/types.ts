@@ -7,6 +7,7 @@ import type { AssistantCLI, AssistantEvent, AssistantLocalProject, AssistantMess
 export type MediaKind = "video" | "audio" | "image";
 export type TrackKind = MediaKind | "text";
 export interface MediaAsset {
+  musicCredit?: import("./onlineMusic").MusicCredit & { sourceId: string };
   id: string;
   name: string;
   path: string;
@@ -207,6 +208,10 @@ export interface CapcutTimelineDraft {
   text: string;
 }
 export interface EditorAPI {
+  searchOnlineMusic: (query: string) => Promise<import("./onlineMusic").MusicSearchResult>;
+  previewOnlineMusic: (id: string) => Promise<string>;
+  downloadOnlineMusic: (id: string) => Promise<MediaAsset>;
+  openOnlineMusicSource: (id: string) => Promise<void>;
   checkForUpdates: () => Promise<import("./updateTypes").UpdateCheckResult>;
   openUpdateTarget: (target: "release" | "download") => Promise<boolean>;
   setUILanguage?: (language: "zh-CN" | "en" | "tr") => Promise<void>;

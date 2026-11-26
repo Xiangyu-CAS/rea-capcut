@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState, type MouseEvent } from "react";
-import { ArrowRight, ArrowUp, AudioLines, Check, ChevronDown, ChevronRight, Clapperboard, Clock3, Images, Languages, ListChecks, LogIn, MessageSquare, PanelTop, Play, Plus, RefreshCw, Shield, Sparkles, Square, Subtitles, Trash2, Type, X } from "lucide-react";
+import { ArrowRight, ArrowUp, AudioLines, Check, ChevronDown, ChevronRight, Clapperboard, Clock3, Images, Languages, ListChecks, Music2, LogIn, MessageSquare, PanelTop, Play, Plus, RefreshCw, Shield, Sparkles, Square, Subtitles, Trash2, Type, X } from "lucide-react";
 import { localizeMessage } from "../i18n/messages";
 import { useUITranslation } from "../i18n";
 import { agentPlanStatus, useEditorStore } from "../editor/store";
@@ -9,6 +9,8 @@ import {
   type AssistantProviderInfo, type AssistantReference, type AssistantMediaSelection, type CodexAgentAccount, type CodexAgentModel,
 } from "../core/assistantTypes";
 import type { MediaAsset, Project } from "../core/types";
+import { AssistantMusic } from "./AssistantMusic";
+import { musicPromptQuery } from "../core/onlineMusic";
 import AssistantAttachments from "./AssistantAttachments";
 import "./AssistantPanel.css";
 
@@ -171,6 +173,12 @@ export default function AssistantPanel({ inspectorVisible, importing, onToggleIn
   const [catalogFailed, setCatalogFailed] = useState(false);
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
   const [prompt, setPrompt] = useState("");
+  const [music, setMusic] = useState<{ query: string; auto: boolean; key: number }>();
+  const musicSequence = useRef(0);
+  function openMusic(query = "", auto = false) {
+    followChat.current = true;
+    setMusic({ query, auto, key: ++musicSequence.current });
+  }
   const [requestMode, setRequestMode] = useState<AssistantMode>("edit");
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -205,6 +213,7 @@ export default function AssistantPanel({ inspectorVisible, importing, onToggleIn
   const model = models.find(item => item.id === modelId) ?? models.find(item => item.isDefault);
   const canUseReferences = isAgent && model?.acceptsImages !== false;
   const canSend = loaded && !busy && !!currentProvider?.available && (!isAgent || account === "connected") && (!references.length || canUseReferences);
+  const musicQuery = api?.searchOnlineMusic && !references.length && requestMode !== "answer" ? musicPromptQuery(prompt) : undefined;
   const needSignIn = isAgent && currentProvider?.available && account === "signed-out";
   const backendLabel = isAgent ? "Codex" : provider === "codex" ? "Codex CLI" : "Claude";
   const connected = !!currentProvider?.available && (!isAgent || account === "connected");
@@ -291,7 +300,7 @@ export default function AssistantPanel({ inspectorVisible, importing, onToggleIn
     followChat.current = true;
     setMessages([]); setBusy(false); setStream(""); setError(""); setStatus(""); setLoaded(false); setSpeechSetupRequired(false);
     setWorkEntries([]); setElapsedMs(0);
-    setPrompt(""); setRequestMode("edit"); setReferenceIds([]); setMenu(null);
+    setMusic(undefined); setPrompt(""); setRequestMode("edit"); setReferenceIds([]); setMenu(null);
     void api?.getAssistantHistory(project.id).then(items => {
       if (generation.current === current) { history.current = items; setMessages(items); setLoaded(true); }
     }).catch(e => { if (generation.current === current) { setError(String(e)); setLoaded(true); } });
@@ -402,11 +411,17 @@ export default function AssistantPanel({ inspectorVisible, importing, onToggleIn
   useEffect(() => {
     const pane = chat.current;
     if (pane && followChat.current) pane.scrollTop = pane.scrollHeight;
-  }, [messages, stream, workEntries, status, error, proposal]);
+  }, [messages, stream, workEntries, status, error, proposal, music]);
 
   async function send() {
     const value = prompt.trim();
-    if (!value || !canSend || active.current || !api) return;
+    if (!value || active.current || !api) return;
+    if (musicQuery !== undefined) {
+      setPrompt("");
+      openMusic(musicQuery, true);
+      return;
+    }
+    if (!canSend) return;
     const state = useEditorStore.getState();
     const captured = state.project;
     const previous = history.current.slice(-20).map(({ role, content }) => ({ role, content: content.slice(0, 4000) }));
@@ -482,7 +497,7 @@ export default function AssistantPanel({ inspectorVisible, importing, onToggleIn
     { icon: Type, mode: "edit", label: ui("添加片头", "Add an opening title"), prompt: ui("在播放头添加一个 3 秒的标题「从这里开始」。", "Add a three-second title at the playhead with the text ‘Start here’.") },
     ...(!isAgent ? [{ icon: ListChecks, mode: "answer", label: ui("检查时间线", "Review the timeline"), prompt: ui("根据当前时间线给我三条修改建议，先不要生成修改方案。", "Review this timeline and give me three suggestions before proposing changes.") } as const] : []),
   ] as const;
-  const empty = !messages.length && !busy && !proposal && !error && !status;
+  const empty = !music && !messages.length && !busy && !proposal && !error && !status;
   const displayedEffort = effort || model?.defaultEffort;
   const modelLabel = model ? `${model.label}${displayedEffort ? ` · ${effortLabel(displayedEffort)}` : ""}` : backendLabel;
   return <aside className="assistant-panel panel" aria-label={ui("剪辑助手", "Editing assistant")}>
@@ -528,7 +543,7 @@ export default function AssistantPanel({ inspectorVisible, importing, onToggleIn
       {empty && <div className="assistant-welcome">
         <span className="assistant-welcome-mark" aria-hidden="true"><Clapperboard size={23} strokeWidth={1.45} /></span>
         <h2>{ui("想怎么剪？", "What are we editing?")}</h2>
-        {!hostChat && <div className="assistant-starters">{examples.map(({ icon: Icon, label, prompt, mode }) => <button key={label} onClick={() => writePrompt(prompt, mode)}><Icon size={14} />{label}<ArrowRight size={12} /></button>)}</div>}
+        <div className="assistant-starters">{api?.searchOnlineMusic && <button onClick={() => openMusic()}><Music2 size={14} />{ui("推荐配乐", "Find background music")}<ArrowRight size={12} /></button>}{!hostChat && examples.map(({ icon: Icon, label, prompt, mode }) => <button key={label} onClick={() => writePrompt(prompt, mode)}><Icon size={14} />{label}<ArrowRight size={12} /></button>)}</div>
       </div>}
       {messages.map((message, index) => <div key={index} className="assistant-turn">
         {message.work && <CompletedWork work={message.work} />}
@@ -544,6 +559,7 @@ export default function AssistantPanel({ inspectorVisible, importing, onToggleIn
         {elapsedMs >= 1000 && <span aria-hidden="true">{workTime(elapsedMs)}</span>}
       </p>}
       {stream && <div className="assistant-message assistant"><ReplyText content={stream} streaming /></div>}
+      {music && <AssistantMusic key={music.key} query={music.query} auto={music.auto} onClose={() => setMusic(undefined)} />}
       {!busy && status && <p className="assistant-status">{localizeMessage(status)}</p>}
       {error && <p className="assistant-error" role="alert">{localizeMessage(error)}</p>}
       {isAgent && !busy && speechSetupRequired && <button type="button" className="assistant-caption-setup" onClick={onSpeechSetup}>
@@ -599,12 +615,13 @@ export default function AssistantPanel({ inspectorVisible, importing, onToggleIn
           : ui("发送近期对话、时间线和素材选段摘要。", "Sends recent chat and a summary of the timeline and selected source ranges.")}</p>
         {isAgent && <p>{ui("生成字幕时，语音在本机识别，模型接收带时间戳的文字。", "Caption requests send timed text from local speech recognition.")}</p>}
       </div>}
+      {!empty && !music && api?.searchOnlineMusic && <button className="assistant-caption-setup" type="button" onClick={() => openMusic()}><Music2 size={14} />{ui("推荐配乐", "Find background music")}</button>}
       <div className="assistant-input">
         <AssistantAttachments project={project} references={hostChat ? [] : references} busy={busy}
           onPreviewMedia={onPreviewMedia} onRemoveReference={id => setReferenceIds(ids => ids.filter(current => current !== id))} />
         {hostChat ? <div className="assistant-host-prompt"><MessageSquare size={14} />{ui("在 ChatGPT 对话中描述剪辑", "Describe your edit in ChatGPT")}</div> : <>
           <textarea ref={composer} aria-label={ui("助手消息", "Assistant message")} placeholder={ui("描述你想要的剪辑…", "Describe your edit…")} maxLength={8000} value={prompt} onChange={e => setPrompt(e.target.value)} onKeyDown={e => {
-            if (e.key === "Enter" && !e.nativeEvent.isComposing && (e.metaKey || e.ctrlKey || (canSend && !e.shiftKey))) { e.preventDefault(); void send(); }
+            if (e.key === "Enter" && !e.nativeEvent.isComposing && (e.metaKey || e.ctrlKey || ((canSend || musicQuery !== undefined) && !e.shiftKey))) { e.preventDefault(); void send(); }
           }} />
           {references.length > 0 && !canUseReferences && <p className="assistant-model-warning">{ui("所选模型不支持参考帧。", "This model does not support reference frames.")}</p>}
           <div className="assistant-compose-tools">
@@ -618,7 +635,7 @@ export default function AssistantPanel({ inspectorVisible, importing, onToggleIn
             </select>
             {isAgent && connected && <button className="assistant-model-trigger" aria-label={ui("模型与推理强度", "Model and reasoning effort")} aria-expanded={menu === "model"} aria-controls="assistant-model" title={modelLabel} disabled={busy} onClick={event => toggleMenu("model", event)}><span>{modelLabel}</span><ChevronDown size={12} /></button>}
             {busy ? <button className="assistant-send stop" aria-label={ui("取消", "Cancel")} title={ui("取消", "Cancel")} onClick={cancel}><Square size={12} fill="currentColor" /></button>
-              : <button className="assistant-send" aria-label={ui("发送", "Send")} title={ui("发送（Enter）", "Send (Enter)")} disabled={!canSend || !prompt.trim()} onClick={() => void send()}><ArrowUp size={17} strokeWidth={2.2} /></button>}
+              : <button className="assistant-send" aria-label={ui("发送", "Send")} title={ui("发送（Enter）", "Send (Enter)")} disabled={busy || (!canSend && musicQuery === undefined) || !prompt.trim()} onClick={() => void send()}><ArrowUp size={17} strokeWidth={2.2} /></button>}
           </div>
         </>}
       </div>

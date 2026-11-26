@@ -85,6 +85,7 @@ interface EditorState {
   createTimeline: (name: string, defaultName: string, duplicate: boolean) => void;
   renameTimeline: (name: string) => void;
   addAssets: (assets: MediaAsset[]) => void;
+  addBackgroundMusic: (asset: MediaAsset) => void;
   removeAsset: (assetId: string) => void;
   addAssetClip: (assetId: string, start?: number, trackId?: string, range?: { sourceIn: number; duration: number }) => void;
   placeAsset: (assetId: string, trackId: string | undefined, range: { sourceIn: number; duration: number }, mode: PlacementMode) => void;
@@ -347,6 +348,27 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       throw new Error("素材仍被时间线使用，请先删除对应片段");
     get().commit({ ...p, assets: p.assets.filter((a) => a.id !== assetId) });
     get().removeAgentMedia(assetId);
+  },
+  addBackgroundMusic: (asset) => {
+    const { project, playhead, transactionOpen } = get();
+    if (transactionOpen || asset.kind !== "audio" || !asset.musicCredit || asset.missing || asset.duration < 1 / project.fps)
+      throw new Error("Cannot add this background music");
+    const visual = project.clips.filter(clip => {
+      const track = project.tracks.find(row => row.id === clip.trackId);
+      return track && !track.hidden && (track.kind === "video" || track.kind === "image");
+    });
+    const end = visual.reduce((last, clip) => Math.max(last, clip.start + clip.duration), 0);
+    const start = visual.length ? visual.reduce((first, clip) => Math.min(first, clip.start), Infinity) : playhead;
+    const track = createTrack("audio", translateUI("背景音乐", "Background music"));
+    const clip = createClip(asset, track.id, start, project.fps);
+    if (end - start >= 1 / project.fps) clip.duration = Math.min(clip.duration, end - start, asset.duration);
+    else clip.duration = Math.min(clip.duration, asset.duration);
+    clip.volume = 0.2;
+    clip.audioFadeIn = Math.min(0.4, clip.duration / 3);
+    clip.audioFadeOut = Math.min(0.8, clip.duration / 3);
+    get().commit({ ...project, assets: project.assets.some(row => row.id === asset.id) ? project.assets : [...project.assets, asset],
+      tracks: [...project.tracks, track], clips: [...project.clips, clip] });
+    set({ selectedIds: [clip.id] });
   },
   addAssetClip: (assetId, start, trackId, range) => {
     let p = get().project;

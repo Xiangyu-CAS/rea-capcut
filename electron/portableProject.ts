@@ -74,7 +74,7 @@ export async function collectPortableProject(input: Project, parent: string, sig
       manifest.push({ file: entry.destination, bytes: copied, sha256: hash.digest("hex"), assetIds: entry.ids });
     }
     abort(signal);
-    project.assets = project.assets.map(asset => ({ id: asset.id, name: asset.name, kind: asset.kind, path: assetPaths.get(asset.id)!, url: assetPaths.get(asset.id)!, duration: asset.duration, width: asset.width, height: asset.height, fps: asset.fps, hasAudio: asset.hasAudio, beats: asset.beats }));
+    project.assets = project.assets.map(asset => ({ id: asset.id, name: asset.name, kind: asset.kind, path: assetPaths.get(asset.id)!, url: assetPaths.get(asset.id)!, duration: asset.duration, width: asset.width, height: asset.height, fps: asset.fps, hasAudio: asset.hasAudio, beats: asset.beats, musicCredit: asset.musicCredit }));
     const document: PortableDocument = { format: "reacut-portable", version: 1, project };
     await writeFile(path.join(temporary, "项目.reacut"), JSON.stringify(document, null, 2), { mode: 0o600 });
     await writeFile(path.join(temporary, "manifest.json"), JSON.stringify({ format: "reacut-media-manifest", version: 1, files: manifest }, null, 2), { mode: 0o600 });

@@ -253,3 +253,15 @@
   .assistant-compose textarea { min-height: 49px; }
   .assistant-starters { gap: 4px; }
 }
+
+.assistant-music { display: grid; gap: 8px; padding: 10px; margin: 6px 0; min-width: 0; border: 1px solid #ffffff25; border-radius: 9px; }
+.assistant-music > header, .assistant-music form, .assistant-music-actions { display: flex; align-items: center; gap: 6px; }
+.assistant-music > header strong { flex: 1; }
+.assistant-music input { flex: 1; min-width: 0; color: inherit; background: #ffffff0e; border: 1px solid #ffffff30; border-radius: 5px; padding: 6px; }
+.assistant-music button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 25px; padding: 3px 6px; border-radius: 5px; color: inherit; background: #ffffff10; }
+.assistant-music button:disabled { opacity: .55; }
+.assistant-music-track { display: grid; min-width: 0; gap: 6px; padding: 8px; background: #ffffff09; border-radius: 7px; }
+.assistant-music-meta { display: grid; min-width: 0; gap: 3px; }
+.assistant-music-meta strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.assistant-music-meta small, .assistant-music-note { font-size: 11px; opacity: .8; margin: 0; }
+.assistant-music-actions { flex-wrap: wrap; font-size: 11px; }

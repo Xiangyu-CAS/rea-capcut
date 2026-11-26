@@ -534,6 +534,16 @@ export function validateProject(input: unknown): Project {
     if (a.waveform !== undefined)
       for (const v of list(a.waveform, "音频波形", 100000))
         num(v, "音频波形值", 0, 1);
+    if (a.musicCredit !== undefined) {
+      const credit = object(a.musicCredit, "配乐署名");
+      if (a.kind !== "audio") fail("配乐素材类型");
+      for (const field of ["sourceId", "title", "creator"] as const) str(credit[field], "配乐署名", 256);
+      choice(credit.license, ["CC BY", "CC0"], "配乐许可");
+      for (const field of ["sourceUrl", "licenseUrl"] as const) {
+        const url = str(credit[field], "配乐署名 URL", 2048);
+        if (!/^https:\/\//i.test(url)) fail("配乐署名 URL");
+      }
+    }
     if (a.beats !== undefined) {
       if (!a.hasAudio || a.kind === "image") fail("节拍素材类型");
       beatMarks += validateBeatAnalysis(a.beats, assetDuration).times.length;

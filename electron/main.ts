@@ -1,3 +1,4 @@
+import { createOnlineMusic } from "./onlineMusic";
 import { createUpdateService } from "./updateCheck";
 import { listTemplates, libraryTemplate, readTemplate, writeTemplate } from "./projectTemplates";
 import { validateTemplate } from "../src/core/projectTemplates";
@@ -231,6 +232,8 @@ function localAgentTranscription(local: AssistantLocalProject) {
 let audioAnalysisJob: { id: string; controller: AbortController; done: Promise<AudioAnalysisResult> } | undefined;
 let previewProxyJob: { id: string; controller: AbortController; done: Promise<void> } | undefined;
 const userFile = (name: string) => path.join(app.getPath("userData"), name);
+// Persist downloaded media outside transient plugin sessions so saved projects can reopen offline.
+const music = createOnlineMusic(path.join(settingsRoot, "online-music"));
 const cacheDir = () => userFile("thumbnails");
 let writeQueue = Promise.resolve();
 async function atomicWrite(file: string, text: string) {
@@ -662,6 +665,23 @@ function registerIPC() {
       await rename(temporary, file);
     });
     await assistantHistoryWrites;
+  });
+  handle("online-music-search", (query: unknown) => music.search(query));
+  handle("online-music-source", (id: unknown) => shell.openExternal(music.get(id).sourceUrl));
+  handle("online-music-preview", async (id: unknown) => {
+    const { file } = await music.download(id);
+    allowedMedia.add(path.resolve(file));
+    return mediaURL(file);
+  });
+  handle("online-music-download", async (id: unknown) => {
+    const { file, item } = await music.download(id);
+    const [asset] = await importAssets([file], cacheDir(), AbortSignal.timeout(15000));
+    if (!asset || asset.kind !== "audio") throw new Error("The downloaded file is not editable audio");
+    const { title, creator, sourceUrl, license, licenseUrl } = item;
+    asset.name = title;
+    asset.musicCredit = { sourceId: item.id, title, creator, sourceUrl, license, licenseUrl };
+    authorizeAsset(asset);
+    return asset;
   });
   handle("import-media", async (paths?: string[]) => {
     let selected = paths;

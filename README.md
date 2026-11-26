@@ -48,6 +48,7 @@ ReaCut brings media management, multitrack editing, subtitles and video export i
 | **Offline assets** | Use 64 original stickers, backgrounds, title plates and synthesized sounds, plus the bundled Noto Sans SC font. |
 | **Codex plugin** | Edit the open timeline from the Codex side panel or chat. [Plugin workflow](docs/CODEX_PLUGIN.md) |
 | **Editing Agent** | Opens on the right. Sign in with ChatGPT through Codex App Server, edit selected media ranges, or ask for subtitles from local speech recognition. Apply edits with one-step undo or request a preview first. [Editing Agent](docs/ASSISTANT.md) |
+| **Online music** | Search from the Editing Agent without signing in, preview supported tracks, and download into a separate audio track. [Workflow and credits](docs/ONLINE_MUSIC.md) |
 
 See the [feature matrix](docs/FEATURE_MATRIX.md) for detailed support and limitations.
 

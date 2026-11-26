@@ -1,3 +1,4 @@
+import { musicCreditLine } from "./core/onlineMusic";
 import UpdateDialog from "./components/UpdateDialog";
 import TemplateDialog from "./components/TemplateDialog";
 import SpeechDialog from "./components/SpeechDialog";
@@ -166,6 +167,16 @@ function ExportDialog({
   const selectedRange = selectedClipRange(project, selectedIds);
   const rangeOptions = scope === "all" ? undefined : scope === "selected" ? selectedRange : { start: Number(rangeStart), end: Number(rangeEnd) };
   const exportDuration = rangeOptions ? Math.max(0, rangeOptions.end - rangeOptions.start) : projectDuration(project);
+  const musicCredits = [...new Set(project.clips.filter(clip => {
+    const track = project.tracks.find(item => item.id === clip.trackId);
+    return clip.assetId && !clip.muted && track && !track.muted &&
+      (!rangeOptions || clip.start < rangeOptions.end && clip.start + clip.duration > rangeOptions.start);
+  }).flatMap(clip => {
+    const credit = project.assets.find(asset => asset.id === clip.assetId)?.musicCredit;
+    return credit?.license === "CC BY" ? [musicCreditLine(credit) +
+      ui(" · 在视频中用作配乐，可能经过剪裁、音量调整及淡化。", " · Used as background music; may be trimmed, faded and mixed.")] : [];
+  }))];
+  const [musicCreditStatus, setMusicCreditStatus] = useState("");
   const job = useRef<string | null>(null);
   const exporting =
     busy &&
@@ -362,6 +373,15 @@ function ExportDialog({
         </div>
         <p className="field-hint">
           {ui("导出原始素材和所有可见画面轨道，按音频设置混音。无需登录或上传。", "Renders original media and all visible video tracks, with audio mixed using your settings. No sign-in or upload required.")}</p>
+        {!!musicCredits.length && <details className="field-hint">
+          <summary>{ui("配乐署名", "Music credits")}</summary>
+          <textarea aria-label={ui("配乐署名文本", "Music attribution text")} readOnly rows={3} value={musicCredits.join("\n")} />
+          <button type="button" onClick={() => void navigator.clipboard.writeText(musicCredits.join("\n")).then(
+            () => setMusicCreditStatus(ui("已复制，可粘贴到发布说明。", "Copied. Paste into your video description.")),
+            () => setMusicCreditStatus(ui("无法复制，请从文本框选取。", "Select and copy the text instead.")),
+          )}>{ui("复制配乐署名", "Copy music credits")}</button>
+          <p role="status">{musicCreditStatus || ui("请随视频发布署名；ReaCut 不会把署名烧录进画面。", "Include credits when publishing. ReaCut does not burn them into the video.")}</p>
+        </details>}
         {progress && (
           <div
             className={`export-progress ${status === "complete" ? "is-complete" : ""}`}

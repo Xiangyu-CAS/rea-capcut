@@ -2,6 +2,10 @@ import { contextBridge, ipcRenderer, webUtils } from "electron";
 import type { DerivativeProgress, EditorAPI, ExportProgress } from "../src/core/types";
 import type { AssistantEvent } from "../src/core/assistantTypes";
 const api: EditorAPI = {
+  searchOnlineMusic: query => ipcRenderer.invoke("online-music-search", query),
+  previewOnlineMusic: id => ipcRenderer.invoke("online-music-preview", id),
+  downloadOnlineMusic: id => ipcRenderer.invoke("online-music-download", id),
+  openOnlineMusicSource: id => ipcRenderer.invoke("online-music-source", id),
   checkForUpdates: () => ipcRenderer.invoke("check-for-updates"),
   openUpdateTarget: target => ipcRenderer.invoke("open-update-target", target),
   setUILanguage: language => ipcRenderer.invoke("set-ui-language", language),
