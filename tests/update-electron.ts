@@ -10,8 +10,8 @@ import { version } from '../package.json';
 
 const root = process.cwd();
 const output = path.resolve('.test-output/update-electron');
-const apiURL = 'https://api.github.com/repos/Xiangyu-CAS/rea-capcut/releases?per_page=100';
-const repo = 'https://github.com/Xiangyu-CAS/rea-capcut';
+const apiURL = 'https://api.github.com/repos/Xiangyu-CAS/ReaCut/releases?per_page=100';
+const repo = 'https://github.com/Xiangyu-CAS/ReaCut';
 const future = '999.0.0';
 const bundle = process.env.REACUT_TEST_APP ? path.resolve(process.env.REACUT_TEST_APP) : undefined;
 const windows = process.platform === 'win32';

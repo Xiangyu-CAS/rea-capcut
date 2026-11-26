@@ -4,7 +4,7 @@ This preview adds **Settings / native Help → Check for Updates**. The explicit
 
 ## Status and provenance
 
-This document describes **publication gates**, not a claim that pending checks have passed. Review the exact commit and results in [Manual update validation](https://github.com/Xiangyu-CAS/rea-capcut/actions/workflows/update-validation.yml), [Build and test](https://github.com/Xiangyu-CAS/rea-capcut/actions/workflows/ci.yml), and [Publish 0.7.1 preview](https://github.com/Xiangyu-CAS/rea-capcut/actions/workflows/release-0.7.1.yml). The release workflow creates a new [v0.7.1 prerelease](https://github.com/Xiangyu-CAS/rea-capcut/releases/tag/v0.7.1); existing v0.7.0 tags/assets are never replaced.
+This document describes **publication gates**, not a claim that pending checks have passed. Review the exact commit and results in [Manual update validation](https://github.com/Xiangyu-CAS/ReaCut/actions/workflows/update-validation.yml), [Build and test](https://github.com/Xiangyu-CAS/ReaCut/actions/workflows/ci.yml), and [Publish 0.7.1 preview](https://github.com/Xiangyu-CAS/ReaCut/actions/workflows/release-0.7.1.yml). The release workflow creates a new [v0.7.1 prerelease](https://github.com/Xiangyu-CAS/ReaCut/releases/tag/v0.7.1); existing v0.7.0 tags/assets are never replaced.
 
 The retired v0.7.0 one-shot workflow is replaced by a v0.7.1-only workflow. It runs on release-preparation changes pushed to main, verifies matching application/plugin versions and refuses any existing v0.7.1 release/tag. This is not standing authorization for future automatic releases. A partly created draft/tag must be inspected before any separately approved recovery; it is not silently overwritten.
 

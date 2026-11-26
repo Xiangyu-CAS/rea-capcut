@@ -1,6 +1,6 @@
 import type { UpdateCheckResult, UpdateError, UpdateOpenTarget } from "../src/core/updateTypes";
 
-const REPOSITORY = "Xiangyu-CAS/rea-capcut";
+const REPOSITORY = "Xiangyu-CAS/ReaCut";
 export const UPDATE_API = `https://api.github.com/repos/${REPOSITORY}/releases?per_page=100`;
 const MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
 const MAX_NOTES = 16000;

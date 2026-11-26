@@ -5,8 +5,8 @@ ReaCut is an open-source video editor for Mac. Cut, caption, mix, and export fro
 ### What’s new
 
 - **Editing Agent in the desktop app.** Connect your own ChatGPT account through Codex. Select a clip or media range, then ask for an edit. The conversation shows each stage, and applied edits can be undone together.
-- **Editable English subtitles.** Select a clip with speech and try **Add English subtitles to this video**. ReaCut transcribes locally, Codex translates the timed text, and the editor places each cue on the timeline. [Agent guide](https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/docs/ASSISTANT.md)
-- **Shared editing tools.** The optional Codex plugin can also transcribe and edit the ReaCut timeline from the Codex sidebar. [Plugin setup](https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/docs/CODEX_PLUGIN.md)
+- **Editable English subtitles.** Select a clip with speech and try **Add English subtitles to this video**. ReaCut transcribes locally, Codex translates the timed text, and the editor places each cue on the timeline. [Agent guide](https://github.com/Xiangyu-CAS/ReaCut/blob/v0.9.0/docs/ASSISTANT.md)
+- **Shared editing tools.** The optional Codex plugin can also transcribe and edit the ReaCut timeline from the Codex sidebar. [Plugin setup](https://github.com/Xiangyu-CAS/ReaCut/blob/v0.9.0/docs/CODEX_PLUGIN.md)
 
 ### Download
 
@@ -14,7 +14,7 @@ ReaCut is an open-source video editor for Mac. Cut, caption, mix, and export fro
 - **ReaCut-plugin-0.9.0.zip** for the optional Codex sidebar integration.
 - **SHA256SUMS.txt** lists checksums for the desktop packages, plugin, and accompanying media-tool sources and licenses.
 
-Manual editing and export work without an account. The Agent needs Codex access, and automatic transcription needs a separate Python/MLX environment and model. Your original video and audio stay on your Mac during the subtitle workflow. [Local speech setup](https://github.com/Xiangyu-CAS/rea-capcut/blob/v0.9.0/docs/LOCAL_SPEECH.md)
+Manual editing and export work without an account. The Agent needs Codex access, and automatic transcription needs a separate Python/MLX environment and model. Your original video and audio stay on your Mac during the subtitle workflow. [Local speech setup](https://github.com/Xiangyu-CAS/ReaCut/blob/v0.9.0/docs/LOCAL_SPEECH.md)
 
 ### 中文
 

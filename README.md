@@ -4,9 +4,9 @@
 <h1 align="center">ReaCut</h1>
 <p align="center"><strong>An open-source video editor for Windows and Mac.</strong><br />Cut, caption, and export locally. Use the optional Codex Agent to edit the same timeline.</p>
 <p align="center">
-  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe"><img src="docs/download-windows.svg" width="340" height="76" alt="Download the Windows 10/11 x64 EXE installer — v0.9.1" /></a>
-  <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="Download for macOS — v0.9.0 · Apple Silicon" /></a><br />
-  <a href="https://reacut.app/">Website</a> · <a href="https://github.com/Xiangyu-CAS/rea-capcut/releases">All releases / ZIP / checksums</a> · <a href="#getting-started">Installation guide</a><br />
+  <a href="https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe"><img src="docs/download-windows.svg" width="340" height="76" alt="Download the Windows 10/11 x64 EXE installer — v0.9.1" /></a>
+  <a href="https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg"><img src="docs/download-macos.svg" width="340" height="76" alt="Download for macOS — v0.9.0 · Apple Silicon" /></a><br />
+  <a href="https://reacut.app/">Website</a> · <a href="https://github.com/Xiangyu-CAS/ReaCut/releases">All releases / ZIP / checksums</a> · <a href="#getting-started">Installation guide</a><br />
   <sub>Preview installers · Windows EXE is unsigned · macOS DMG uses ad-hoc signing and lacks notarization.</sub>
 </p>
 <p align="center">Building a complete video editor is a substantial undertaking, and this project is still in its early stages.<br /><strong>Contributors are welcome to help with features, usability, cross-platform support, tests and documentation.</strong> <a href="#contributing">Get involved →</a></p>
@@ -63,13 +63,13 @@ ReaCut supports multiple timelines per project, group import of supported Jianyi
 
 ### Option 1: standalone desktop app
 
-On **Windows 10/11 x64**, download and run the [ReaCut 0.9.1 EXE installer](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe). FFmpeg and FFprobe are included. The preview installer is unsigned, so Windows may show a SmartScreen warning. MLX transcription, macOS system voices, and the Codex plugin are outside the Windows preview.
+On **Windows 10/11 x64**, download and run the [ReaCut 0.9.1 EXE installer](https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.1/ReaCut-0.9.1-x64-Setup.exe). FFmpeg and FFprobe are included. The preview installer is unsigned, so Windows may show a SmartScreen warning. MLX transcription, macOS system voices, and the Codex plugin are outside the Windows preview.
 
-Download the [ReaCut 0.9.0 DMG for macOS Apple Silicon](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg), open it, drag the app into Applications, and launch it. FFmpeg and FFprobe are bundled. This preview uses ad-hoc signing and lacks Apple notarization.
+Download the [ReaCut 0.9.0 DMG for macOS Apple Silicon](https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.0/ReaCut-0.9.0-arm64.dmg), open it, drag the app into Applications, and launch it. FFmpeg and FFprobe are bundled. This preview uses ad-hoc signing and lacks Apple notarization.
 
 ### Option 2: inside the Codex side panel
 
-On macOS, install **ReaCut 0.9.0**, Codex desktop, its `codex` CLI, and Python 3. Download the [Codex plugin ZIP](https://github.com/Xiangyu-CAS/rea-capcut/releases/download/v0.9.0/ReaCut-plugin-0.9.0.zip), then run from its extracted directory or this repository:
+On macOS, install **ReaCut 0.9.0**, Codex desktop, its `codex` CLI, and Python 3. Download the [Codex plugin ZIP](https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.0/ReaCut-plugin-0.9.0.zip), then run from its extracted directory or this repository:
 
 ```sh
 sh scripts/install-plugin.sh
