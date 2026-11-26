@@ -665,7 +665,7 @@ h3 {
 
 .codex {
   display: grid;
-  grid-template-columns: minmax(0, 0.81fr) minmax(0, 1.19fr);
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
   align-items: center;
   gap: clamp(1.5rem, 4.2vw, 3.65rem);
   padding: clamp(1.4rem, 3.9vw, 3.1rem);
@@ -680,8 +680,6 @@ h3 {
 
 .codex-panel-shot {
   display: block;
-  justify-self: center;
-  width: min(100%, 29rem);
 }
 
 .codex img {
