@@ -22,7 +22,7 @@ class LazyLauncher(unittest.TestCase):
         self.bundle = self.root / 'ReaCut.app'
         executable = self.bundle / 'Contents/MacOS/ReaCut'
         executable.parent.mkdir(parents=True)
-        (self.bundle / 'Contents/Info.plist').write_bytes(plistlib.dumps({'CFBundleShortVersionString': '0.5.1'}))
+        (self.bundle / 'Contents/Info.plist').write_bytes(plistlib.dumps({'CFBundleShortVersionString': '0.9.1'}))
         self.starts = self.root / 'starts'
         executable.write_text('#!' + sys.executable + '\n' + '''
 import json, os, sys
@@ -32,7 +32,7 @@ for line in sys.stdin:
  r=json.loads(line)
  if 'id' not in r: continue
  if r.get('params',{}).get('arguments',{}).get('exit'): sys.exit(2)
- print(json.dumps({'jsonrpc':'2.0','id':r['id'],'result':{'pid':os.getpid()}}),flush=True)
+ print(json.dumps({'jsonrpc':'2.0','id':r['id'],'result':{'pid':os.getpid(),'args':sys.argv[1:]}}),flush=True)
 Path(os.environ['STARTS']+'.closed').write_text('flushed')
 ''')
         executable.chmod(0o755)
@@ -105,11 +105,33 @@ Path(os.environ['STARTS']+'.closed').write_text('flushed')
     def test_missing_app_does_not_break_discovery(self):
         (self.bundle / 'Contents/MacOS/ReaCut').unlink()
         tools = self.rpc('tools/list')['result']['tools']
-        self.assertEqual(len(tools), 19)
+        self.assertEqual(len(tools), 24)
         self.assertIn('reacut_propose_edit', {tool['name'] for tool in tools})
         self.assertIn('reacut_export_start', {tool['name'] for tool in tools})
         self.assertIn('error',self.rpc('tools/call',{'name':'reacut_open'}))
         self.assertFalse(self.starts.exists())
+
+    def test_tools_only_discovery_and_calls(self):
+        self.proc.stdin.close()
+        self.proc.wait(timeout=10)
+        self.proc.stdout.close()
+        self.proc.stderr.close()
+        self.proc = subprocess.Popen([sys.executable, str(LAUNCHER), '--tools-only'], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, env={**os.environ, 'REACUT_APP': str(self.bundle), 'STARTS': str(self.starts)})
+        init = self.rpc('initialize')['result']
+        self.assertNotIn('resources', init['capabilities'])
+        tools = {tool['name']: tool for tool in self.rpc('tools/list')['result']['tools']}
+        self.assertIn('reacut_edit', tools)
+        self.assertIn('reacut_open_project', tools)
+        self.assertNotIn('paths', tools['reacut_import']['inputSchema']['properties'])
+        self.assertNotIn('media', tools['reacut_create_from_template']['inputSchema']['properties'])
+        self.assertEqual(self.rpc('resources/list')['result']['resources'], [])
+        for name in ('reacut_open', 'reacut_panel_media', 'reacut_frame', 'reacut_input', 'reacut_screenshot'):
+            self.assertNotIn(name, tools)
+            self.assertIn('error', self.rpc('tools/call', {'name': name}))
+        self.assertFalse(self.starts.exists())
+        result = self.rpc('tools/call', {'name': 'reacut_state'})['result']
+        self.assertIn('--reacut-tools-only', result['args'])
 
 
 if __name__ == '__main__': unittest.main()

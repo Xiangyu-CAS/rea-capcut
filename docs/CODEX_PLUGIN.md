@@ -1,97 +1,65 @@
-# 在 Codex 中使用 ReaCut
+# 在 Codex 和 ChatGPT 中使用 ReaCut
 
-ReaCut 提供两种入口：独立 DMG 桌面应用，以及 Codex 桌面端右侧的插件面板。两者使用同一套编辑器和本地媒体引擎。插件需要本机安装 **ReaCut 0.5.0 或更新版本**，不是云端剪辑服务。
+ReaCut 的桌面插件直接在侧栏显示播放器、素材库、属性面板和多轨时间线。侧栏和 MCP 工具共用本机的项目、播放位置和撤销记录。
 
-## 安装
+## 安装本地插件
 
-1. 从 [v0.6.0 Release](https://github.com/Xiangyu-CAS/ReaCut/releases/tag/v0.6.0) 下载 DMG 与插件 ZIP。打开 ReaCut DMG，将应用拖入“应用程序”，至少启动一次确认系统允许运行。
-2. 安装 Codex 桌面端及其 CLI，确保终端可以运行 `codex`，并有 Python 3。
-3. 在 ReaCut 源码目录，或解压后的 `ReaCut-plugin-0.6.0.zip` 目录执行：
+1. 准备同一版本构建的 **ReaCut 0.9.1 或更新版本**应用和插件 ZIP。源码构建命令见下文。macOS 可把 ReaCut 放入“应用程序”并启动一次。
+2. 安装 Codex 桌面端、`codex` CLI 和 Python 3。
+3. 在源码目录或解压后的插件包目录运行 `sh scripts/install-plugin.sh`。应用位于其他目录时使用 `sh scripts/install-plugin.sh --app /absolute/path/ReaCut.app`。
+4. 重连或新开一个加载了 ReaCut 的 Codex 聊天，然后输入“用 ReaCut 在右侧打开视频编辑器”。
+
+安装脚本通过 Codex CLI 注册插件，将自定义应用路径保存至 `~/.config/reacut/plugin.json`。`REACUT_APP` 可以覆盖该路径。默认寻找 `/Applications/ReaCut.app` 和 `~/Applications/ReaCut.app`。支持本地执行的 ChatGPT 桌面聊天也可以使用 stdio 插件结构。公开目录有单独的本地插件审核条件。[OpenAI 桌面插件说明](https://developers.openai.com/plugins/deploy/desktop-only)
+
+## 用侧栏剪辑
+
+- 导入、打开、保存和导出使用系统文件对话框。素材可以拖入时间线，也可以预览后按入点和出点插入。
+- 选择片段后可剪切、拖动、裁切和调节属性。可以直接在文字框里用中文输入法和粘贴。窄面板可切换素材与属性。
+- 侧栏可直接按项目设置导出 MP4，也可从项目菜单导出 MOV。通过项目菜单中的“显示桌面窗口”打开同一会话，使用桌面版的高级素材、效果和导出设置。
+
+首次实际调用编辑工具时才启动 ReaCut，查询工具和读取界面资源仍可独立进行。插件会话使用独立的恢复目录。`reacut_state.recoveryPath` 返回这次会话的自动保存位置。可通过打开或保存 `.reacut` 文件与独立启动的桌面版交换项目。
+
+## 让 Codex 或 ChatGPT 操作项目
+
+1. 工具 `reacut_state` 返回当前时间线、素材、选中片段、选段和 revision。通过 `reacut_open_project` 可以请用户从本机选择现有项目。用户可以在侧栏选中片段，或者把素材或选段加入助手。
+2. `reacut_edit` 原子应用最多 40 项动作，整批一次撤销。需要先审阅时用 `reacut_propose_edit`，侧栏可预览再应用。手工编辑和 MCP 编辑都会更新同一项目，旧 revision 会被拒绝。
+3. `reacut_transcribe` 识别当前 revision 中的 `clip:<id>` 或 `asset:<id>`。用 `addCaptions` 和返回的 `transcriptionId` 把字幕入轨。翻译传入原顺序的 `translations`。[本地语音识别配置](https://github.com/Xiangyu-CAS/ReaCut/blob/main/docs/LOCAL_SPEECH.md)
+
+**ChatGPT 网页端**可以通过支持自定义 MCP 的工作区使用私有 Secure MCP Tunnel。将下列命令作为隧道客户端的 stdio 上游，在装有 ReaCut 的本机运行，然后在 ChatGPT 中添加同一隧道的自定义 MCP 插件。创建和运行隧道所需的工作区关联、权限及凭据见[OpenAI Secure MCP Tunnel 文档](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels)。
 
 ```sh
-sh scripts/install-plugin.sh
+python3 /absolute/path/to/plugin/scripts/launch.py --tools-only
 ```
 
-应用放在其他位置时：
-
-```sh
-sh scripts/install-plugin.sh --app /absolute/path/ReaCut.app
-```
-
-脚本先核对应用版本，再通过 `codex plugin marketplace add` 和 `codex plugin add` 安装本地插件。不修改 Codex 的工具审批策略。指定路径记录在 `~/.config/reacut/plugin.json`；环境变量 `REACUT_APP` 可覆盖它。默认寻找 `/Applications/ReaCut.app` 和 `~/Applications/ReaCut.app`。
-
-重连或新开 Codex 聊天，让工具和 skill 加载，然后输入：
-
-> 用 ReaCut 在右侧打开视频编辑器。
-
-也可以先在插件列表启用 ReaCut，再使用 `$reacut`。
-
-## 直接操作与让 Codex 剪辑
-
-右侧是本地 ReaCut 的实时交互画面，支持点击、拖动片段、滚轮、键盘快捷键。窄面板默认适应窗口；点击 **100%** 可按原始尺寸滚动查看。中文或长文本可先点击编辑器的输入框，再用底部输入栏发送。
-
-上方工具栏可导入、打开、保存和导出。文件选择/保存会弹出 macOS 系统对话框；若被其他窗口遮挡，点击“显示桌面窗口”。完整素材、文字、特效、转场和导出工作流沿用桌面版。
-
-0.5.1 起，连接插件、查询工具列表和读取侧栏资源均不会启动 ReaCut。首次实际调用编辑器工具才启动应用，同一连接复用一个实例；应用异常退出后不会自动循环重启。macOS 应用从系统加载阶段即以后台模式启动，点击“显示桌面窗口”后才显示 Dock 图标。关闭这个窗口会隐藏图标并保留插件会话。直接启动桌面版仍正常显示在 Dock 中。
-
-也可以告诉 Codex：
-
-> 用内置海洋背景做一个 5 秒标题视频，添加“我的第一支视频”，然后让我检查。
-
-使用同一份源码构建的 ReaCut 应用与插件，可从宿主对话编辑当前时间线。
-
-1. 在素材库中把素材或带入点、出点的选段加入 Agent，也可直接选中时间线上的片段。宿主用 `reacut_state` 读取这些选择、当前时间线、播放头和 revision。
-2. 宿主用 `reacut_edit` 把粗剪或调整直接写入时间线，右侧 Agent 会显示结果，整批可一次撤销。用户明确要求先预览时，宿主用 `reacut_propose_edit` 暂存方案，编辑器可以预览并应用。已修改的项目会拒绝旧 revision。
-
-需要从语音添加字幕时，先配置 [本地语音识别](LOCAL_SPEECH.md)，再用 `reacut_transcribe` 传入当前 revision 和 `clip:<id>` 或 `asset:<id>`。工具返回相对源选段的时间戳、文字和 `transcriptionId`。通过 `addCaptions` 和该 ID 将字幕入轨。需要翻译时传入按原顺序逐条对应的 `translations`。同一次转录绑定当时的项目 revision。
-3. 宿主再次调用 `reacut_state` 可确认实际时间线和剪辑结果，再继续编辑、保存或导出。方案状态随对应批次的撤销和重做更新。无变化的批次返回 `unchanged`，保留当前 revision。插件侧栏与它打开的桌面窗口操作同一个工程，编辑器的连接菜单也可单独连接本机 Codex。
+`--tools-only` 提供项目读取、编辑、转录与导出工具。界面和预览文件留在本机。文件导入使用系统选择器或内置素材。网页版连接使用独立的 ReaCut 会话，可通过项目文件与桌面插件交换。
 
 ## 从同一模板生成多支视频
 
-此流程需使用由同一份源码构建的应用与插件。
+1. 用 `reacut_templates` 列出内置或本机模板。用 `reacut_template_slots` 核对占位 ID、素材时长和锁轨状态。
+2. 调用 `reacut_output_folder`，由用户选定本机批量输出目录。
+3. 用当前 revision 调用 `reacut_create_from_template`。本机插件支持 `{slotId, path}` 素材替换和 `{slotId, value}` 文案替换。无效替换保留当前项目。
+4. 用 `reacut_save` 保存工程。用 `reacut_export_start` 启动 MP4 或 MOV 导出，轮询 `reacut_export_status`。用 `reacut_export_cancel` 可请求取消。文件以新文件名写入选定目录。
 
-1. 用 `reacut_templates` 列出内置模板和本机模板库，调用 `reacut_template_slots` 核对占位 ID、素材时长和锁轨状态。
-2. 用 `reacut_output_folder` 打开文件夹选择器。你选择的目录可在当前插件会话内用于后续保存和导出。
-3. 传当前 `revision` 给 `reacut_create_from_template`，指定 `source`、`templateId` 和所需替换。素材项用 `{slotId, path}`，文案项用 `{slotId, value}`。任一替换无效会保留当前项目。有效替换可以一次撤销。
-4. 用 `reacut_save` 保存可编辑的 `.reacut` 项目。用 `reacut_export_start` 启动 MP4 或 MOV 导出，并用 `reacut_export_status` 查询进度和结果。需要中止时用 `reacut_export_cancel`，再确认最终状态。
-5. 保存后可以直接用同一模板制作下一支视频。项目和视频分别使用不带扩展名的文件名。输出文件只在选定目录中新建，同名文件受到保护。
+导出使用启动时的项目快照。输出目录和任务按会话隔离。
 
-导出使用启动时的项目快照。选择文件夹和导出任务都按会话隔离，重新连接后请重新选择目录。模板库由桌面版和插件共享。可移植项目仍可从编辑器界面收集素材或从已有工程打开。
+## 数据和预览
 
-## 当前限制
-
-- 采用与 [iPhone-use](https://github.com/zhongerxin/iPhone-use) 类似的 MCP App 实时画面桥接。侧栏约 6 fps，实际速度受宿主和窗口大小影响；这是交互画面，不是原帧率视频监看。声音由本机 ReaCut 播放。精细预览可显示桌面窗口。
-- 侧栏不支持直接从 Finder 拖入文件；使用“导入素材”或明确指定路径。中文输入推荐底部输入栏。
-- 插件会话独立运行，每次连接的恢复数据隔离保存在 `~/Library/Application Support/ReaCut-Plugin/sessions/<会话>/`，`reacut_state` 返回 recoveryPath；重连后可打开该 `autosave.reacut` 恢复。重要项目应主动保存。不会自动接管桌面版未保存的项目；通过保存、打开 `.reacut` 文件交换。
-- 本地 stdio 插件面向 ChatGPT / Codex 桌面端的 Codex 工作区；Codex CLI 可使用工具。图形侧栏由桌面宿主提供。
-- 首版在 macOS Apple Silicon 验证。Windows / Linux 需要平台应用路径及独立验收。
-
-## 数据与权限
-
-插件不启动 HTTP 服务，不增加遥测、登录、云同步或直接 AI API。媒体预览、保存和导出在本机运行；插件只启动自己的 ReaCut 会话，不捕获其他应用。
-
-Codex 会接收到它主动读取的项目摘要、文字、操作结果，以及显式请求的截图。实时帧工具仅供侧栏调用。数据仍受 Codex 自身的数据处理方式约束，不能理解为所有信息绝不离开本机。导入工具只应使用用户明确授权的文件。
+ReaCut 的 stdio 启动器在本机读取项目、处理预览和导出。侧栏仅从当前会话已导入的素材取预览数据，复杂或较大的素材可在桌面窗口预览。MCP 工具调用返回的项目摘要、文字和操作结果会交给调用宿主，桌面连接也可显式请求编辑器截图。
 
 ## 构建与验证
 
-以下构建命令在源码仓库执行；插件 ZIP 仅包含安装所需文件。
-
 ```sh
 npm ci
+node node_modules/electron/install.js
 npm run build
+npm run test:plugin:launcher
 npm run test:plugin
+npx playwright install chromium
+npm run test:plugin:panel
 npm run dist:mac:installer
 npm run plugin:pack
 ```
 
-DMG / 应用由 Electron Builder 生成。插件 ZIP 为 `release/ReaCut-plugin-<version>.zip`，包含 portable `plugin.json` / `mcp.json`、Codex 兼容 manifest、skill、Python 启动器与安装脚本。编辑器和自包含 MCP App UI 随 DMG 分发，因此插件包不再复制视频引擎。
+macOS 构建的应用包含自包含的 MCP Apps 界面。插件 ZIP 位于 `release/ReaCut-plugin-<version>.zip`。使用 `REACUT_TEST_APP=/absolute/path/ReaCut.app/Contents/MacOS/ReaCut npm run test:plugin` 可指定验收已打包应用。浏览器测试使用本地 MCP Apps 宿主和合成素材。
 
-开发协议验收使用隔离数据目录。安装包验收可通过 `REACUT_TEST_APP=/absolute/path/ReaCut.app/Contents/MacOS/ReaCut npm run test:plugin` 指定实际程序。
-
-协议依据：[OpenAI 插件打包](https://developers.openai.com/plugins/build/plugins)、[MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps)。参考 iPhone-use 的 manifest、fullscreen resource 与实时帧桥接结构；ReaCut 的编辑、输入和打包实现为本项目代码。
-
-## 本地交互验收截图
-
-下图来自独立的本地 MCP Apps 验证宿主，展示实际 ReaCut 编辑器和插件 UI；不是已通过的 Codex 宿主截图。
-
-![本地 MCP App 界面验证](screenshots/codex-plugin-local-host.jpg)
+![ReaCut 侧栏在本地 MCP Apps 验证宿主中运行](screenshots/codex-plugin-local-host.jpg)

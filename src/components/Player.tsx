@@ -29,7 +29,7 @@ import {
 import { useEditorStore, type AgentEditPlan } from "../editor/store";
 interface PlayerProps {
   project: Project;
-  proxies: ReturnType<typeof usePreviewProxies>;
+  proxies?: ReturnType<typeof usePreviewProxies>;
   selectedIds: string[];
   playhead: number;
   playing: boolean;
@@ -48,6 +48,7 @@ interface Source {
   frameCallback?: number;
   performanceProxy?: boolean;
 }
+const emptyProxyURLs: ReadonlyMap<string, string> = new Map();
 
 export function AgentPlanPreview({ plan, proxies, onClose }: {
   plan: AgentEditPlan;
@@ -80,7 +81,8 @@ export default function Player({
   onClosePreview,
 }: PlayerProps) {
   const ui = useUITranslation();
-  const { urls: proxyURLs, discard: discardProxy } = proxies;
+  const proxyURLs = proxies?.urls ?? emptyProxyURLs;
+  const discardProxy = proxies?.discard;
   const canvasRef = useRef<HTMLCanvasElement>(null),
     hostRef = useRef<HTMLDivElement>(null);
   const sources = useRef(new Map<string, Source>()),
@@ -152,7 +154,7 @@ export default function Player({
         "error",
         () => {
           if (sources.current.get(clip.id) !== source) return;
-          if (fastProxy) { discardProxy(asset.path); return; }
+          if (fastProxy) { discardProxy?.(asset.path); return; }
           setErrors((previous) =>
             previous.includes(asset.name)
               ? previous
@@ -393,14 +395,14 @@ export default function Player({
       <div className="panel-heading">
         <span>{title}</span>
         <div className="player-preview-controls">
-          {proxies.active && <span className="muted small" role="status">
+          {proxies?.active && <span className="muted small" role="status">
             {proxies.processed < proxies.total
               ? ui(`生成代理 ${proxies.processed}/${proxies.total}`, `Proxies ${proxies.processed}/${proxies.total}`)
               : proxies.failed
                 ? ui(`${proxies.failed} 个代理不可用`, `${proxies.failed} proxies unavailable`)
                 : ui(`代理就绪 ${proxies.urls.size}/${proxies.total}`, `Proxies ready ${proxies.urls.size}/${proxies.total}`)}
           </span>}
-          {window.editorAPI?.preparePreviewProxies && <button
+          {proxies && window.editorAPI?.preparePreviewProxies && <button
             type="button"
             title={ui("使用低分辨率代理预览，导出使用原素材", "Preview with smaller proxies. Export uses the original source.")}
             aria-label={ui("代理模式", "Proxy mode")}

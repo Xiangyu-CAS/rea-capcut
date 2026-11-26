@@ -47,11 +47,14 @@ if (sourceWorkflow) {
     const { app, dialog } = require('electron');
     const { writeFile } = require('node:fs/promises');
     let calls = 0;
-    dialog.showOpenDialog = async (_window, options) => {
-      if (!options.properties.includes('openDirectory')) throw new Error('Unexpected dialog in plugin workflow test');
-      return ++calls === 1 ? { canceled: true, filePaths: [] } :
-        { canceled: false, filePaths: [${JSON.stringify(destination)}] };
+    dialog.showOpenDialog = async (windowOrOptions, options = windowOrOptions) => {
+      if (options.properties.includes('openDirectory'))
+        return ++calls === 1 ? { canceled: true, filePaths: [] } :
+          { canceled: false, filePaths: [${JSON.stringify(destination)}] };
+      if (options.properties.includes('multiSelections')) return { canceled: false, filePaths: [${JSON.stringify(short)}] };
+      return { canceled: false, filePaths: [${JSON.stringify(path.join(destination, 'episode-2.reacut'))}] };
     };
+    dialog.showSaveDialog = async () => ({ canceled: false, filePath: ${JSON.stringify(path.join(destination, 'panel-export.mp4'))} });
     app.on('browser-window-created', (_event, window) => {
       const contents = window.webContents;
       const capture = contents.capturePage.bind(contents);
@@ -122,12 +125,14 @@ try {
   assert.equal(init.serverInfo.name, 'reacut');
   assert.match(init.instructions, /Use reacut_edit for requests to edit/);
   const tools = (await rpc('tools/list')).tools;
-  assert.equal(tools.length, 19);
+  assert.equal(tools.length, 24);
   assert.equal(tools.find((t: any) => t.name === 'reacut_transcribe').annotations.readOnlyHint, true);
   assert.equal(tools.find((t: any) => t.name === 'reacut_propose_edit').annotations.destructiveHint, false);
   assert.deepEqual(tools.find((t: any) => t.name === 'reacut_frame')._meta.ui.visibility, ['app']);
+  assert.deepEqual(tools.find((t: any) => t.name === 'reacut_panel_sync')._meta.ui.visibility, ['app']);
   const resource = await rpc('resources/read', { uri: 'ui://reacut/editor-v1.html' });
-  assert.match(resource.contents[0].text, /中文 \/ 粘贴/);
+  assert.match(resource.contents[0].text, /id="root"/);
+  assert.doesNotMatch(resource.contents[0].text, /中文 \/ 粘贴|id="screen"/);
   assert.equal(resource.contents[0]._meta['openai/ui'].preferredDisplayMode, 'fullscreen');
   checks.push('MCP initialization, tools, app-only visibility, bundled fullscreen resource');
   const open = await success('reacut_open');
@@ -343,6 +348,24 @@ try {
     assert.deepEqual(await success('reacut_template_slots', selection), original);
     assert(!(await readdir(destination)).some(file => file.startsWith('.reacut-')));
     checks.push('Second project reuses output grant, cancelled jobs leave no output, independent MOV export preserves the template');
+
+    const panelCommand = async (action: string) => {
+      const { revision } = await success('reacut_state');
+      const result = await call('reacut_panel_command', { revision, action });
+      assert(!result.isError, result.content?.[0]?.text);
+      return result._meta['reacut/panel'];
+    };
+    assert((await panelCommand('import')).project.assets.some((asset: any) => asset.name === 'short.mp4'));
+    state = await success('reacut_state');
+    await success('reacut_edit', { revision: state.revision, actions: [{ type: 'setProject', width: 320, height: 180 }] });
+    assert.equal((await panelCommand('save')).dirty, false);
+    assert.equal((await panelCommand('open')).project.name, 'Batch episode 2');
+    state = await success('reacut_state');
+    assert.equal((await success('reacut_open_project', { revision: state.revision })).name, 'Batch episode 2');
+    await panelCommand('export');
+    await expect.poll(async () => (await call('reacut_panel_state'))._meta['reacut/panel'].export?.status, { timeout: 30000 }).toBe('complete');
+    assert((await probeFile(path.join(destination, 'panel-export.mp4'))).streams.some(stream => stream.codec_type === 'audio'));
+    checks.push('Side panel system dialog commands import, save, reopen, and export a playable video');
   }
   await writeFile(path.join(output, 'evidence.json'), JSON.stringify({ checks, init, toolNames: tools.map((t: any) => t.name), state }, null, 2));
   console.log(JSON.stringify({ passed: checks.length, checks, output }, null, 2));

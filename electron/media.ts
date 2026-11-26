@@ -269,6 +269,13 @@ export async function performancePreviewProxy(file: string, cacheDir: string, si
   return transcodePreview(file, "video", cacheDir, hash, true, signal);
 }
 
+export async function pluginPreviewProxy(file: string, kind: MediaAsset["kind"], cacheDir: string, signal: AbortSignal): Promise<string> {
+  const metadata = await stat(file);
+  const hash = createHash("sha256").update(`${file}:${metadata.size}:${metadata.mtimeMs}`).digest("hex").slice(0, 24);
+  await mkdir(cacheDir, { recursive: true });
+  return transcodePreview(file, kind, cacheDir, hash, true, signal);
+}
+
 async function transcodePreview(
   file: string, kind: MediaAsset["kind"], cacheDir: string, hash: string,
   performance: boolean, signal?: AbortSignal,

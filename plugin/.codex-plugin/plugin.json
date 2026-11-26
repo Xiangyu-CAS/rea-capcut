@@ -1,7 +1,7 @@
 {
   "name": "reacut",
-  "version": "0.9.0",
-  "description": "Local video editing inside the Codex side panel. Requires ReaCut 0.5.0+.",
+  "version": "0.9.1",
+  "description": "Native video editing in the desktop side panel with local ReaCut MCP tools. Requires ReaCut 0.9.1+.",
   "author": {
     "name": "ReaCut contributors"
   },
@@ -11,7 +11,7 @@
   "interface": {
     "displayName": "ReaCut",
     "shortDescription": "在 Codex 右侧剪辑本地视频",
-    "longDescription": "在 Codex 侧栏打开完整 ReaCut 编辑器，直接操作时间线、文字、特效、转场与本地导出。Codex 可读取项目并进行可撤销的批量编辑。需要本机 ReaCut 0.5.0+；无需云服务或 API Key。",
+    "longDescription": "在侧栏直接打开 ReaCut 的播放器、素材、属性和多轨时间线。可以直接输入中文并在本机导出；Codex 与 ChatGPT 可通过 MCP 读取项目和进行可撤销的批量编辑。需要本机 ReaCut 0.9.1+。",
     "developerName": "ReaCut contributors",
     "category": "Productivity",
     "logo": "./assets/icon.png",

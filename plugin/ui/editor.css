@@ -1,0 +1,158 @@
+html, body, #root { height: 100%; }
+
+.reacut-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  background: #1a1a1a;
+  overflow: auto;
+}
+.reacut-toolbar {
+  display: flex;
+  flex: none;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  background: #252525;
+}
+.reacut-title, .reacut-actions { display: flex; align-items: center; gap: 7px; }
+.reacut-title { min-width: 0; }
+.reacut-title strong { color: #f2f2f2; font-size: 14px; }
+.reacut-title span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #adadad; }
+.reacut-actions { flex: none; gap: 3px; }
+.reacut-actions button { white-space: nowrap; }
+.reacut-overflow { position: relative; }
+.reacut-overflow summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  width: 29px;
+  height: 29px;
+  border-radius: 5px;
+  list-style: none;
+}
+.reacut-overflow summary::-webkit-details-marker { display: none; }
+.reacut-overflow summary:hover, .reacut-overflow[open] summary { background: #373737; }
+.reacut-overflow > div {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 5px);
+  right: 0;
+  display: grid;
+  min-width: 160px;
+  padding: 4px;
+  border: 1px solid #434343;
+  border-radius: 6px;
+  background: #292929;
+  box-shadow: 0 8px 25px #0006;
+}
+.reacut-overflow button { justify-content: flex-start; }
+.reacut-loading {
+  display: grid;
+  flex: 1;
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+  color: #bcbcbc;
+}
+.reacut-message, .reacut-plan {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  background: #292929;
+  border-bottom: 1px solid var(--border);
+}
+.reacut-message button, .reacut-plan button:first-of-type { margin-left: auto; }
+.reacut-message[role="alert"] { color: #ffbaad; }
+.reacut-message progress { flex: 1; min-width: 0; accent-color: var(--accent); }
+.reacut-plan span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.reacut-plan button { flex: none; }
+
+.reacut-workspace {
+  flex: 1;
+  min-height: 475px;
+  display: flex;
+  flex-direction: column;
+}
+.reacut-workbench {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-areas: "media monitor properties";
+  grid-template-columns: minmax(220px, 1fr) minmax(260px, 2.3fr) minmax(245px, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 5px;
+  padding: 5px;
+}
+.reacut-dock-tabs { display: none; grid-area: tabs; }
+.reacut-media-dock { grid-area: media; }
+.reacut-property-dock { grid-area: properties; }
+.reacut-monitor { grid-area: monitor; position: relative; }
+.reacut-media-dock, .reacut-property-dock, .reacut-monitor { display: flex; min-height: 0; min-width: 0; }
+.reacut-media-dock > *, .reacut-property-dock > *, .reacut-monitor > :first-child { flex: 1; min-width: 0; }
+.reacut-media-dock { border: 1px solid #303030; border-radius: 6px; background: var(--panel); overflow: auto; }
+.reacut-property-dock .inspector { overflow: auto; }
+.reacut-monitor .player-stage:has(.player-empty) canvas { visibility: hidden; }
+.reacut-media-status {
+  position: absolute;
+  bottom: 45px;
+  left: 6px;
+  right: 6px;
+  text-align: center;
+  color: #e5e5e5;
+  background: #252525ed;
+  border-radius: 4px;
+  padding: 4px;
+  pointer-events: none;
+}
+.reacut-timeline {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  min-height: 195px;
+  height: 36%;
+  border-top: 1px solid var(--border);
+  background: var(--panel);
+}
+.reacut-timeline .tl { min-height: 0; flex: 1; }
+.reacut-timeline-bar { display: flex; justify-content: space-between; gap: 4px; padding-right: 6px; }
+.reacut-timeline-bar .timeline-tabs { border: 0; }
+.reacut-timeline-bar > button { flex: none; color: #e2e2e2; }
+.reacut-timeline .tl-toolbar { padding-inline: 5px; gap: 3px; overflow-x: auto; scrollbar-width: thin; }
+.reacut-timeline .tl-toolbar-group, .reacut-timeline .tl-toolbar-end { gap: 1px; }
+.reacut-timeline .tl-divider { margin-inline: 3px; }
+.reacut-timeline .tl-duration { margin-right: 3px; }
+
+@media (max-width: 900px) {
+  .reacut-workbench {
+    grid-template-areas: "monitor tabs" "monitor media";
+    grid-template-columns: minmax(0, 1fr) minmax(208px, 39%);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .reacut-workbench[data-dock="properties"] { grid-template-areas: "monitor tabs" "monitor properties"; }
+  .reacut-workbench[data-dock="properties"] .reacut-media-dock,
+  .reacut-workbench[data-dock="media"] .reacut-property-dock { display: none; }
+  .reacut-dock-tabs { display: flex; gap: 3px; }
+  .reacut-dock-tabs button { flex: 1; }
+  .reacut-dock-tabs [aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); }
+}
+
+@media (max-width: 550px) {
+  .reacut-toolbar { padding-inline: 6px; gap: 4px; }
+  .reacut-actions button > span { display: none; }
+  .reacut-workspace { min-height: 525px; }
+  .reacut-workbench {
+    grid-template-areas: "monitor" "tabs" "media";
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(150px, 1.2fr) auto minmax(88px, 1fr);
+  }
+  .reacut-workbench[data-dock="properties"] { grid-template-areas: "monitor" "tabs" "properties"; }
+  .reacut-timeline { height: 33%; }
+}

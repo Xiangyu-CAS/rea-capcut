@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 MAX_MESSAGE = 1024 * 1024
 
 
-def command():
+def command(tools_only=False):
     configured = os.environ.get('REACUT_APP')
     config = Path.home() / '.config' / 'reacut' / 'plugin.json'
     if not configured and config.is_file():
@@ -28,10 +28,10 @@ def command():
                 import plistlib
                 with (candidate / 'Contents/Info.plist').open('rb') as f:
                     version = plistlib.load(f).get('CFBundleShortVersionString', '0')
-                if tuple(int(v) for v in version.split('.')[:2]) < (0, 5):
-                    raise RuntimeError('ReaCut 0.5.0 or newer is required. Install the matching DMG first.')
-            return [str(binary), '--reacut-plugin']
-    raise RuntimeError('Install ReaCut 0.5.0+ in /Applications, or run install-plugin.sh --app /absolute/path/ReaCut.app.')
+                if tuple(int(v) for v in version.split('.')[:3]) < (0, 9, 1):
+                    raise RuntimeError('ReaCut 0.9.1 or newer is required. Install the matching DMG first.')
+            return [str(binary), '--reacut-plugin', *(['--reacut-tools-only'] if tools_only else [])]
+    raise RuntimeError('Install ReaCut 0.9.1+ in /Applications, or run install-plugin.sh --app /absolute/path/ReaCut.app.')
 
 
 def editor_html():
@@ -68,8 +68,11 @@ def editor_html():
 
 
 class Proxy:
-    def __init__(self):
+    def __init__(self, tools_only=False):
         self.metadata = json.loads((ROOT / 'protocol.json').read_text(encoding='utf-8'))
+        self.tools_only = tools_only
+        self.tools = self.metadata['remoteTools' if tools_only else 'tools']
+        self.tool_names = {tool['name'] for tool in self.tools}
         self.child = None
         self.reader = None
         self.pending = set()
@@ -110,7 +113,7 @@ class Proxy:
 
     def forward(self, request):
         if self.child is None:
-            self.child = subprocess.Popen(command(), stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            self.child = subprocess.Popen(command(self.tools_only), stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                           stderr=sys.stderr, bufsize=0)
             self.reader = threading.Thread(target=self.read_child, daemon=True)
             self.reader.start()
@@ -146,25 +149,27 @@ class Proxy:
             version = params.get('protocolVersion')
             if version not in ('2025-11-25', '2025-06-18', '2025-03-26', '2024-11-05'):
                 version = '2025-11-25'
-            self.result(request, {'protocolVersion': version, 'capabilities': {'tools': {}, 'resources': {}},
+            capabilities = {'tools': {}} if self.tools_only else {'tools': {}, 'resources': {}}
+            self.result(request, {'protocolVersion': version, 'capabilities': capabilities,
                 'serverInfo': {'name': 'reacut', 'version': self.metadata['version']},
-                'instructions': 'Use reacut_open to open the editor. Read state for the revision and selections. Use reacut_edit for requests to edit, reacut_propose_edit when the user asks to preview first, and state alone for advice. Import only user-selected media. For batch outputs, use reacut_output_folder.'})
+                'instructions': ('' if self.tools_only else 'Use reacut_open to open the editor. ') +
+                'Read state for the revision and selections. Use reacut_edit for requests to edit, reacut_propose_edit when the user asks to preview first, and state alone for advice. Import only user-selected media. For batch outputs, use reacut_output_folder.'})
         elif method == 'ping':
             self.result(request, {})
         elif method == 'tools/list':
-            self.result(request, {'tools': self.metadata['tools']})
+            self.result(request, {'tools': self.tools})
         elif method == 'resources/list':
-            self.result(request, {'resources': [self.metadata['resource']]})
+            self.result(request, {'resources': [] if self.tools_only else [self.metadata['resource']]})
         elif method == 'resources/templates/list':
             self.result(request, {'resourceTemplates': []})
         elif method == 'resources/read':
             resource = self.metadata['resource']
-            if params.get('uri') != resource['uri']:
+            if self.tools_only or params.get('uri') != resource['uri']:
                 self.error(identifier, 'Unknown resource', -32602)
             else:
                 self.result(request, {'contents': [{**resource, 'text': editor_html()}]})
         elif method == 'tools/call':
-            if params.get('name') not in {t['name'] for t in self.metadata['tools']}:
+            if params.get('name') not in self.tool_names:
                 self.error(identifier, 'Unknown tool', -32602)
             else:
                 self.forward(request)
@@ -195,7 +200,7 @@ def main():
     if '--check' in sys.argv:
         print(json.dumps({'ready': True, 'executable': command()[0], 'lazy': True}))
         return
-    proxy = Proxy()
+    proxy = Proxy(tools_only='--tools-only' in sys.argv)
     def terminate(_signum, _frame):
         raise SystemExit(0)
     signal.signal(signal.SIGTERM, terminate)

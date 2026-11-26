@@ -70,7 +70,7 @@ Download the [ReaCut 0.9.0 DMG for macOS Apple Silicon](https://github.com/Xiang
 
 ### Option 2: inside the Codex side panel
 
-On macOS, install **ReaCut 0.9.0**, Codex desktop, its `codex` CLI, and Python 3. Download the [Codex plugin ZIP](https://github.com/Xiangyu-CAS/ReaCut/releases/download/v0.9.0/ReaCut-plugin-0.9.0.zip), then run from its extracted directory or this repository:
+On macOS, use a matching ReaCut **0.9.1+** app and plugin ZIP, Codex desktop, its `codex` CLI, and Python 3. Run the installer from the extracted plugin package or this repository. The [plugin guide](docs/CODEX_PLUGIN.md) has the build commands.
 
 ```sh
 sh scripts/install-plugin.sh
@@ -78,7 +78,7 @@ sh scripts/install-plugin.sh
 
 Reconnect or open a new Codex chat and ask: **“Open ReaCut in the side panel.”** Click, drag, type, save and export directly in the side panel, or ask Codex to make reversible batch edits to the current project. If the app is outside Applications, pass `--app /absolute/path/ReaCut.app`.
 
-The plugin runs the local editor in a separate session. Its interactive stream is about 6 fps; file selection uses native dialogs, and audio plays locally. Codex receives requested project summaries, text, and explicit screenshots. See the [plugin guide](docs/CODEX_PLUGIN.md) for setup, data boundaries, and limitations.
+The sidebar renders ReaCut's timeline, player, media library and inspector directly. Text fields support the host input method and clipboard. File selection uses system dialogs, and the sidebar and MCP tools share a project. The desktop plugin uses local stdio. A tools-only profile is available for private ChatGPT MCP connections through [Secure MCP Tunnel](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels).
 
 ### Run from source
 

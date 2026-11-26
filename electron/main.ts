@@ -20,8 +20,9 @@ import {
   shell,
 } from "electron";
 import { startPluginHost } from "./pluginHost";
+import { createPanelMediaReader } from "./pluginMedia";
 import { pluginOutputFolder, type PluginOutputFolder } from "./pluginOutputs";
-import { createReadStream } from "node:fs";
+import { createReadStream, realpathSync } from "node:fs";
 import {
   access,
   copyFile,
@@ -168,6 +169,7 @@ let dirty = false,
   askingClose = false,
   quitRequested = false;
 const allowedMedia = new Set<string>();
+const panelMediaPaths = new Map<string, string>();
 const recentPaths = new Set<string>();
 const outputPaths = new Set<string>();
 const savePaths = new Set<string>();
@@ -275,7 +277,7 @@ function registerPluginOutputs() {
     if (choosing) throw new Error("The output folder dialog is already open.");
     choosing = true;
     try {
-      const result = await dialog.showOpenDialog(window!, {
+      const result = await openEditorFileDialog({
         title: nativeUI("选择批量出片文件夹", "Choose batch output folder"),
         properties: ["openDirectory", "createDirectory"],
       });
@@ -349,15 +351,29 @@ async function remember(project: Project, file: string) {
   savePaths.add(file);
 }
 function authorizeAsset(asset: MediaAsset) {
-  allowedMedia.add(path.resolve(asset.path));
+  authorizeMediaPath(asset.path);
   for (const url of [asset.thumbnail, asset.previewUrl]) authorizeCachedMedia(url);
+}
+function authorizeMediaPath(file: string) {
+  const resolved = path.resolve(file);
+  allowedMedia.add(resolved);
+  if (pluginMode) {
+    try { panelMediaPaths.set(resolved, realpathSync(resolved)); }
+    catch { panelMediaPaths.delete(resolved); }
+  }
 }
 function authorizeCachedMedia(url?: string) {
   if (!url?.startsWith("reacut-media:")) return;
   try {
     const file = new URL(url).searchParams.get("path");
-    if (file && path.dirname(path.resolve(file)) === cacheDir()) allowedMedia.add(path.resolve(file));
+    if (file && path.dirname(path.resolve(file)) === cacheDir()) authorizeMediaPath(file);
   } catch { /* An optional cache file is unavailable. */ }
+}
+function openEditorFileDialog(options: Electron.OpenDialogOptions) {
+  return window && (!pluginMode || window.isVisible()) ? dialog.showOpenDialog(window, options) : dialog.showOpenDialog(options);
+}
+function saveEditorFileDialog(options: Electron.SaveDialogOptions) {
+  return window && (!pluginMode || window.isVisible()) ? dialog.showSaveDialog(window, options) : dialog.showSaveDialog(options);
 }
 async function hydrateProject(input: unknown): Promise<Project> {
   const p = validateProject(input);
@@ -686,7 +702,7 @@ function registerIPC() {
   handle("import-media", async (paths?: string[]) => {
     let selected = paths;
     if (!selected) {
-      const result = await dialog.showOpenDialog(window!, {
+      const result = await openEditorFileDialog({
         title: nativeUI("导入素材", "Import media"),
         properties: ["openFile", "multiSelections"],
         filters: [
@@ -772,7 +788,7 @@ function registerIPC() {
     return { project, path: file };
   });
   handle("open-project", async () => {
-    const result = await dialog.showOpenDialog(window!, {
+    const result = await openEditorFileDialog({
       title: nativeUI("打开 ReaCut 项目", "Open ReaCut project"),
       properties: ["openFile"],
       filters: [{ name: nativeUI("ReaCut 项目", "ReaCut project"), extensions: ["reacut", "json"] }],
@@ -798,7 +814,7 @@ function registerIPC() {
     const project = validateProject(input);
     if (file && !savePaths.has(file)) throw new Error("未经选择的项目保存位置");
     if (!file) {
-      const result = await dialog.showSaveDialog(window!, {
+      const result = await saveEditorFileDialog({
         title: nativeUI("保存项目", "Save project"),
         defaultPath: project.name + ".reacut",
         filters: [{ name: nativeUI("ReaCut 项目", "ReaCut project"), extensions: ["reacut"] }],
@@ -842,7 +858,7 @@ function registerIPC() {
   });
   handle("choose-export-path", async (name: string, format: string) => {
     if (!["mp4", "mov"].includes(format)) throw new Error("无效导出格式");
-    const result = await dialog.showSaveDialog(window!, {
+    const result = await saveEditorFileDialog({
       title: nativeUI("导出视频", "Export video"),
       defaultPath: name + "." + format,
       filters: [{ name: format.toUpperCase() + nativeUI(" 视频", " video"), extensions: [format] }],
@@ -1093,11 +1109,15 @@ function createWindow() {
     },
   });
   if (pluginMode) {
+    window.webContents.setAudioMuted(true);
+    window.on("show", () => window?.webContents.setAudioMuted(false));
+    window.on("hide", () => window?.webContents.setAudioMuted(true));
     if (process.platform === "darwin") {
       window.on("show", () => app.setActivationPolicy("regular"));
       window.on("hide", () => app.setActivationPolicy("accessory"));
     }
-    startPluginHost(window, () => { closeAllowed = true; app.quit(); });
+    startPluginHost(window, () => { closeAllowed = true; app.quit(); },
+      createPanelMediaReader(panelMediaPaths, cacheDir), process.argv.includes("--reacut-tools-only"));
   }
   window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   window.webContents.on("will-navigate", (event, url) => {

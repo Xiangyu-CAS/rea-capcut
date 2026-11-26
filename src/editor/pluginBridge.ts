@@ -8,6 +8,7 @@ import { instantiateTemplate, replaceTemplateSlots } from '../core/projectTempla
 import type { CreateFromTemplateRequest, PluginExportRequest, PluginOutputs, TemplateSelection } from '../core/pluginWorkflow';
 import { localizeBuiltinTemplate, TEMPLATE_NAMES } from '../components/templateLabels';
 import { useLanguageStore } from '../i18n';
+import { createPanelBridge } from './pluginPanelBridge';
 
 let projectReady = false;
 export function setPluginProjectReady(ready: boolean) {
@@ -50,15 +51,29 @@ export function installPluginBridge() {
     return localizeBuiltinTemplate(instantiate ? instantiateTemplate(template) : template,
       source === 'builtin' ? templateId : undefined, useLanguageStore.getState().language);
   };
+  const checkRevision = (expected: unknown) => {
+    if (expected !== revision) throw new Error('Project changed. Read state and use its current revision.');
+    if (!projectReady) throw new Error('Finish opening or restoring the project in the editor first.');
+    if (useEditorStore.getState().transactionOpen) throw new Error('Finish the active drag or parameter edit first.');
+  };
+  const panel = createPanelBridge(api, () => revision, () => projectReady, checkRevision);
 
   plugin.onCommand(async (request) => {
     const s = useEditorStore.getState();
     const a = request.args;
-    const checkRevision = (expected: unknown) => {
-      if (expected !== revision) throw new Error('Project changed. Read state and use its current revision.');
-      if (!projectReady) throw new Error('Finish opening or restoring the project in the editor first.');
-      if (useEditorStore.getState().transactionOpen) throw new Error('Finish the active drag or parameter edit first.');
-    };
+    if (request.action === 'panel_state') return panel.snapshot(a.revision);
+    if (request.action === 'panel_sync') return panel.sync(a as Parameters<typeof panel.sync>[0]);
+    if (request.action === 'panel_command') return panel.command(a as Parameters<typeof panel.command>[0]);
+    if (request.action === 'open_project') {
+      await panel.command({ revision: a.revision, action: 'open' });
+      return snapshot();
+    }
+    if (request.action === 'panel_media') {
+      const source = (project: typeof s.project) => project.assets.find(asset => asset.id === a.id && !asset.missing);
+      const asset = source(s.project) ?? (s.agentPreviewId === s.agentPlan?.id && s.agentPlan ? source(s.agentPlan.preview.project) : undefined);
+      if (!projectReady || !asset) throw new Error('Media is not available in the current project.');
+      return asset;
+    }
     if (request.action === 'selectInput') {
       const focused = document.activeElement;
       if (focused instanceof HTMLInputElement || focused instanceof HTMLTextAreaElement) { focused.select(); return { handled: true }; }

@@ -5,11 +5,11 @@ description: 在 Codex 右侧打开 ReaCut 本地视频编辑器，根据用户�
 
 # ReaCut
 
-调用 `reacut_open` 打开或复用右侧编辑器。它是完整本地 ReaCut 的交互画面，支持鼠标、拖动、滚轮、键盘以及工具栏中文输入。文件选择、保存和导出目的地使用本机系统对话框；需要原速预览时点击“显示桌面窗口”。声音在本机播放，侧栏画面约 6 fps。
+调用 `reacut_open` 打开或复用右侧编辑器。侧栏直接渲染 ReaCut 的播放器、素材、属性和多轨时间线。文字在原输入框内输入或粘贴。文件选择、保存和导出目的地使用本机系统对话框。
 
 ## 连接与依赖
 
-需要 Codex 桌面端、Python 3，以及已安装的 ReaCut 0.5.0 或更新版本。macOS 默认寻找 `/Applications/ReaCut.app` 或 `~/Applications/ReaCut.app`。其他路径使用安装脚本的 `--app` 参数。没有插件工具时先检查安装及当前聊天的插件连接；重连或新开聊天后再试。不要用旧版应用冒充已连接，不修改 Codex 的审批策略。
+需要支持本地执行的桌面宿主、Python 3，以及配套的 ReaCut 0.9.1 或更新版本。macOS 默认寻找 `/Applications/ReaCut.app` 或 `~/Applications/ReaCut.app`。其他路径使用安装脚本的 `--app` 参数。没有插件工具时先检查安装及当前聊天的插件连接。
 
 ## 编辑
 
@@ -17,7 +17,7 @@ description: 在 Codex 右侧打开 ReaCut 本地视频编辑器，根据用户�
 2. 用 `reacut_import` 导入用户明确选定的绝对路径。未指定文件时省略参数打开文件选择器。不要遍历 Downloads 或私人草稿库。内置原创素材用 `reacut_catalog` 查 ID，再用 builtinId 导入。
 3. 用户要求剪辑时，用 `reacut_edit` 一次提交最多 40 项动作，整批支持一次撤销。使用最新 revision 和工具白名单。选段用 `addAsset.sourceIn`、`duration`，片段操作使用时间线位置。用 `reacut_state` 的 `agent.plan.status` 和实际片段确认结果。遇到旧 revision 先重新读取状态，再规划。
 4. 用户明确要求先预览或先等确认时，用 `reacut_propose_edit` 暂存方案。预览方案后，可在编辑器中确认应用。只问建议时，读取工程并在对话中回答。`reacut_control` 可播放、暂停、定位、撤销和重做，`reacut_screenshot` 可核对当前画面。
-5. 文字模板、调色、关键帧动效、转场以及保存/导出可直接在右侧界面操作。可用 computer-use 操作宿主提供的 MCP App。App-only frame/input 工具专供界面。
+5. 文字、调色、关键帧、时间线和保存导出可直接在侧栏操作。通过项目菜单中的“显示桌面窗口”使用完整的桌面功能。App-only 工具保留给界面渲染，模型用文档中的项目工具操作。
 
 ## 自动字幕
 
