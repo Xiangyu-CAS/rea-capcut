@@ -15,14 +15,15 @@ const toolsAvailable = ["ffmpeg", "ffprobe"].every(tool => spawnSync(tool, ["-ve
 it.skipIf(!toolsAvailable)("imports a complete MP3, keeps the credit in a portable project, and exports playable audio", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "reacut-music-media-"));
   try {
-    const cache = path.join(root, "cache"), song = path.join(root, "input.mp3");
+    const cache = path.join(root, "cache");
     const real = process.env.REACUT_TEST_MUSIC_MP3, realCatalog = process.env.REACUT_TEST_MUSIC_CATALOG;
-    if (!real) expect(spawnSync("ffmpeg", ["-y", "-loglevel", "error", "-f", "lavfi", "-i", "sine=frequency=440:duration=4", song]).status).toBe(0);
+    // The shipped media tools decode MP3, but need not include an MP3 encoder.
+    const song = real ?? new URL("./fixtures/online-music-tone.mp3", import.meta.url);
     const service = createOnlineMusic(path.join(root, "music"), async url => {
       if (String(url).endsWith("pieces.json")) return realCatalog ? new Response(await readFile(realCatalog)) : Response.json([
         { title: "Carefree", filename: "Carefree.mp3", length: "00:00:04", isrc: "USUAN1400037" },
       ]);
-      if (String(url).endsWith("/Carefree.mp3")) return new Response(await readFile(real || song));
+      if (String(url).endsWith("/Carefree.mp3")) return new Response(await readFile(song));
       return new Response(null, { status: 403 });
     });
     const { tracks } = await service.search("Carefree");
@@ -36,7 +37,8 @@ it.skipIf(!toolsAvailable)("imports a complete MP3, keeps the credit in a portab
     music.name = title;
     music.musicCredit = { sourceId: candidate.id, title, creator, sourceUrl, license, licenseUrl };
     const vid = path.join(root, "input.mp4");
-    expect(spawnSync("ffmpeg", ["-y", "-loglevel", "error", "-f", "lavfi", "-i", "color=c=blue:s=320x240:d=2:r=30", "-c:v", "libx264", vid]).status).toBe(0);
+    const makeVideo = spawnSync("ffmpeg", ["-y", "-loglevel", "error", "-f", "lavfi", "-i", "color=c=blue:s=320x240:d=2:r=30", "-c:v", "libx264", vid], { encoding: "utf8" });
+    expect(makeVideo.status, makeVideo.stderr || makeVideo.error?.message).toBe(0);
     const [video] = await importAssets([vid], cache);
     const project = createProject();
     project.width = 320; project.height = 240;
@@ -59,6 +61,6 @@ it.skipIf(!toolsAvailable)("imports a complete MP3, keeps the credit in a portab
       }).catch(error => { clearTimeout(timer); reject(error); });
     });
     expect(event.status, event.message).toBe("complete");
-    expect((await probeFile(out)).streams.some(stream => stream.codec_type === "audio")).toBe(true);
+    expect((await probeFile(out)).streams.some(stream => stream.codec_type === "audio" && stream.codec_name === "aac")).toBe(true);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
